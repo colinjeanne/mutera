@@ -1,0 +1,29 @@
+{
+  "name": "world",
+  "version": "0.1.0",
+  "description": "An artificial life simulation",
+  "main": "umd/world.js",
+  "jsnext:main": "src/index.js",
+  "scripts": {
+    "clean": "rimraf umd coverage",
+    "precoverage": "npm run build",
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha",
+    "lint": "eslint src/**.js spec/**.js",
+    "prebuild": "npm run clean & npm run lint",
+    "build": "rollup -c rollup.config.release.js",
+    "pretest": "npm run build",
+    "test": "mocha"
+  },
+  "author": "Colin Jeanne <colinjeanne@hotmail.com>",
+  "license": "MIT",
+  "dependencies": {},
+  "private": true,
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^3.8.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.1.2",
+    "rimraf": "^2.5.4",
+    "rollup": "^0.36.0"
+  }
+}

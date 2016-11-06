@@ -99,11 +99,6 @@ export const swappableOperators = operator => {
     return selectOperators(operatorType(operator), arity(operator));
 };
 
-export const base64Values =
-    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
-
-export const variables = base64Values;
-
 export const constants = (() => {
     const values = [];
     for (let i = -4; i < 4; i += 1/8) {

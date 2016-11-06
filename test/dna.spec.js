@@ -4,6 +4,11 @@ const world = require('./../umd/world.js');
 const makeSequence = (...seq) => () => seq.length ? seq.shift() : 0;
 
 describe('DNA', function() {
+    it('must be base64 encoded', function() {
+        expect(() => new world.DNA('1+')).
+            to.throw('Encoded DNA is not a base64 string');
+    });
+
     it('must have a header', function() {
         expect(() => new world.DNA('')).to.throw('DNA missing header');
     });
@@ -134,15 +139,6 @@ describe('genes', function() {
     it('cannot have more than 10 extensions', function() {
         expect(() => new world.DNA('1000000000001')).
             to.throw('Giant length');
-    });
-
-    it('must have a known length encoding', function() {
-        expect(() => new world.DNA('1+')).to.throw('Invalid length');
-    });
-
-    it('must set a known variable', function() {
-        expect(() => new world.DNA('15+1TC0')).
-            to.throw('Unknown variable in gene');
     });
 
     it('must have a condition', function() {
@@ -305,19 +301,6 @@ describe('Expression trees', function() {
         expect(() => new world.DNA('1Bd1TC0C0GC0O')).
             to.throw(
                 'Boolean connectives must operate on boolean trees');
-    });
-
-    it('fails on an unknown token', function() {
-        expect(() => new world.DNA('18d1TC0C0@')).to.throw('Unexpected token');
-    });
-
-    it('fails on unknown variables', function() {
-        expect(() => new world.DNA('15d1TV+')).to.throw('Unknown variable');
-    });
-
-    it('fails on unknown constants', function() {
-        expect(() => new world.DNA('15d1TC+')).
-            to.throw('Constant out of range');
     });
 });
 
@@ -494,7 +477,7 @@ describe('Mutation', function() {
                 [0, 0.9],
                 [1, 1]
             ]),
-            treeRecursionRate: 0.5,
+            treeRecursionRate: 0.5
         };
 
         const dna = new world.DNA(encodedDNA);

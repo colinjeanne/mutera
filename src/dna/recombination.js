@@ -1,3 +1,4 @@
+import { base64Values } from './../base64';
 import * as Constants from './constants';
 
 const spliceType = {
@@ -14,7 +15,7 @@ const defaultMutationRates = {
         [3, 0.8],
         [4, 1]
     ]),
-    outputVariables: Constants.base64Values,
+    outputVariables: base64Values,
     primaryParentGeneSelection: 0.5,
     spliceRates: new Map([
         [spliceType.delete, 0.33],

@@ -20,6 +20,6 @@ export default class DNA {
     recombine(other, { mutationRates, random = Math.random }) {
         const genes =
             recombine(this.genes, other.genes, mutationRates, random);
-        return new DNA(serializeDNA({ version: 1 }, genes));
+        return new DNA(serializeDNA({ version: '1' }, genes));
     }
 }

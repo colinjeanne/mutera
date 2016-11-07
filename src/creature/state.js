@@ -1,3 +1,5 @@
+import { chooseBetween } from './../random';
+
 const timeVaryingValue = (current, next, change, elapsedTime) =>
     current + change * elapsedTime;
 
@@ -12,6 +14,8 @@ const stateDefinition = {
         dependencies: [
             'angularVelocity'
         ],
+        rangeMin: 0,
+        rangeMax: 512,
         transfer: (current, next, change, elapsedTime) => {
             const nextAngle = timeVaryingValue(
                 current,
@@ -156,7 +160,7 @@ export const stateToDNAInput = state => Object.keys(state).
         },
         {});
 
-export const ensureValidProperties = (state) =>
+export const ensureValidProperties = state =>
     Object.keys(state).reduce(
         (aggregate, property) => {
             const definition = stateDefinition[property];
@@ -174,6 +178,19 @@ export const setStateProperty = (state, property, value) => {
         {
             [property]: ensureWithinRange(value, definition)
         });
+};
+
+export const randomValueInPropertyRange = (property, random) => {
+    const definition = stateDefinition[property];
+    if (('min' in definition) && ('max' in definition)) {
+        return chooseBetween(definition.min, definition.max, random);
+    }
+
+    if (('rangeMin' in definition) && ('rangeMax' in definition)) {
+        return chooseBetween(definition.rangeMin, definition.rangeMax, random);
+    }
+
+    throw new Error('State property does not have a defined range');
 };
 
 export const processStateChange = (current, next, elapsedTime) =>

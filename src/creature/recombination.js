@@ -1,9 +1,7 @@
+import { chooseBetween } from './../random';
+import DNA from './../dna/index';
+import { ensureValidProperties, randomValueInPropertyRange } from './state';
 import { intToBase64 } from './../base64';
-import { ensureValidProperties } from './state';
-
-const chooseBetween = (min, max, random) => (random() * (max - min)) + min;
-
-const randomAngle = random => chooseBetween(0, 512, random);
 
 const randomId = random =>
     intToBase64(Math.floor(chooseBetween(0, Math.pow(64, 5), random)), 5);
@@ -17,17 +15,41 @@ const randomLocation = (x, y, random) => {
     };
 };
 
+export const createRandom = (mutationRates, random) => {
+    const state = ensureValidProperties({
+        health: 3000,
+        speed: 0
+    });
+
+    const id = randomId(random);
+
+    return {
+        dna: DNA.createRandom({ mutationRates, random }),
+        header: {
+            version: '1'
+        },
+        health: state.health,
+        id,
+        velocity: {
+            angle: randomValueInPropertyRange('angle', random),
+            speed: state.speed
+        },
+        x: randomValueInPropertyRange('x', random),
+        y: randomValueInPropertyRange('y', random)
+    };
+};
+
 export const recombine = (initiator, other, mutationRates, random) => {
     const location = randomLocation(initiator.x, initiator.y, random);
 
     const state = ensureValidProperties({
-        angle: randomAngle(random),
         health: 3000,
         speed: 0,
         x: location.x,
         y: location.y
     });
 
+    const angle = randomValueInPropertyRange('angle', random);
     const id = randomId(random);
 
     return {
@@ -38,7 +60,7 @@ export const recombine = (initiator, other, mutationRates, random) => {
         health: state.health,
         id,
         velocity: {
-            angle: state.angle,
+            angle,
             speed: state.speed
         },
         x: state.x,

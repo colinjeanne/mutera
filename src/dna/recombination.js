@@ -1,5 +1,6 @@
 import { base64Values } from './../base64';
 import * as Constants from './constants';
+import * as Random from './../random';
 
 const spliceType = {
     delete: 'delete',
@@ -8,6 +9,13 @@ const spliceType = {
 };
 
 const defaultMutationRates = {
+    geneCount: new Map([
+        [1, 0.2],
+        [2, 0.4],
+        [3, 0.6],
+        [4, 0.8],
+        [5, 1]
+    ]),
     mutationsPerGene: new Map([
         [0, 0.2],
         [1, 0.4],
@@ -28,33 +36,6 @@ const defaultMutationRates = {
     ]),
     treeRecursionRate: 0.5
 };
-
-const choose = (u, v, probabilityOfU, random) =>
-   random() < probabilityOfU ? u : v;
-
-const weightedChooseOne = (optionsMap, random) => {
-    const choice = random();
-    let chosenKey = undefined;
-    let chosenValue = undefined;
-    for (let [key, value] of optionsMap) {
-        if ((value > choice) &&
-            ((chosenValue === undefined) ||
-             (value < chosenValue))) {
-            chosenKey = key;
-            chosenValue = value;
-        }
-    }
-    return chosenKey;
-};
-
-const chooseIntBetween = (min, max, random) =>
-    Math.floor(random() * (max - min)) + min;
-
-const chooseOne = (choices, random) =>
-    choices[chooseIntBetween(0, choices.length, random)];
-
-const chooseIf = (probabilityOfChoice, random) =>
-    choose(true, false, probabilityOfChoice, random);
 
 const flattenTree = tree => {
     const output = [];
@@ -78,7 +59,7 @@ const flattenGene = gene =>
     ];
 
 const randomOutputVariable = (mutationRates, random) =>
-    chooseOne(mutationRates.outputVariables, random);
+    Random.chooseOne(mutationRates.outputVariables, random);
 
 const mutateOutput = (gene, mutationRates, random) => {
     gene.output = randomOutputVariable(mutationRates, random);
@@ -92,11 +73,12 @@ const swapChildren = tree => {
 
 const swapOperator = (tree, mutationRates, random) => {
     const alternates = Constants.swappableOperators(tree.operator);
-    tree.operator = chooseOne(alternates, random);
+    tree.operator = Random.chooseOne(alternates, random);
 };
 
 const randomBooleanTree = (mutationRates, random) => {
-    const shouldTerminate = chooseIf(mutationRates.treeRecursionRate, random);
+    const shouldTerminate =
+        Random.chooseIf(mutationRates.treeRecursionRate, random);
     const operators = shouldTerminate ?
         Constants.selectOperators(Constants.operatorTypes.boolean, 0) :
         ([
@@ -104,7 +86,7 @@ const randomBooleanTree = (mutationRates, random) => {
             ...Constants.selectOperators(Constants.operatorTypes.boolean, 2)
         ]);
 
-    const operator = chooseOne(operators, random);
+    const operator = Random.chooseOne(operators, random);
 
     const tree = {
         operator
@@ -126,18 +108,20 @@ const randomBooleanTree = (mutationRates, random) => {
 };
 
 const randomArithmeticTree = (mutationRates, random) => {
-    const shouldTerminate = chooseIf(mutationRates.treeRecursionRate, random);
+    const shouldTerminate =
+        Random.chooseIf(mutationRates.treeRecursionRate, random);
     const operators = shouldTerminate ?
         Constants.selectOperators(Constants.operatorTypes.arithmetic, 0) :
         Constants.selectOperators(Constants.operatorTypes.arithmetic, 2);
-    const operator = chooseOne(operators, random);
+    const operator = Random.chooseOne(operators, random);
 
     const tree = {
         operator
     };
 
     if (operator === Constants.operators.constant) {
-        tree.data = chooseIntBetween(0, Constants.constants.length, random);
+        tree.data =
+            Random.chooseIntBetween(0, Constants.constants.length, random);
     } else if (operator === Constants.operators.variable) {
         tree.data = randomOutputVariable(mutationRates, random);
     } else {
@@ -160,7 +144,8 @@ const replaceChild = (tree, mutationRates, random) => {
         if (tree.operator === Constants.operators.variable) {
             tree.data = randomOutputVariable(mutationRates, random);
         } else if (tree.operator === Constants.operators.constant) {
-            tree.data = chooseIntBetween(0, Constants.constants.length, random);
+            tree.data =
+                Random.chooseIntBetween(0, Constants.constants.length, random);
         } else if (tree.operator === Constants.operators.true) {
             // Do nothing, there is nothing that can be modified here
         } else {
@@ -169,7 +154,7 @@ const replaceChild = (tree, mutationRates, random) => {
     } else if (arity === 1) {
         tree.lhs = randomBooleanTree(mutationRates, random);
     } else {
-        const child = chooseIf(0.5, random) ? 'lhs' : 'rhs';
+        const child = Random.chooseIf(0.5, random) ? 'lhs' : 'rhs';
         if (!Constants.isBooleanConnective(tree.operator)) {
             tree[child] = randomArithmeticTree(mutationRates, random);
         } else {
@@ -188,16 +173,18 @@ const mutateTree = (tree, mutationRates, random) => {
         possibleMutations.push(swapChildren);
     }
 
-    const mutation = chooseOne(possibleMutations, random);
+    const mutation = Random.chooseOne(possibleMutations, random);
     mutation(tree, mutationRates, random);
 };
 
 const mutateGene = (gene, mutationRates, random) => {
-    const count = weightedChooseOne(mutationRates.mutationsPerGene, random);
+    const count =
+        Random.weightedChooseOne(mutationRates.mutationsPerGene, random);
 
     const flattenedGene = flattenGene(gene);
     for (let i = 0; i < count; ++i) {
-        const location = chooseIntBetween(0, flattenedGene.length, random);
+        const location =
+            Random.chooseIntBetween(0, flattenedGene.length, random);
         if (location === 0) {
             mutateOutput(gene, mutationRates, random);
         } else {
@@ -208,21 +195,25 @@ const mutateGene = (gene, mutationRates, random) => {
 };
 
 const spliceGenes = (genes, mutationRates, random) => {
-    const count = weightedChooseOne(mutationRates.splicesPerGene, random);
+    const count =
+        Random.weightedChooseOne(mutationRates.splicesPerGene, random);
 
     for (let i = 0; i < count; ++i) {
-        const type = weightedChooseOne(mutationRates.spliceRates, random);
+        const type =
+            Random.weightedChooseOne(mutationRates.spliceRates, random);
 
         if (type === spliceType.delete) {
             if (genes.length > 1) {
-                const location = chooseIntBetween(0, genes.length, random);
+                const location =
+                    Random.chooseIntBetween(0, genes.length, random);
                 genes.splice(location, 1);
             }
         } else if (type === spliceType.duplicate) {
-            const location = chooseIntBetween(0, genes.length, random);
+            const location = Random.chooseIntBetween(0, genes.length, random);
             genes.splice(location, 0, genes[location]);
         } else {
-            const location = chooseIntBetween(0, genes.length + 1, random);
+            const location =
+                Random.chooseIntBetween(0, genes.length + 1, random);
             genes.splice(location, 0, randomGene(mutationRates, random));
         }
     }
@@ -234,7 +225,7 @@ const recombineGenes =
         const length = Math.min(primaryGenes.length, secondaryGenes.length);
         for (let i = 0; i < length; ++i) {
             genes.push(
-                choose(
+                Random.choose(
                     primaryGenes[i],
                     secondaryGenes[i],
                     primaryParentGeneSelection,
@@ -242,17 +233,31 @@ const recombineGenes =
         }
 
         if (length < primaryGenes.length) {
-            if (chooseIf(primaryParentGeneSelection, random)) {
+            if (Random.chooseIf(primaryParentGeneSelection, random)) {
                 genes.push(...primaryGenes.slice(length));
             }
         } else if (length < secondaryGenes.length) {
-            if (!chooseIf(primaryParentGeneSelection, random)) {
+            if (!Random.chooseIf(primaryParentGeneSelection, random)) {
                 genes.push(...secondaryGenes.slice(length));
             }
         }
 
         return genes;
     };
+
+export const createRandom = (mutationRates, random) => {
+    const activeMutationRates =
+        Object.assign({}, defaultMutationRates, mutationRates);
+    const count =
+        Random.weightedChooseOne(activeMutationRates.geneCount, random);
+    const genes = [];
+
+    for (let i = 0; i < count; ++i) {
+        genes.push(randomGene(activeMutationRates, random));
+    }
+
+    return genes;
+};
 
 export const recombine = (
     primaryGenes,

@@ -3,7 +3,7 @@ import {
     processStateChange,
     setStateProperty,
     stateToDNAInput } from './state';
-import { recombine } from './recombination';
+import { createRandom, recombine } from './recombination';
 
 export default class Creature {
     constructor(encodedCreature) {
@@ -89,8 +89,13 @@ export default class Creature {
         this.state = processStateChange(dnaInput, next, elapsedTime);
     }
 
-    recombine(other, { mutationRates, random = Math.random }) {
+    recombine(other, { mutationRates = {}, random = Math.random }) {
         const data = recombine(this, other, mutationRates, random);
+        return new Creature(serializeCreature(data));
+    }
+
+    static createRandom({ mutationRates = {}, random = Math.random }) {
+        const data = createRandom(mutationRates, random);
         return new Creature(serializeCreature(data));
     }
 }

@@ -125,6 +125,12 @@ describe('DNA', function() {
         const dna = new world.DNA('15a1TCV');
         expect('' + dna).to.equal('15a1TCV');
     });
+
+    it('can generate a random DNA', function() {
+        const random = makeSequence();
+        const dna = world.DNA.createRandom({ random });
+        expect(dna.toString()).to.equal('1501TV0');
+    });
 });
 
 describe('genes', function() {

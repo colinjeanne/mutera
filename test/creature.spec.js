@@ -1,6 +1,8 @@
 const expect = require('chai').expect;
 const world = require('./../umd/world.js');
 
+const makeSequence = (...seq) => () => seq.length ? seq.shift() : 0;
+
 const makeCreature = encodingData => {
     const data = Object.assign(
         {
@@ -400,9 +402,13 @@ describe('Creature', function() {
         expect(creature.y).to.equal(0);
     });
 
-    describe('recombination', function() {
-        const makeSequence = (...seq) => () => seq.length ? seq.shift() : 0;
+    it('can generate a random creature', function() {
+        const random = makeSequence();
+        const creature = world.Creature.createRandom({ random });
+        expect(creature.toString()).to.equal('1000000000000000ku1501TV0');
+    });
 
+    describe('recombination', function() {
         it('defaults the health and speed', function() {
             const random = makeSequence();
 

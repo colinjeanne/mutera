@@ -28,6 +28,10 @@ const decodeID = encoded => encoded;
 
 const encodeID = id => id;
 
+const decodeAge = encoded => intFromBase64(encoded);
+
+const encodeAge = age => intToBase64(Math.floor(age), 5);
+
 const decodeHeader = encoded => {
     const version = encoded[0];
     if (version !== '1') {
@@ -84,6 +88,12 @@ const slicing = [
         length: 5,
         decoder: decodeID,
         encoder: encodeID
+    },
+    {
+        property: 'age',
+        length: 5,
+        decoder: decodeAge,
+        encoder: encodeAge
     },
     {
         property: 'x',

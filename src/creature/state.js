@@ -10,6 +10,11 @@ const stateDefinition = {
         transfer: (current, next) => 2 * Math.tanh(next),
         variable: 'S'
     },
+    age: {
+        dependencies: [],
+        transfer: (current, next, elapsedTime) => current + elapsedTime,
+        variable: 'g'
+    },
     angle: {
         dependencies: [
             'angularVelocity'

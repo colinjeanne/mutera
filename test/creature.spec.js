@@ -8,6 +8,7 @@ const makeCreature = encodingData => {
         {
             header: '1',
             id: '00000',
+            age: '00000',
             x: '0000',
             y: '0000',
             velocity: '00',
@@ -19,6 +20,7 @@ const makeCreature = encodingData => {
     return new world.Creature(
         data.header +
         data.id +
+        data.age +
         data.x +
         data.y +
         data.velocity +
@@ -47,33 +49,38 @@ describe('Creature', function() {
             to.throw('Creature missing id');
     });
 
-    it('must have an x coordinate', function() {
+    it('must have an age', function() {
         expect(() => new world.Creature('100000')).
+            to.throw('Creature missing age');
+    });
+
+    it('must have an x coordinate', function() {
+        expect(() => new world.Creature('10000000000')).
             to.throw('Creature missing x');
     });
 
     it('must have a y coordinate', function() {
-        expect(() => new world.Creature('1000000000')).
+        expect(() => new world.Creature('100000000000000')).
             to.throw('Creature missing y');
     });
 
     it('must have a velocity', function() {
-        expect(() => new world.Creature('10000000000000')).
+        expect(() => new world.Creature('1000000000000000000')).
             to.throw('Creature missing velocity');
     });
 
     it('must have a health', function() {
-        expect(() => new world.Creature('1000000000000000')).
+        expect(() => new world.Creature('100000000000000000000')).
             to.throw('Creature missing health');
     });
 
     it('must have a DNA', function() {
-        expect(() => new world.Creature('100000000000000000')).
+        expect(() => new world.Creature('10000000000000000000000')).
             to.throw('Creature missing dna');
     });
 
     it('must have a valid DNA', function() {
-        expect(() => new world.Creature('1000000000000000001')).
+        expect(() => new world.Creature('100000000000000000000001')).
             to.throw('DNA missing genes');
     });
 
@@ -86,6 +93,7 @@ describe('Creature', function() {
         const creature = makeCreature({
             header: '1',
             id: '12345',
+            age: '000A0',
             x: '1234',
             y: '4321',
             velocity: 'AB',
@@ -95,6 +103,7 @@ describe('Creature', function() {
 
         expect(creature.header).to.deep.equal({ version: '1' });
         expect(creature.id).to.equal('12345');
+        expect(creature.age).to.equal(640);
         expect(creature.angle).to.equal(139);
         expect(creature.speed).to.equal(1);
         expect(creature.x).to.equal(270532);
@@ -105,7 +114,7 @@ describe('Creature', function() {
 
     it('can convert to a string', function() {
         const creature = makeCreature({});
-        expect('' + creature).to.equal('10000000000000000015a1TC0');
+        expect('' + creature).to.equal('1000000000000000000000015a1TC0');
     });
 
     it('converts fields to integers before serialization', function() {
@@ -122,7 +131,7 @@ describe('Creature', function() {
         expect(creature.y).to.equal(640);
 
         expect(creature.toString()).
-            to.equal('10000000A000A000001BS1TC_C_MC_M');
+            to.equal('1000000000000A000A000001BS1TC_C_MC_M');
     });
 
     it('ignores changes made to relevant state variables', function() {
@@ -147,6 +156,19 @@ describe('Creature', function() {
 
         creature.process({}, 1);
         expect(creature.speed).to.equal(0);
+    });
+
+    it('ages with each process', function() {
+        const creature = makeCreature({
+            age: '000A0',
+            dna: '15Q1TC0'
+        });
+
+        creature.process({}, 1);
+        expect(creature.age).to.equal(641);
+
+        creature.process({}, 0.5);
+        expect(creature.age).to.equal(641.5);
     });
 
     it('loses health over time', function() {
@@ -405,7 +427,36 @@ describe('Creature', function() {
     it('can generate a random creature', function() {
         const random = makeSequence();
         const creature = world.Creature.createRandom({ random });
-        expect(creature.toString()).to.equal('1000000000000000ku1501TV0');
+        expect(creature.toString()).to.equal('100000000000000000000ku1501TV0');
+    });
+
+    it('cannot see more than pi/4 radians to the left', function() {
+        const creature = makeCreature({
+            velocity: '70',
+            x: '0000',
+            y: '0020'
+        });
+
+        expect(creature.canSee({ x: 100, y: 127.99 })).to.be.true;
+        expect(creature.canSee({ x: 100, y: 128.01 })).to.be.false;
+    });
+
+    it('cannot see more than pi/4 radians to the right', function() {
+        const creature = makeCreature({
+            velocity: '70',
+            x: '0000',
+            y: '0020'
+        });
+
+        expect(creature.canSee({ x: 0.01, y: 100 })).to.be.true;
+        expect(creature.canSee({ x: -0.01, y: 100 })).to.be.false;
+    });
+
+    it('cannot see more than 300 units away', function() {
+        const creature = makeCreature({});
+
+        expect(creature.canSee({ x: 300, y: 0 })).to.be.true;
+        expect(creature.canSee({ x: 300.01, y: 0 })).to.be.false;
     });
 
     describe('recombination', function() {

@@ -159,8 +159,13 @@ const applyStateChange = (state, current, next, definition, elapsedTime) => {
 export const stateToDNAInput = state => Object.keys(state).
     reduce(
         (aggregate, property) => {
-            const variable = stateDefinition[property].variable;
-            aggregate[variable] = state[property];
+            const definition = stateDefinition[property];
+            if (!definition) {
+                aggregate[property] = state[property];
+            } else {
+                const variable = stateDefinition[property].variable;
+                aggregate[variable] = state[property];
+            }
             return aggregate;
         },
         {});
@@ -198,8 +203,12 @@ export const randomValueInPropertyRange = (property, random) => {
     throw new Error('State property does not have a defined range');
 };
 
-export const processStateChange = (current, next, elapsedTime) =>
-    stateUpdatePlan.reduce(
+const knownProperties = Object.keys(stateDefinition).
+    filter(property => stateDefinition[property].variable).
+    map(property => stateDefinition[property].variable);
+
+export const processStateChange = (current, next, elapsedTime) => {
+    const known = stateUpdatePlan.reduce(
         (state, property) => {
             const definition = stateDefinition[property];
             state[property] = applyStateChange(
@@ -211,3 +220,16 @@ export const processStateChange = (current, next, elapsedTime) =>
             return state;
         },
         {});
+
+    const unknownProperties = Object.keys(next).reduce(
+        (aggregate, property) => {
+            if (knownProperties.indexOf(property) === -1) {
+                aggregate[property] = next[property];
+            }
+
+            return aggregate;
+        },
+        {});
+
+    return Object.assign(unknownProperties, known);
+};

@@ -1,32 +1,10 @@
 const expect = require('chai').expect;
 const world = require('./../umd/world.js');
 
-const makeSequence = (...seq) => () => seq.length ? seq.shift() : 0;
-
-const makeCreature = encodingData => {
-    const data = Object.assign(
-        {
-            header: '1',
-            id: '00000',
-            age: '00000',
-            x: '0000',
-            y: '0000',
-            velocity: '00',
-            health: '00',
-            dna: '15a1TC0'
-        },
-        encodingData);
-
-    return new world.Creature(
-        data.header +
-        data.id +
-        data.age +
-        data.x +
-        data.y +
-        data.velocity +
-        data.health +
-        data.dna);
-};
+const {
+    makeCreature,
+    makeSequence
+} = require('./helpers.js');
 
 describe('Creature', function() {
     it('must be base64 encoded', function() {
@@ -457,6 +435,18 @@ describe('Creature', function() {
 
         expect(creature.canSee({ x: 300, y: 0 })).to.be.true;
         expect(creature.canSee({ x: 300.01, y: 0 })).to.be.false;
+    });
+
+    it('keeps state variables that are not part of the standard set', function() {
+        const creature = makeCreature({
+            dna: '19S5VQC0GC_'
+        });
+
+        expect(creature.state.Q).to.be.undefined;
+
+        creature.process({ Q: 1 }, 1);
+        expect(creature.speed).to.closeTo(2, 0.1);
+        expect(creature.state.Q).to.equal(1);
     });
 
     describe('recombination', function() {

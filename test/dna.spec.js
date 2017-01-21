@@ -1,7 +1,7 @@
 const expect = require('chai').expect;
 const world = require('./../umd/world.js');
 
-const makeSequence = (...seq) => () => seq.length ? seq.shift() : 0;
+const makeSequence = require('./helpers.js').makeSequence;
 
 describe('DNA', function() {
     it('must be base64 encoded', function() {

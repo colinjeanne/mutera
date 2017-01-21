@@ -16,6 +16,7 @@ const defaultMutationRates = {
         [4, 0.8],
         [5, 1]
     ]),
+    maximumTreeDepth: 5,
     mutationsPerGene: new Map([
         [0, 0.2],
         [1, 0.4],
@@ -76,9 +77,10 @@ const swapOperator = (tree, mutationRates, random) => {
     tree.operator = Random.chooseOne(alternates, random);
 };
 
-const randomBooleanTree = (mutationRates, random) => {
+const randomBooleanTree = (mutationRates, random, depth) => {
     const shouldTerminate =
-        Random.chooseIf(mutationRates.treeRecursionRate, random);
+        Random.chooseIf(mutationRates.treeRecursionRate, random) ||
+        (depth === mutationRates.maximumTreeDepth - 1);
     const operators = shouldTerminate ?
         Constants.selectOperators(Constants.operatorTypes.boolean, 0) :
         ([
@@ -94,22 +96,23 @@ const randomBooleanTree = (mutationRates, random) => {
 
     const arity = Constants.arity(operator);
     if (arity === 1) {
-        tree.lhs = randomBooleanTree(mutationRates, random);
+        tree.lhs = randomBooleanTree(mutationRates, random, depth + 1);
     } else if (arity === 2) {
         const treeGenerator = Constants.isBooleanConnective(operator) ?
             randomBooleanTree :
             randomArithmeticTree;
 
-        tree.lhs = treeGenerator(mutationRates, random);
-        tree.rhs = treeGenerator(mutationRates, random);
+        tree.lhs = treeGenerator(mutationRates, random, depth + 1);
+        tree.rhs = treeGenerator(mutationRates, random, depth + 1);
     }
 
     return tree;
 };
 
-const randomArithmeticTree = (mutationRates, random) => {
+const randomArithmeticTree = (mutationRates, random, depth) => {
     const shouldTerminate =
-        Random.chooseIf(mutationRates.treeRecursionRate, random);
+        Random.chooseIf(mutationRates.treeRecursionRate, random) ||
+        (depth === mutationRates.maximumTreeDepth - 1);
     const operators = shouldTerminate ?
         Constants.selectOperators(Constants.operatorTypes.arithmetic, 0) :
         Constants.selectOperators(Constants.operatorTypes.arithmetic, 2);
@@ -125,8 +128,8 @@ const randomArithmeticTree = (mutationRates, random) => {
     } else if (operator === Constants.operators.variable) {
         tree.data = randomOutputVariable(mutationRates, random);
     } else {
-        tree.lhs = randomArithmeticTree(mutationRates, random);
-        tree.rhs = randomArithmeticTree(mutationRates, random);
+        tree.lhs = randomArithmeticTree(mutationRates, random, depth + 1);
+        tree.rhs = randomArithmeticTree(mutationRates, random, depth + 1);
     }
 
     return tree;
@@ -134,8 +137,8 @@ const randomArithmeticTree = (mutationRates, random) => {
 
 const randomGene = (mutationRates, random) => ({
     output: randomOutputVariable(mutationRates, random),
-    condition: randomBooleanTree(mutationRates, random),
-    expression: randomArithmeticTree(mutationRates, random)
+    condition: randomBooleanTree(mutationRates, random, 0),
+    expression: randomArithmeticTree(mutationRates, random, 0)
 });
 
 const replaceChild = (tree, mutationRates, random) => {
@@ -152,13 +155,13 @@ const replaceChild = (tree, mutationRates, random) => {
             throw new Error('Unknown operator');
         }
     } else if (arity === 1) {
-        tree.lhs = randomBooleanTree(mutationRates, random);
+        tree.lhs = randomBooleanTree(mutationRates, random, 0);
     } else {
         const child = Random.chooseIf(0.5, random) ? 'lhs' : 'rhs';
         if (!Constants.isBooleanConnective(tree.operator)) {
-            tree[child] = randomArithmeticTree(mutationRates, random);
+            tree[child] = randomArithmeticTree(mutationRates, random, 0);
         } else {
-            tree[child] = randomBooleanTree(mutationRates, random);
+            tree[child] = randomBooleanTree(mutationRates, random, 0);
         }
     }
 };

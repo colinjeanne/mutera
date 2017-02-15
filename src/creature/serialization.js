@@ -1,5 +1,4 @@
 import { intFromBase64, intToBase64, isBase64 } from './../base64';
-import { default as DNA } from './../dna/index';
 
 class InvalidCreature extends Error {
 }
@@ -76,7 +75,7 @@ const encodeSlices = (decoded, slicing) =>
             aggregate + encoder(decoded[property]),
         '');
 
-const slicing = [
+const makeSlicing = makeDNA => [
     {
         property: 'header',
         length: 1,
@@ -121,17 +120,18 @@ const slicing = [
     },
     {
         property: 'dna',
-        decoder: encodedDNA => new DNA(encodedDNA),
+        decoder: encodedDNA => makeDNA(encodedDNA),
         encoder: dna => dna.toString()
     }
 ];
 
-export const deserializeCreature = encoded => {
+export const deserializeCreature = (encoded, makeDNA) => {
     if (!isBase64(encoded)) {
         throw new InvalidCreature('Encoded creature is not a base64 string');
     }
 
-    return decodeSlices(encoded, slicing);
+    return decodeSlices(encoded, makeSlicing(makeDNA));
 };
 
-export const serializeCreature = data => encodeSlices(data, slicing);
+export const serializeCreature = (data, makeDNA) =>
+    encodeSlices(data, makeSlicing(makeDNA));

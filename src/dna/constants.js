@@ -106,3 +106,15 @@ export const constants = (() => {
     }
     return values;
 })();
+
+export const spliceType = {
+    delete: 'delete',
+    duplicate: 'duplicate',
+    insert: 'insert'
+};
+
+export const mutationType = {
+    replaceChild: 'replaceChild',
+    swapOperator: 'swapOperator',
+    swapChildren: 'swapChildren'
+};

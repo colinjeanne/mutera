@@ -1,10 +1,8 @@
 const expect = require('chai').expect;
-const world = require('./../umd/world.js');
+const { Creature } = require('./../../umd/world.js').Creature;
+const { DNA } = require('./../../umd/world.js').DNA;
 
-const {
-    makeCreature,
-    makeSequence
-} = require('./helpers.js');
+const { makeCreature } = require('./../helpers.js');
 
 describe('Creature', function() {
     it('must be base64 encoded', function() {
@@ -13,7 +11,7 @@ describe('Creature', function() {
     });
 
     it('must have a header', function() {
-        expect(() => new world.Creature('')).
+        expect(() => new Creature('')).
             to.throw('Creature missing header');
     });
 
@@ -23,47 +21,47 @@ describe('Creature', function() {
     });
 
     it('must have an id', function() {
-        expect(() => new world.Creature('1')).
+        expect(() => new Creature('1')).
             to.throw('Creature missing id');
     });
 
     it('must have an age', function() {
-        expect(() => new world.Creature('100000')).
+        expect(() => new Creature('100000')).
             to.throw('Creature missing age');
     });
 
     it('must have an x coordinate', function() {
-        expect(() => new world.Creature('10000000000')).
+        expect(() => new Creature('10000000000')).
             to.throw('Creature missing x');
     });
 
     it('must have a y coordinate', function() {
-        expect(() => new world.Creature('100000000000000')).
+        expect(() => new Creature('100000000000000')).
             to.throw('Creature missing y');
     });
 
     it('must have a velocity', function() {
-        expect(() => new world.Creature('1000000000000000000')).
+        expect(() => new Creature('1000000000000000000')).
             to.throw('Creature missing velocity');
     });
 
     it('must have a health', function() {
-        expect(() => new world.Creature('100000000000000000000')).
+        expect(() => new Creature('100000000000000000000')).
             to.throw('Creature missing health');
     });
 
     it('must have a DNA', function() {
-        expect(() => new world.Creature('10000000000000000000000')).
+        expect(() => new Creature('10000000000000000000000')).
             to.throw('Creature missing dna');
     });
 
     it('must have a valid DNA', function() {
-        expect(() => new world.Creature('100000000000000000000001')).
+        expect(() => new Creature('100000000000000000000001')).
             to.throw('DNA missing genes');
     });
 
     it('fails on partial fields', function() {
-        expect(() => new world.Creature('10000')).
+        expect(() => new Creature('10000')).
             to.throw('Creature missing id');
     });
 
@@ -403,8 +401,21 @@ describe('Creature', function() {
     });
 
     it('can generate a random creature', function() {
-        const random = makeSequence();
-        const creature = world.Creature.createRandom({ random });
+        const selector = {
+            chooseBetween(min) {
+                return min;
+            },
+
+            createRandomDNA() {
+                return new DNA('1501TV0');
+            },
+
+            generateUniqueId() {
+                return '00000';
+            }
+        };
+
+        const creature = Creature.createRandom(selector);
         expect(creature.toString()).to.equal('100000000000000000000ku1501TV0');
     });
 
@@ -447,84 +458,5 @@ describe('Creature', function() {
         creature.process({ Q: 1 }, 1);
         expect(creature.speed).to.closeTo(2, 0.1);
         expect(creature.state.Q).to.equal(1);
-    });
-
-    describe('recombination', function() {
-        it('defaults the health and speed', function() {
-            const random = makeSequence();
-
-            const first = makeCreature({
-                health: 'A0',
-                velocity: 'AA'
-            });
-
-            const second = makeCreature({
-                health: 'B0',
-                velocity: 'BB'
-            });
-
-            const child = first.recombine(second, { random });
-            expect(child.health).to.equal(3000);
-            expect(child.speed).to.equal(0);
-        });
-
-        it('randomizes the starting angle', function() {
-            const random = makeSequence(0, 0, 0.5);
-
-            const first = makeCreature({
-                velocity: 'AA'
-            });
-
-            const second = makeCreature({
-                velocity: 'BB'
-            });
-
-            const child = first.recombine(second, { random });
-            expect(child.angle).to.equal(256);
-        });
-
-        it('places the new creature close to the parent', function() {
-            const random = makeSequence();
-
-            const first = makeCreature({
-                x: '0030',
-                y: '0030'
-            });
-
-            const second = makeCreature({
-                x: '00A0',
-                y: '00A0'
-            });
-
-            const child = first.recombine(second, { random });
-            expect(child.x).to.equal(182);
-            expect(child.y).to.equal(192);
-        });
-
-        it('generates a new ID', function() {
-            const random = makeSequence(0, 0, 0, 0.015625);
-
-            const first = makeCreature({
-                id: '12345'
-            });
-
-            const second = makeCreature({
-                id: '54321'
-            });
-
-            const child = first.recombine(second, { random });
-            expect(child.id).to.equal('10000');
-        });
-
-        it('recombines the parent DNA', function() {
-            const random = makeSequence(0, 0, 0, 0, 0, 0.3);
-
-            const first = makeCreature({});
-
-            const second = makeCreature({});
-
-            const child = first.recombine(second, { random });
-            expect(child.dna.toString()).to.equal('1501TC0');
-        });
     });
 });

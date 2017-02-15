@@ -1,5 +1,3 @@
-import { chooseBetween } from './../random';
-
 const timeVaryingValue = (current, next, change, elapsedTime) =>
     current + change * elapsedTime;
 
@@ -190,14 +188,14 @@ export const setStateProperty = (state, property, value) => {
         });
 };
 
-export const randomValueInPropertyRange = (property, random) => {
+export const chooseValueInPropertyRange = (property, selector) => {
     const definition = stateDefinition[property];
     if (('min' in definition) && ('max' in definition)) {
-        return chooseBetween(definition.min, definition.max, random);
+        return selector.chooseBetween(definition.min, definition.max);
     }
 
     if (('rangeMin' in definition) && ('rangeMax' in definition)) {
-        return chooseBetween(definition.rangeMin, definition.rangeMax, random);
+        return selector.chooseBetween(definition.rangeMin, definition.rangeMax);
     }
 
     throw new Error('State property does not have a defined range');

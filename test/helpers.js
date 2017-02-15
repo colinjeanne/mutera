@@ -1,8 +1,6 @@
-const world = require('./../umd/world.js');
+const { Creature } = require('./../umd/world.js').Creature;
 
-exports.makeSequence = (...seq) => () => seq.length ? seq.shift() : 0;
-
-exports.makeCreature = encodingData => {
+exports.makeCreature = (encodingData, selector, makeDNA) => {
     const data = Object.assign(
         {
             header: '1',
@@ -16,7 +14,7 @@ exports.makeCreature = encodingData => {
         },
         encodingData);
 
-    return new world.Creature(
+    return new Creature(
         data.header +
         data.id +
         data.age +
@@ -24,5 +22,7 @@ exports.makeCreature = encodingData => {
         data.y +
         data.velocity +
         data.health +
-        data.dna);
+        data.dna,
+        selector,
+        makeDNA);
 };

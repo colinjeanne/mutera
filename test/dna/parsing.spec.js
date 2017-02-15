@@ -2,7 +2,7 @@ const expect = require('chai').expect;
 const DNA = require('./../../umd/world.js').DNA;
 const MockSelector = require('./mockSelector.js').default;
 
-describe('genes', function() {
+describe('Parsing genes', function() {
     it('cannot be empty', function() {
         expect(() => new DNA.DNA('11')).to.throw('Gene runt');
     });

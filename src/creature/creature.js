@@ -151,7 +151,7 @@ export default class Creature {
         return new Creature(serializeCreature(data, this.makeDNA));
     }
 
-    static createRandom(selector) {
+    static createRandom(selector = new GenericSelector()) {
         const data = createRandom(selector);
         return new Creature(serializeCreature(data, this.makeDNA));
     }

@@ -40,7 +40,7 @@ const calculateFrustrum = creature => {
 const makeRealDNA = encodedDNA => new DNA(encodedDNA);
 
 export default class Creature {
-    constructor(encodedCreature, selector = GenericSelector, makeDNA = makeRealDNA) {
+    constructor(encodedCreature, selector = new GenericSelector(), makeDNA = makeRealDNA) {
         this.selector = selector;
         this.makeDNA = makeDNA;
         this.state = {};

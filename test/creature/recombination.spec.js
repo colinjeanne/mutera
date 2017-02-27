@@ -1,10 +1,5 @@
 const expect = require('chai').expect;
-const { DNA } = require('./../../umd/world.js').DNA;
-
-const {
-    makeCreature,
-    makeSequence
-} = require('./../helpers.js');
+const { makeCreature } = require('./../helpers.js');
 
 describe('Creature recombination', function() {
     it('defaults the health and speed', function() {

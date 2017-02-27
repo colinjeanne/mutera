@@ -61,14 +61,14 @@ describe('Parsing genes', function() {
 
     it('may use extensions', function() {
         const dna = new DNA.DNA(
-            '106d01C0C0GNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNC0');
+            '106d01C0C0GNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNC0');
 
         const condition = {
             operator: 'N'
         };
 
         let leaf = condition;
-        for (let i = 0; i < 58; ++i) {
+        for (let i = 0; i < 57; ++i) {
             leaf.lhs = {
                 operator: 'N'
             };
@@ -120,7 +120,7 @@ describe('Encoding', function() {
 
     it('encodes extended lengths', function() {
         validateEncoding(
-            '106d01C0C0GNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNC0');
+            '106d01C0C0GNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNC0');
     });
 
     it('encodes unary operators', function() {

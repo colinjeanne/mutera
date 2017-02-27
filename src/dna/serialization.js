@@ -125,7 +125,7 @@ const parseLength = encoded => {
         throw new InvalidDNA('Invalid length');
     }
 
-    const lengthValue = intFromBase64(encoded[end]);
+    const lengthValue = intFromBase64(encoded[end]) - (end ? 1 : 0);
     return {
         dataStart: end + 1,
         length: end * 63 + lengthValue
@@ -133,8 +133,19 @@ const parseLength = encoded => {
 };
 
 const encodeLength = length => {
+    // Since nothing can have a zero length we reserve 0 to represent a length
+    // greater than or equal to 63.
     const extensions = Math.floor(length / 63);
-    const value = length % 63;
+
+    // If we have an extension then we must increment this value by 1 so that 0
+    // is never used except when counting multiples of 64. This ensures the
+    // encoded length always ends in a value other than 0 and so the encoded
+    // length is properly delimited from values which themselves may be encoded
+    // as 0. Since this value may be incremented by 1, that also precludes the
+    // use of `_` in the first character encoding the length as allowing it
+    // by dividing and calculating mod by 63 would allow the below value to be
+    // set to 64 - an out of range value for the set of base-64 characters.
+    const value = (length % 63) + (extensions ? 1 : 0);
 
     // Replace with String.padStart when available
     let encoded = '';

@@ -332,7 +332,7 @@ describe('Creature', function() {
         expect(creature.angle).to.equal(4);
     });
 
-    it('caps maximum x-coordinate', function() {
+    it('wraps x-coordinate when going beyond the maximum range', function() {
         const creature = makeCreature({
             velocity: 'W0',
             x: '00Fb',
@@ -346,10 +346,10 @@ describe('Creature', function() {
         creature.process({}, 1);
         expect(creature.speed).to.equal(4);
         expect(creature.angle).to.equal(0);
-        expect(creature.x).to.equal(1000);
+        expect(creature.x).to.be.closeTo(1, 0.001);
     });
 
-    it('caps minimum x-coordinate', function() {
+    it('wraps x-coordinate when going below 0', function() {
         const creature = makeCreature({
             velocity: 'a0',
             x: '0003',
@@ -363,10 +363,10 @@ describe('Creature', function() {
         creature.process({}, 1);
         expect(creature.speed).to.equal(4);
         expect(creature.angle).to.equal(256);
-        expect(creature.x).to.equal(0);
+        expect(creature.x).to.be.closeTo(999, 0.001);
     });
 
-    it('caps maximum y-coordinate', function() {
+    it('wraps y-coordinate when going beyond the maximum range', function() {
         const creature = makeCreature({
             velocity: 'Y0',
             y: '00Fb',
@@ -380,10 +380,10 @@ describe('Creature', function() {
         creature.process({}, 1);
         expect(creature.speed).to.equal(4);
         expect(creature.angle).to.equal(128);
-        expect(creature.y).to.equal(1000);
+        expect(creature.y).to.be.closeTo(1, 0.001);
     });
 
-    it('caps minimum y-coordinate', function() {
+    it('wraps y-coordinate when going below 0', function() {
         const creature = makeCreature({
             velocity: 'c0',
             y: '0003',
@@ -397,7 +397,7 @@ describe('Creature', function() {
         creature.process({}, 1);
         expect(creature.speed).to.equal(4);
         expect(creature.angle).to.equal(384);
-        expect(creature.y).to.equal(0);
+        expect(creature.y).to.be.closeTo(999, 0.001);
     });
 
     it('can generate a random creature', function() {

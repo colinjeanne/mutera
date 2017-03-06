@@ -17,21 +17,8 @@ const stateDefinition = {
         dependencies: [
             'angularVelocity'
         ],
-        rangeMin: 0,
         rangeMax: 512,
-        transfer: (current, next, change, elapsedTime) => {
-            const nextAngle = timeVaryingValue(
-                current,
-                next,
-                change,
-                elapsedTime);
-
-            if (nextAngle < 0) {
-                return nextAngle + 512;
-            }
-
-            return nextAngle % 512;
-        },
+        transfer: timeVaryingValue,
         variable: 'a'
     },
     angularVelocity: {
@@ -82,8 +69,7 @@ const stateDefinition = {
         dependencies: [
             'vx'
         ],
-        min: 0,
-        max: 1000,
+        rangeMax: 1000,
         transfer: timeVaryingValue,
         variable: 'x'
     },
@@ -91,8 +77,7 @@ const stateDefinition = {
         dependencies: [
             'vy'
         ],
-        min: 0,
-        max: 1000,
+        rangeMax: 1000,
         transfer: timeVaryingValue,
         variable: 'y'
     }
@@ -127,6 +112,14 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const ensureWithinRange = (value, definition) => {
     if (('min' in definition) && ('max' in definition)) {
         value = clamp(value, definition.min, definition.max);
+    }
+
+    if ('rangeMax' in definition) {
+        if (value < 0) {
+            return value + definition.rangeMax;
+        }
+
+        return value % definition.rangeMax;
     }
 
     return value;
@@ -194,8 +187,8 @@ export const chooseValueInPropertyRange = (property, selector) => {
         return selector.chooseBetween(definition.min, definition.max);
     }
 
-    if (('rangeMin' in definition) && ('rangeMax' in definition)) {
-        return selector.chooseBetween(definition.rangeMin, definition.rangeMax);
+    if ('rangeMax' in definition) {
+        return selector.chooseBetween(0, definition.rangeMax);
     }
 
     throw new Error('State property does not have a defined range');

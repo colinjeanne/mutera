@@ -1,5 +1,31 @@
 import * as Constants from './constants';
 
+const cloneTree = tree => {
+    const clone = {
+        operator: tree.operator
+    };
+
+    if (tree.lhs) {
+        clone.lhs = cloneTree(tree.lhs);
+    }
+
+    if (tree.rhs) {
+        clone.rhs = cloneTree(tree.rhs);
+    }
+
+    if ('data' in tree) {
+        clone.data = tree.data;
+    }
+
+    return clone;
+};
+
+const cloneGene = gene => ({
+    output: gene.output,
+    condition: cloneTree(gene.condition),
+    expression: cloneTree(gene.expression)
+});
+
 const flattenTree = tree => {
     const output = [];
     if (tree.lhs) {
@@ -184,7 +210,9 @@ export const createRandom = selector => {
 
 export const recombine = (primaryGenes, secondaryGenes, selector) => {
     const genes = recombineGenes(primaryGenes, secondaryGenes, selector);
-    const mutated = genes.map(gene => mutateGene(gene, selector));
+
+    // Mutation will modify a gene in place so clone it first
+    const mutated = genes.map(gene => mutateGene(cloneGene(gene), selector));
 
     spliceGenes(mutated, selector);
     return mutated;

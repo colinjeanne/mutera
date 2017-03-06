@@ -148,11 +148,17 @@ export default class Creature {
 
     recombine(other) {
         const data = recombine(this, other, this.selector);
-        return new Creature(serializeCreature(data, this.makeDNA));
+        return new Creature(
+            serializeCreature(data, this.makeDNA),
+            this.selector,
+            this.makeDNA);
     }
 
-    static createRandom(selector = new GenericSelector()) {
+    static createRandom(selector = new GenericSelector(), makeDNA = makeRealDNA) {
         const data = createRandom(selector);
-        return new Creature(serializeCreature(data, this.makeDNA));
+        return new Creature(
+            serializeCreature(data, makeDNA),
+            selector,
+            makeDNA);
     }
 }

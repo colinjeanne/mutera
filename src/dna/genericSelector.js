@@ -10,6 +10,7 @@ const defaultMutationRates = {
         [4, 0.8],
         [5, 1]
     ]),
+    inputVariables: base64Values,
     maximumTreeDepth: 5,
     mutationsPerGene: new Map([
         [0, 0.2],
@@ -93,6 +94,10 @@ export default class GenericSelector {
             weightedChooseOne(this.mutationRates.splicesPerGene, Math.random);
     }
 
+    chooseInputVariable() {
+        return Random.chooseOne(this.mutationRates.inputVariables, Math.random);
+    }
+
     chooseLocation(max) {
         return Random.chooseIntBetween(0, max, Math.random);
     }
@@ -111,7 +116,9 @@ export default class GenericSelector {
     }
 
     chooseOutputVariable() {
-        return Random.chooseOne(base64Values, Math.random);
+        return Random.chooseOne(
+            this.mutationRates.outputVariables,
+            Math.random);
     }
 
     chooseSpliceType() {

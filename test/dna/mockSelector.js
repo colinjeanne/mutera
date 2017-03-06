@@ -37,6 +37,10 @@ const defaultSelector = {
         return 0;
     },
 
+    chooseInputVariable() {
+        return '0';
+    },
+
     chooseLocation() {
         return 0;
     },
@@ -102,6 +106,10 @@ exports.default = class MockSelector {
 
     chooseGeneSpliceCount() {
         return this.sequences.chooseGeneSpliceCount();
+    }
+
+    chooseInputVariable() {
+        return this.sequences.chooseInputVariable();
     }
 
     chooseLocation() {

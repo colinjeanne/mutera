@@ -179,16 +179,16 @@ describe('Mutation', function() {
                 return 1;
             },
 
+            chooseInputVariable() {
+                return 'b';
+            },
+
             chooseLocation() {
                 return 2;
             },
 
             chooseMutationType() {
                 return DNA.mutationType.replaceChild;
-            },
-
-            chooseOutputVariable() {
-                return 'b';
             }
         });
 
@@ -286,16 +286,16 @@ describe('Mutation', function() {
                 return 1;
             },
 
+            chooseInputVariable() {
+                return 'a';
+            },
+
             chooseLocation() {
                 return 4;
             },
 
             chooseMutationType() {
                 return DNA.mutationType.replaceChild;
-            },
-
-            chooseOutputVariable() {
-                return 'a';
             },
 
             chooseTreeChild() {
@@ -321,16 +321,16 @@ describe('Mutation', function() {
                 return 1;
             },
 
+            chooseInputVariable() {
+                return 'a';
+            },
+
             chooseLocation() {
                 return 4;
             },
 
             chooseMutationType() {
                 return DNA.mutationType.replaceChild;
-            },
-
-            chooseOutputVariable() {
-                return 'a';
             },
 
             chooseTreeChild() {
@@ -356,16 +356,16 @@ describe('Mutation', function() {
                 return 1;
             },
 
+            chooseInputVariable() {
+                return 'a';
+            },
+
             chooseLocation() {
                 return 4;
             },
 
             chooseMutationType() {
                 return DNA.mutationType.replaceChild;
-            },
-
-            chooseOutputVariable() {
-                return 'a';
             },
 
             chooseTreeChild() {
@@ -388,16 +388,16 @@ describe('Mutation', function() {
                 return 1;
             },
 
+            chooseInputVariable() {
+                return 'a';
+            },
+
             chooseLocation() {
                 return 3;
             },
 
             chooseMutationType() {
                 return DNA.mutationType.replaceChild;
-            },
-
-            chooseOutputVariable() {
-                return 'a';
             },
 
             chooseTreeChild() {
@@ -477,6 +477,10 @@ describe('Mutation', function() {
                 return 1;
             },
 
+            chooseInputVariable() {
+                return 'a';
+            },
+
             chooseLocation() {
                 return 0;
             },
@@ -509,6 +513,10 @@ describe('Mutation', function() {
                 return 1;
             },
 
+            chooseInputVariable() {
+                return 'a';
+            },
+
             chooseLocation() {
                 return 1;
             },
@@ -539,6 +547,10 @@ describe('Mutation', function() {
 
             chooseGeneSpliceCount() {
                 return 1;
+            },
+
+            chooseInputVariable() {
+                return 'a';
             },
 
             chooseLocation() {

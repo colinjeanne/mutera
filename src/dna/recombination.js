@@ -94,7 +94,7 @@ const randomArithmeticTree = (selector, depth) => {
     if (operator === Constants.operators.constant) {
         tree.data = selector.chooseConstant();
     } else if (operator === Constants.operators.variable) {
-        tree.data = selector.chooseOutputVariable();
+        tree.data = selector.chooseInputVariable();
     } else {
         tree.lhs = randomArithmeticTree(selector, depth + 1);
         tree.rhs = randomArithmeticTree(selector, depth + 1);
@@ -113,7 +113,7 @@ const replaceChild = (tree, selector) => {
     const arity = Constants.arity(tree.operator);
     if (arity === 0) {
         if (tree.operator === Constants.operators.variable) {
-            tree.data = selector.chooseOutputVariable();
+            tree.data = selector.chooseInputVariable();
         } else if (tree.operator === Constants.operators.constant) {
             tree.data = selector.chooseConstant();
         } else if (tree.operator === Constants.operators.true) {

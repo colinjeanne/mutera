@@ -262,6 +262,7 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastFoodHealth).to.equal(10);
+        expect(map.foodLocations).to.be.empty;
     });
 
     it('removes dead creatures', function() {

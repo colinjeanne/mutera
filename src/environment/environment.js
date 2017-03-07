@@ -88,6 +88,11 @@ export default class Environment {
             if (nearestFood &&
                 (distance(nearestFood, creature) < this.options.eatRadius)) {
                 creature.feed(this.options.foodHealth);
+
+                this.map.foodLocations = this.map.foodLocations.filter(
+                    location =>
+                        (location.x !== nearestFood.x) &&
+                        (location.y !== nearestFood.y));
             }
             else if (creature.isDead()) {
                 deadCreatures.push(id);

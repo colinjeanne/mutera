@@ -1,0 +1,304 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Creatures</title>
+        <meta charset="utf-8">
+        <script src="../umd/world.js"></script>
+        <style type="text/css">
+            body {
+                display: flex;
+                justify-content: space-between;
+
+                padding: 1em;
+                margin: 0;
+            }
+
+            canvas {
+                border: thin solid black;
+            }
+
+            #program {
+                white-space: pre;
+            }
+
+            #settings {
+                border-left: thin solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <canvas id="view" width="1000" height="1000"></canvas>
+            <button id="startButton" type="button">Start</button>
+            <button id="stopButton" type="button">Stop</button>
+        </div>
+        <div>
+            <ul id="creatures">
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+            </ul>
+            <div id="program">
+            </div>
+        </div>
+        <div id="settings">
+            <dl>
+                <dt>Generation:</dt><dd id="generationCount"></dd>
+                <dt>Speed:</dt><dd><input id="speed" type="number" value="1"></dd>
+            </dl>
+        </div>
+    </body>
+    <script>
+        function angleToRadians(angle) {
+            return (2 * Math.PI * angle) / 512;
+        }
+
+        function mapToCanvas(point) {
+            return {
+                x: point.x / 2,
+                y: point.y / 2
+            };
+        }
+
+        function drawFood(context, point) {
+            context.beginPath();
+            context.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+            context.fillStyle = 'green';
+            context.fill();
+        }
+
+        function drawCreature(context, creature) {
+            const point = mapToCanvas(creature);
+
+            context.beginPath();
+            context.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+            const color = Math.floor(creature.health * 255 / 4096);
+            context.fillStyle = `rgb(${color},0,0)`;
+            context.fill();
+
+            const leftEndpoint = {
+                x: 60 * Math.cos(angleToRadians(creature.angle + 64)),
+                y: 60 * Math.sin(angleToRadians(creature.angle + 64))
+            };
+
+            const rightEndpoint = {
+                x: 60 * Math.cos(angleToRadians(creature.angle - 64)),
+                y: 60 * Math.sin(angleToRadians(creature.angle - 64))
+            };
+
+            context.strokeStyle = 'blue';
+
+            context.beginPath();
+            context.moveTo(point.x, point.y);
+            context.lineTo(
+                leftEndpoint.x + point.x,
+                leftEndpoint.y + point.y);
+            context.arc(
+                point.x,
+                point.y,
+                60,
+                angleToRadians(creature.angle + 64),
+                angleToRadians(creature.angle - 64),
+                true);
+            context.lineTo(point.x, point.y);
+            context.stroke();
+        }
+
+        function render(context, environment) {
+            context.clearRect(
+                0,
+                0,
+                context.canvas.width,
+                context.canvas.height);
+
+            environment.map.foodLocations.forEach(
+                point => drawFood(context, mapToCanvas(point)));
+
+            environment.creatures.forEach(
+                creature => drawCreature(context, creature));
+        }
+
+        const renderedOperators = {
+            [world.DNA.operators.greaterThan]: '>',
+            [world.DNA.operators.lessThan]: '<',
+            [world.DNA.operators.and]: 'and',
+            [world.DNA.operators.or]: 'or',
+            [world.DNA.operators.not]: 'not',
+            [world.DNA.operators.add]: '+',
+            [world.DNA.operators.subtract]: '-',
+            [world.DNA.operators.multiply]: '*',
+            [world.DNA.operators.divide]: '/'
+        };
+
+        function renderVariable(variable) {
+            const known = {
+                'S': 'acc',
+                'g': 'age',
+                'a': 'angle',
+                'A': 'angularV',
+                'h': 'health',
+                's': 'speed',
+                'f': 'foodAngle',
+                'd': 'foodDistance'
+            };
+
+            if (variable in known) {
+                return known[variable];
+            }
+
+            return variable;
+        }
+
+        function renderTree(tree) {
+            if (tree.operator === world.DNA.operators.constant) {
+                return world.DNA.constants[tree.data].toString();
+            } else if (tree.operator === world.DNA.operators.variable) {
+                return renderVariable(tree.data);
+            } else if (tree.operator === world.DNA.operators.true) {
+                return 'T';
+            }
+
+            const rhs = tree.rhs ? ` ${renderTree(tree.rhs)}` : '';
+
+            return `(${renderTree(tree.lhs)} ${renderedOperators[tree.operator]}${rhs})`;
+        }
+
+        function renderGene(gene) {
+            return `if ${renderTree(gene.condition)}:\n\t${renderVariable(gene.output)} = ${renderTree(gene.expression)}\n`;
+        }
+
+        function renderProgram(creature) {
+            const program = creature.dna.genes.reduce(
+                (aggregate, gene) => {
+                    return aggregate += renderGene(gene);
+                },
+                '');
+
+            const element = document.getElementById('program');
+            element.textContent = program;
+        }
+
+        const listeners = [];
+        function listCreatures(environment) {
+            const list = document.getElementById('creatures');
+
+            environment.fittest.slice(0, 10).forEach((creature, index) => {
+                const item = list.children[index];
+                item.textContent = `${creature.id} ${creature.health} ${creature.age}`;
+                item.removeEventListener('click', listeners[index]);
+
+                listeners[index] = () => {
+                    renderProgram(creature);
+                };
+
+                item.addEventListener('click', listeners[index]);
+            });
+        }
+
+        function process(context, generationItem, environment, elapsedTimeMs) {
+            environment.process(elapsedTimeMs / 1000);
+            render(context, environment);
+            generationItem.textContent = environment.generationCount;
+
+            listCreatures(environment);
+        }
+
+        const dnaSelector = new world.DNA.GenericSelector({
+            inputVariables: 'adf',
+            mutationsPerGene: new Map([
+                [0, 0.9],
+                [1, 0.93],
+                [2, 0.95],
+                [3, 0.99]
+            ]),
+            outputVariables: 'AS',
+            spliceRates: new Map([
+                [world.DNA.spliceType.delete, 0.1],
+                [world.DNA.spliceType.duplicate, 0.55],
+                [world.DNA.spliceType.insert, 1]
+            ])
+        });
+
+        const makeDNA = encodedDNA =>
+            new world.DNA.DNA(encodedDNA, dnaSelector);
+
+        class CreatureSelector extends world.Creature.GenericSelector {
+            createRandomDNA() {
+                return world.DNA.DNA.createRandom(dnaSelector, makeDNA);
+            }
+        }
+
+        const creatureSelector = new CreatureSelector();
+
+        class EnvironmentSelector extends world.Environment.GenericSelector {
+            createRandomCreature() {
+                return world.Creature.Creature.createRandom(
+                    creatureSelector,
+                    makeDNA);
+            }
+        }
+
+        function onLoad() {
+            const view = document.getElementById('view');
+            const generationItem = document.getElementById('generationCount');
+            const context = view.getContext('2d');
+            let isRunning = true;
+
+            const startButton = document.getElementById('startButton');
+            const stopButton = document.getElementById('stopButton');
+            startButton.hidden = true;
+
+            startButton.addEventListener('click', () => {
+                isRunning = true;
+                stopButton.hidden = !isRunning;
+                startButton.hidden = isRunning;
+            });
+
+            stopButton.addEventListener('click', () => {
+                isRunning = false;
+                stopButton.hidden = !isRunning;
+                startButton.hidden = isRunning;
+            });
+
+            const environment = new world.Environment.Environment(
+                {
+                    foodLocations: [],
+                    width: 2000,
+                    height: 2000
+                },
+                new Map(),
+                new EnvironmentSelector(),
+                {
+                    foodGrowthPerTime: 5,
+                    fooHealth: 200,
+                    maximumFood: 10,
+                    minimumCreatures: 50
+                });
+
+            const speed = document.getElementById('speed');
+            function run() {
+                if (isRunning) {
+                    try {
+                        process(context, generationItem, environment, 1000);
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
+                }
+
+                setTimeout(run, 1000 / speed.valueAsNumber);
+            }
+
+            setTimeout(run, 1000 / speed.valueAsNumber);
+        }
+
+        document.addEventListener('DOMContentLoaded', onLoad);
+    </script>
+</html>

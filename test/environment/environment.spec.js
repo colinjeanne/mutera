@@ -83,7 +83,8 @@ describe('Environment', function() {
 
         const expected = {
             map,
-            creatures: creatures.map(creature => creature.toString())
+            creatures: creatures.map(creature => creature.toString()),
+            generationCount: 0
         };
 
         expect(environment.toJSON()).to.deep.equal(expected);
@@ -320,6 +321,42 @@ describe('Environment', function() {
                 return true;
             }
         };
+
+        const environment = new Environment(
+            map,
+            new Map(),
+            selector,
+            options);
+
+        environment.process(1);
+
+        expect(environment.toJSON().map.foodLocations).to.have.lengthOf(1);
+    });
+
+    it('does not add food when the maximum has been reached', function() {
+        const options = {
+            generationTimeLength: 10,
+            maximumFood: 1,
+            minimumCreatures: 0
+        };
+
+        const selector = {
+            chooseMapLocation() {
+                return {
+                    x: 0,
+                    y: 0
+                };
+            },
+
+            shouldSpawnFood() {
+                return true;
+            }
+        };
+
+        map.foodLocations.push({
+            x: 0,
+            y: 0
+        });
 
         const environment = new Environment(
             map,

@@ -5,6 +5,7 @@ const defaultOptions = {
     foodGrowthPerTime: 10,
     foodHealth: 500,
     generationTimeLength: 30,
+    maximumFood: 50,
     minimumCreatures: 100
 };
 
@@ -50,6 +51,24 @@ export default class Environment {
             options);
         this.selector = selector;
         this.generationTime = 0;
+        this.generationCount = 0;
+    }
+
+    get fittest() {
+        return Array.from(this.creatures.values()).
+            sort((a, b) => {
+                if (a.age > b.age) {
+                    return -1;
+                } else if (b.age > a.age) {
+                    return 1;
+                } else if (a.health > b.health) {
+                    return -1;
+                } else if (b.health > a.health) {
+                    return 1;
+                }
+
+                return 0;
+            });
     }
 
     process(elapsedTime) {
@@ -77,7 +96,8 @@ export default class Environment {
 
         deadCreatures.forEach(id => this.creatures.delete(id));
 
-        if (this.selector.shouldSpawnFood(elapsedTime)) {
+        if (this.selector.shouldSpawnFood(elapsedTime) &&
+            (this.map.foodLocations.length < this.options.maximumFood)) {
             const location = this.selector.chooseMapLocation(this.map);
             this.map.foodLocations.push(location);
         }
@@ -86,19 +106,10 @@ export default class Environment {
         if (this.generationTime > this.options.generationTimeLength) {
             // Choose the two oldest creatures. Mate them with each other and
             // with themselves.
-            let oldest = null;
-            let secondOldest = null;
-            this.creatures.forEach(creature => {
-                if (!oldest) {
-                    oldest = creature;
-                } else if (creature.age >= oldest.age) {
-                    secondOldest = oldest;
-                    oldest = creature;
-                } else if (!secondOldest ||
-                    (creature.age >= secondOldest.age)) {
-                    secondOldest = creature;
-                }
-            });
+            const fittest = this.fittest;
+
+            const oldest = fittest.length ? fittest[0] : null;
+            const secondOldest = (fittest.length > 1) ? fittest[1] : null;
 
             if (oldest) {
                 const oldestMutation = oldest.recombine(oldest);
@@ -123,6 +134,7 @@ export default class Environment {
             }
 
             this.generationTime = 0;
+            ++this.generationCount;
         }
     }
 
@@ -130,7 +142,8 @@ export default class Environment {
         return {
             map: this.map,
             creatures: Array.from(this.creatures.values()).
-                map(creature => creature.toString())
+                map(creature => creature.toString()),
+            generationCount: this.generationCount
         };
     }
 }

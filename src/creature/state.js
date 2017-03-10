@@ -1,7 +1,7 @@
 const timeVaryingValue = (current, next, change, elapsedTime) =>
     current + change * elapsedTime;
 
-const stateDefinition = {
+const partialStateDefinition = {
     acceleration: {
         default: 0,
         dependencies: [],
@@ -28,8 +28,7 @@ const stateDefinition = {
         variable: 'A'
     },
     changeInHealth: {
-        dependencies: [],
-        transfer: () => -100
+        dependencies: []
     },
     health: {
         dependencies: [
@@ -69,7 +68,6 @@ const stateDefinition = {
         dependencies: [
             'vx'
         ],
-        rangeMax: 1000,
         transfer: timeVaryingValue,
         variable: 'x'
     },
@@ -77,14 +75,28 @@ const stateDefinition = {
         dependencies: [
             'vy'
         ],
-        rangeMax: 1000,
         transfer: timeVaryingValue,
         variable: 'y'
     }
 };
 
+const knownProperties = Object.keys(partialStateDefinition).
+    filter(property => partialStateDefinition[property].variable).
+    map(property => partialStateDefinition[property].variable);
+
+const makeStateDefinition = (changeInHealthPerTime, mapWidth, mapHeight) => {
+    const stateDefinition = Object.assign(
+        {},
+        partialStateDefinition);
+    stateDefinition.changeInHealth.transfer = () => changeInHealthPerTime;
+    stateDefinition.x.rangeMax = mapWidth;
+    stateDefinition.y.rangeMax = mapHeight;
+
+    return stateDefinition;
+};
+
 const stateUpdatePlan = (() => {
-    let unplannedProperties = Object.keys(stateDefinition);
+    let unplannedProperties = Object.keys(partialStateDefinition);
     const plan = [];
 
     const areDependenciesSatisfied = dependencies =>
@@ -92,7 +104,8 @@ const stateUpdatePlan = (() => {
 
     while (unplannedProperties.length > 0) {
         const satisfiedProperties = unplannedProperties.filter(property =>
-            areDependenciesSatisfied(stateDefinition[property].dependencies));
+            areDependenciesSatisfied(
+                partialStateDefinition[property].dependencies));
 
         if (satisfiedProperties.length === 0) {
             throw new Error('Invalid state definition: circular dependency?');
@@ -150,77 +163,83 @@ const applyStateChange = (state, current, next, definition, elapsedTime) => {
 export const stateToDNAInput = state => Object.keys(state).
     reduce(
         (aggregate, property) => {
-            const definition = stateDefinition[property];
+            const definition = partialStateDefinition[property];
             if (!definition) {
                 aggregate[property] = state[property];
             } else {
-                const variable = stateDefinition[property].variable;
+                const variable = partialStateDefinition[property].variable;
                 aggregate[variable] = state[property];
             }
             return aggregate;
         },
         {});
 
-export const ensureValidProperties = state =>
-    Object.keys(state).reduce(
-        (aggregate, property) => {
-            const definition = stateDefinition[property];
-            aggregate[property] =
-                ensureWithinRange(state[property], definition);
-            return aggregate;
-        },
-        {});
-
-export const setStateProperty = (state, property, value) => {
-    const definition = stateDefinition[property];
-    return Object.assign(
-        {},
-        state,
-        {
-            [property]: ensureWithinRange(value, definition)
-        });
-};
-
-export const chooseValueInPropertyRange = (property, selector) => {
-    const definition = stateDefinition[property];
-    if (('min' in definition) && ('max' in definition)) {
-        return selector.chooseBetween(definition.min, definition.max);
+export class StateProcessor {
+    constructor(changeInHealthPerTime, mapWidth, mapHeight) {
+        this.stateDefinition = makeStateDefinition(
+            changeInHealthPerTime,
+            mapWidth,
+            mapHeight);
     }
 
-    if ('rangeMax' in definition) {
-        return selector.chooseBetween(0, definition.rangeMax);
+    ensureValidProperties(state) {
+        return Object.keys(state).reduce(
+            (aggregate, property) => {
+                const definition = this.stateDefinition[property];
+                aggregate[property] =
+                    ensureWithinRange(state[property], definition);
+                return aggregate;
+            },
+            {});
     }
 
-    throw new Error('State property does not have a defined range');
-};
+    setStateProperty(state, property, value) {
+        const definition = this.stateDefinition[property];
+        return Object.assign(
+            {},
+            state,
+            {
+                [property]: ensureWithinRange(value, definition)
+            });
+    }
 
-const knownProperties = Object.keys(stateDefinition).
-    filter(property => stateDefinition[property].variable).
-    map(property => stateDefinition[property].variable);
+    chooseValueInPropertyRange(property, selector) {
+        const definition = this.stateDefinition[property];
+        if (('min' in definition) && ('max' in definition)) {
+            return selector.chooseBetween(definition.min, definition.max);
+        }
 
-export const processStateChange = (current, next, elapsedTime) => {
-    const known = stateUpdatePlan.reduce(
-        (state, property) => {
-            const definition = stateDefinition[property];
-            state[property] = applyStateChange(
-                state,
-                current[definition.variable],
-                next[definition.variable],
-                definition,
-                elapsedTime);
-            return state;
-        },
-        {});
+        if ('rangeMax' in definition) {
+            return selector.chooseBetween(0, definition.rangeMax);
+        }
 
-    const unknownProperties = Object.keys(next).reduce(
-        (aggregate, property) => {
-            if (knownProperties.indexOf(property) === -1) {
-                aggregate[property] = next[property];
-            }
+        throw new Error('State property does not have a defined range');
+    }
 
-            return aggregate;
-        },
-        {});
+    processStateChange(current, next, elapsedTime) {
+        const known = stateUpdatePlan.reduce(
+            (state, property) => {
+                const definition = this.stateDefinition[property];
+                state[property] = applyStateChange(
+                    state,
+                    current[definition.variable],
+                    next[definition.variable],
+                    definition,
+                    elapsedTime);
+                return state;
+            },
+            {});
 
-    return Object.assign(unknownProperties, known);
-};
+        const unknownProperties = Object.keys(next).reduce(
+            (aggregate, property) => {
+                if (knownProperties.indexOf(property) === -1) {
+                    aggregate[property] = next[property];
+                }
+
+                return aggregate;
+            },
+            {});
+
+        return Object.assign(unknownProperties, known);
+    }
+}

@@ -23,6 +23,8 @@ exports.makeCreature = (encodingData, selector, makeDNA) => {
         data.velocity +
         data.health +
         data.dna,
-        selector,
-        makeDNA);
+        {
+            selector,
+            makeDNA
+        });
 };

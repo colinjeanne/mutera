@@ -1,7 +1,5 @@
-import { ensureValidProperties, chooseValueInPropertyRange } from './state';
-
-export const createRandom = selector => {
-    const state = ensureValidProperties({
+export const createRandom = (stateProcessor, selector) => {
+    const state = stateProcessor.ensureValidProperties({
         age: 0,
         health: 3000,
         speed: 0
@@ -18,18 +16,18 @@ export const createRandom = selector => {
         health: state.health,
         id,
         velocity: {
-            angle: chooseValueInPropertyRange('angle', selector),
+            angle: stateProcessor.chooseValueInPropertyRange('angle', selector),
             speed: state.speed
         },
-        x: chooseValueInPropertyRange('x', selector),
-        y: chooseValueInPropertyRange('y', selector)
+        x: stateProcessor.chooseValueInPropertyRange('x', selector),
+        y: stateProcessor.chooseValueInPropertyRange('y', selector)
     };
 };
 
-export const recombine = (initiator, other, selector) => {
+export const recombine = (initiator, other, stateProcessor, selector) => {
     const location = selector.chooseLocation(initiator.x, initiator.y);
 
-    const state = ensureValidProperties({
+    const state = stateProcessor.ensureValidProperties({
         age: 0,
         health: 3000,
         speed: 0,
@@ -37,7 +35,7 @@ export const recombine = (initiator, other, selector) => {
         y: location.y
     });
 
-    const angle = chooseValueInPropertyRange('angle', selector);
+    const angle = stateProcessor.chooseValueInPropertyRange('angle', selector);
     const id = selector.generateUniqueId();
 
     return {

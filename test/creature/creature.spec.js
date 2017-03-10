@@ -415,7 +415,7 @@ describe('Creature', function() {
             }
         };
 
-        const creature = Creature.createRandom(selector);
+        const creature = Creature.createRandom({ selector });
         expect(creature.toString()).to.equal('100000000000000000000ku1501TV0');
     });
 

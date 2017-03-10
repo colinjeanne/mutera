@@ -237,11 +237,15 @@
 
         const creatureSelector = new CreatureSelector();
 
+        const creatureStateProcessor = new world.Creature.StateProcessor(-10, 2000, 2000);
+
         class EnvironmentSelector extends world.Environment.GenericSelector {
             createRandomCreature() {
-                return world.Creature.Creature.createRandom(
-                    creatureSelector,
-                    makeDNA);
+                return world.Creature.Creature.createRandom({
+                    stateProcessor: creatureStateProcessor,
+                    selector: creatureSelector,
+                    makeDNA
+                });
             }
         }
 

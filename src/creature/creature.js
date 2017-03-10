@@ -1,10 +1,7 @@
 import { DNA } from './../dna/index';
 import GenericSelector from './genericSelector';
 import { deserializeCreature, serializeCreature } from './serialization';
-import {
-    processStateChange,
-    setStateProperty,
-    stateToDNAInput } from './state';
+import { StateProcessor, stateToDNAInput } from './state';
 import { createRandom, recombine } from './recombination';
 
 const angleToRadians = angle => (2 * Math.PI * angle) / 512;
@@ -39,8 +36,18 @@ const calculateFrustrum = creature => {
 
 const makeRealDNA = encodedDNA => new DNA(encodedDNA);
 
+const genericStateProcessor = new StateProcessor(-100, 1000, 1000);
+const genericSelector = new GenericSelector();
+
 export default class Creature {
-    constructor(encodedCreature, selector = new GenericSelector(), makeDNA = makeRealDNA) {
+    constructor(
+        encodedCreature,
+        {
+            stateProcessor = genericStateProcessor,
+            selector = genericSelector,
+            makeDNA = makeRealDNA
+        } = {}) {
+        this.stateProcessor = stateProcessor;
         this.selector = selector;
         this.makeDNA = makeDNA;
         this.state = {};
@@ -90,14 +97,14 @@ export default class Creature {
     }
 
     feed(amount) {
-        this.state = setStateProperty(
+        this.state = this.stateProcessor.setStateProperty(
             this.state,
             'health',
             this.health + amount);
     }
 
     harm(amount) {
-        this.state = setStateProperty(
+        this.state = this.stateProcessor.setStateProperty(
             this.state,
             'health',
             this.health - amount);
@@ -142,23 +149,37 @@ export default class Creature {
             stateToDNAInput(this.state));
 
         const next = this.dna.process(dnaInput);
-        this.state = processStateChange(dnaInput, next, elapsedTime);
+        this.state = this.stateProcessor.processStateChange(
+            dnaInput,
+            next,
+            elapsedTime);
         this.frustrum = calculateFrustrum(this);
     }
 
     recombine(other) {
-        const data = recombine(this, other, this.selector);
+        const data = recombine(this, other, this.stateProcessor, this.selector);
         return new Creature(
             serializeCreature(data, this.makeDNA),
-            this.selector,
-            this.makeDNA);
+            {
+                stateProcessor: this.stateProcessor,
+                selector: this.selector,
+                makeDNA: this.makeDNA
+            });
     }
 
-    static createRandom(selector = new GenericSelector(), makeDNA = makeRealDNA) {
-        const data = createRandom(selector);
+    static createRandom(
+        {
+            stateProcessor = genericStateProcessor,
+            selector = genericSelector,
+            makeDNA = makeRealDNA
+        } = {}) {
+        const data = createRandom(stateProcessor, selector);
         return new Creature(
             serializeCreature(data, makeDNA),
-            selector,
-            makeDNA);
+            {
+                stateProcessor,
+                selector,
+                makeDNA
+            });
     }
 }

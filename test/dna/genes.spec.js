@@ -63,13 +63,15 @@ describe('Genes', function() {
             '106d01C0C0GNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNC0');
 
         const condition = {
-            operator: 'N'
+            operator: 'N',
+            depth: 0
         };
 
         let leaf = condition;
         for (let i = 0; i < 57; ++i) {
             leaf.lhs = {
-                operator: 'N'
+                operator: 'N',
+                depth: i + 1
             };
 
             leaf = leaf.lhs;
@@ -79,12 +81,15 @@ describe('Genes', function() {
             operator: 'G',
             lhs: {
                 operator: 'C',
-                data: 0
+                data: 0,
+                depth: 59
             },
             rhs: {
                 operator: 'C',
-                data: 0
-            }
+                data: 0,
+                depth: 59
+            },
+            depth: 58
         };
 
         expect(dna.header.version).to.equal('1');
@@ -94,7 +99,8 @@ describe('Genes', function() {
                 condition,
                 expression: {
                     operator: 'C',
-                    data: 0
+                    data: 0,
+                    depth: 0
                 }
             }
         ]);

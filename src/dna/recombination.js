@@ -2,7 +2,8 @@ import * as Constants from './constants';
 
 const cloneTree = tree => {
     const clone = {
-        operator: tree.operator
+        operator: tree.operator,
+        depth: tree.depth
     };
 
     if (tree.lhs) {
@@ -122,13 +123,13 @@ const replaceChild = (tree, selector) => {
             throw new Error('Unknown operator');
         }
     } else if (arity === 1) {
-        tree.lhs = randomBooleanTree(selector, 0);
+        tree.lhs = randomBooleanTree(selector, tree.depth + 1);
     } else {
         const child = selector.chooseTreeChild();
         if (!Constants.isBooleanConnective(tree.operator)) {
-            tree[child] = randomArithmeticTree(selector, 0);
+            tree[child] = randomArithmeticTree(selector, tree.depth + 1);
         } else {
-            tree[child] = randomBooleanTree(selector, 0);
+            tree[child] = randomBooleanTree(selector, tree.depth + 1);
         }
     }
 };

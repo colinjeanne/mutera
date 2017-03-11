@@ -27,6 +27,17 @@ const encodeVariable = variable => operators.variable + variable;
 const isBooleanTree = tree =>
     isBooleanOperator(tree.operator) || isBooleanConnective(tree.operator);
 
+const updateDepths = (tree, initialDepth) => {
+    tree.depth = initialDepth;
+    if (tree.lhs) {
+        updateDepths(tree.lhs, initialDepth + 1);
+    }
+
+    if (tree.rhs) {
+        updateDepths(tree.rhs, initialDepth + 1);
+    }
+};
+
 const parseTree = encoded => {
     let operands = [];
 
@@ -100,6 +111,7 @@ const parseTree = encoded => {
         throw new InvalidDNA('Unexpected parse results');
     }
 
+    updateDepths(operands[0], 0);
     return operands[0];
 };
 

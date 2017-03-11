@@ -276,7 +276,7 @@ describe('Mutation', function() {
     it('can replace the left hand child of binary operators', function() {
         const selector = new MockSelector({
             chooseArithmeticOperator(depth) {
-                if (depth === 0) {
+                if (depth === 1) {
                     return DNA.operators.add;
                 }
                 return DNA.operators.variable;
@@ -311,7 +311,7 @@ describe('Mutation', function() {
     it('can replace the right hand child of binary operators', function() {
         const selector = new MockSelector({
             chooseArithmeticOperator(depth) {
-                if (depth === 0) {
+                if (depth === 1) {
                     return DNA.operators.add;
                 }
                 return DNA.operators.variable;
@@ -346,7 +346,7 @@ describe('Mutation', function() {
     it('can replace a child of an arithmetic operator with an arithmetic tree', function() {
         const selector = new MockSelector({
             chooseArithmeticOperator(depth) {
-                if (depth === 0) {
+                if (depth === 1) {
                     return DNA.operators.add;
                 }
                 return DNA.operators.variable;
@@ -413,9 +413,9 @@ describe('Mutation', function() {
     it('can replace a child of a boolean connective with another boolean tree', function() {
         const selector = new MockSelector({
             chooseBooleanOperator(depth) {
-                if (depth === 0) {
+                if (depth === 1) {
                     return DNA.operators.not;
-                } else if (depth === 1) {
+                } else if (depth === 2) {
                     return DNA.operators.and;
                 }
                 return DNA.operators.true;

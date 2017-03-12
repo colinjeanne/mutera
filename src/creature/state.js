@@ -168,7 +168,9 @@ export const stateToDNAInput = state => Object.keys(state).
                 aggregate[property] = state[property];
             } else {
                 const variable = partialStateDefinition[property].variable;
-                aggregate[variable] = state[property];
+                if (variable) {
+                    aggregate[variable] = state[property];
+                }
             }
             return aggregate;
         },

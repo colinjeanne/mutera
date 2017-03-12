@@ -145,8 +145,8 @@ export default class Creature {
     process(input, elapsedTime) {
         const dnaInput = Object.assign(
             {},
-            input,
-            stateToDNAInput(this.state));
+            stateToDNAInput(this.state),
+            input);
 
         const next = this.dna.process(dnaInput);
         this.state = this.stateProcessor.processStateChange(

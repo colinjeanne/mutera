@@ -21,6 +21,10 @@
                 white-space: pre;
             }
 
+            #creatureState {
+                white-space: pre;
+            }
+
             #settings {
                 border-left: thin solid black;
             }
@@ -47,6 +51,19 @@
             </ul>
             <div id="program">
             </div>
+            <div>
+                <dl>
+                    <dt>Id:</dt><dd id="creatureId"></dd>
+                    <dt>Age:</dt><dd id="creatureAge"></dd>
+                    <dt>Angle:</dt><dd id="creatureAngle"></dd>
+                    <dt>Health:</dt><dd id="creatureHealth"></dd>
+                    <dt>Speed:</dt><dd id="creatureSpeed"></dd>
+                    <dt>X:</dt><dd id="creatureX"></dd>
+                    <dt>Y:</dt><dd id="creatureY"></dd>
+                </dl>
+            </div>
+            <div id="creatureState">
+            </div>
         </div>
         <div id="settings">
             <dl>
@@ -56,14 +73,24 @@
         </div>
     </body>
     <script>
+        let selectedCreature = null;
+
         function angleToRadians(angle) {
             return (2 * Math.PI * angle) / 512;
         }
 
+        const scaleFactor = 2;
         function mapToCanvas(point) {
             return {
-                x: point.x / 2,
-                y: point.y / 2
+                x: point.x / scaleFactor,
+                y: point.y / scaleFactor
+            };
+        }
+
+        function canvasToMap(point) {
+            return {
+                x: point.x * scaleFactor,
+                y: point.y * scaleFactor
             };
         }
 
@@ -80,17 +107,21 @@
             context.beginPath();
             context.arc(point.x, point.y, 5, 0, 2 * Math.PI);
             const color = Math.floor(creature.health * 255 / 4096);
-            context.fillStyle = `rgb(${color},0,0)`;
+            context.fillStyle = (selectedCreature === creature) ?
+                'rgb(0,0,255)' :
+                `rgb(${color},0,0)`;
             context.fill();
 
+            const frustrumLength = 300 / scaleFactor;
+
             const leftEndpoint = {
-                x: 60 * Math.cos(angleToRadians(creature.angle + 64)),
-                y: 60 * Math.sin(angleToRadians(creature.angle + 64))
+                x: frustrumLength * Math.cos(angleToRadians(creature.angle + 64)),
+                y: frustrumLength * Math.sin(angleToRadians(creature.angle + 64))
             };
 
             const rightEndpoint = {
-                x: 60 * Math.cos(angleToRadians(creature.angle - 64)),
-                y: 60 * Math.sin(angleToRadians(creature.angle - 64))
+                x: frustrumLength * Math.cos(angleToRadians(creature.angle - 64)),
+                y: frustrumLength * Math.sin(angleToRadians(creature.angle - 64))
             };
 
             context.strokeStyle = 'blue';
@@ -103,7 +134,7 @@
             context.arc(
                 point.x,
                 point.y,
-                60,
+                frustrumLength,
                 angleToRadians(creature.angle + 64),
                 angleToRadians(creature.angle - 64),
                 true);
@@ -123,6 +154,18 @@
 
             environment.creatures.forEach(
                 creature => drawCreature(context, creature));
+        }
+
+        function distance(a, b) {
+            return Math.sqrt(
+                (a.x - b.x) * (a.x - b.x) +
+                (a.y - b.y) * (a.y - b.y));
+        }
+
+        function handleClick(point, environment) {
+            const creature = Array.from(environment.creatures.values()).
+                find(creature => distance(point, creature) < 20);
+            selectCreature(creature);
         }
 
         const renderedOperators = {
@@ -175,14 +218,43 @@
         }
 
         function renderProgram(creature) {
-            const program = creature.dna.genes.reduce(
-                (aggregate, gene) => {
-                    return aggregate += renderGene(gene);
-                },
-                '');
-
             const element = document.getElementById('program');
-            element.textContent = program;
+            if (creature) {
+                const program = creature.dna.genes.reduce(
+                    (aggregate, gene) => {
+                        return aggregate += renderGene(gene);
+                    },
+                    '');
+
+                element.textContent = program;
+            } else {
+                element.textContent = '';
+            }
+        }
+
+        function renderCreatureState(creature) {
+            if (creature) {
+                document.getElementById('creatureId').textContent = creature.id;
+                document.getElementById('creatureAge').textContent = creature.age;
+                document.getElementById('creatureAngle').textContent = creature.angle;
+                document.getElementById('creatureHealth').textContent = creature.health;
+                document.getElementById('creatureSpeed').textContent = creature.speed;
+                document.getElementById('creatureX').textContent = creature.x;
+                document.getElementById('creatureY').textContent = creature.y;
+
+                document.getElementById('creatureState').textContent =
+                    JSON.stringify(creature.state, null, 2);
+            } else {
+                document.getElementById('creatureId').textContent = '';
+                document.getElementById('creatureAge').textContent = '';
+                document.getElementById('creatureAngle').textContent = '';
+                document.getElementById('creatureHealth').textContent = '';
+                document.getElementById('creatureSpeed').textContent = '';
+                document.getElementById('creatureX').textContent = '';
+                document.getElementById('creatureY').textContent = '';
+
+                document.getElementById('creatureState').textContent = '';
+            }
         }
 
         const listeners = [];
@@ -195,11 +267,16 @@
                 item.removeEventListener('click', listeners[index]);
 
                 listeners[index] = () => {
-                    renderProgram(creature);
+                    selectCreature(creature);
                 };
 
                 item.addEventListener('click', listeners[index]);
             });
+        }
+
+        function selectCreature(creature) {
+            selectedCreature = creature;
+            renderProgram(creature);
         }
 
         function process(context, generationItem, environment, elapsedTimeMs) {
@@ -208,10 +285,12 @@
             generationItem.textContent = environment.generationCount;
 
             listCreatures(environment);
+            renderCreatureState(selectedCreature);
         }
 
         const dnaSelector = new world.DNA.GenericSelector({
             inputVariables: 'adf',
+            maximumTreeDepth: 2,
             mutationsPerGene: new Map([
                 [0, 0.9],
                 [1, 0.93],
@@ -249,6 +328,22 @@
             }
         }
 
+        function makeSearchingCreature(id, x, y) {
+            return new world.Creature.Creature(
+                '1' +
+                id +
+                '00000' +
+                x +
+                y +
+                '00' +
+                '__' +
+                '15S1TC_9A5VaVfGC09A5VaVfLC_',
+                {
+                    selector: creatureSelector,
+                    makeDNA
+                });
+        }
+
         function onLoad() {
             const view = document.getElementById('view');
             const generationItem = document.getElementById('generationCount');
@@ -271,26 +366,38 @@
                 startButton.hidden = isRunning;
             });
 
+            const searchingCreature = makeSearchingCreature('00001', '0000', '0000');
+
             const environment = new world.Environment.Environment(
                 {
                     foodLocations: [],
-                    width: 2000,
-                    height: 2000
+                    width: view.width * scaleFactor,
+                    height: view.height * scaleFactor
                 },
-                new Map(),
+                new Map([
+                    [searchingCreature.id, searchingCreature]
+                ]),
                 new EnvironmentSelector(),
                 {
                     foodGrowthPerTime: 5,
                     fooHealth: 200,
-                    maximumFood: 10,
+                    maximumFood: 50,
                     minimumCreatures: 50
                 });
+
+            view.addEventListener('click', function(event) {
+                const point = canvasToMap({
+                    x: event.offsetX,
+                    y: event.offsetY
+                });
+                handleClick(point, environment);
+            });
 
             const speed = document.getElementById('speed');
             function run() {
                 if (isRunning) {
                     try {
-                        process(context, generationItem, environment, 1000);
+                        process(context, generationItem, environment, 100);
                     }
                     catch (e) {
                         console.log(e);

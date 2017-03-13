@@ -319,6 +319,10 @@
         const creatureStateProcessor = new world.Creature.StateProcessor(-10, 2000, 2000);
 
         class EnvironmentSelector extends world.Environment.GenericSelector {
+            constructor(options) {
+                super(options);
+            }
+
             createRandomCreature() {
                 return world.Creature.Creature.createRandom({
                     stateProcessor: creatureStateProcessor,
@@ -366,23 +370,29 @@
                 startButton.hidden = isRunning;
             });
 
-            const searchingCreature = makeSearchingCreature('00001', '0000', '0000');
+            const searchingCreature = makeSearchingCreature('00001', '0000', '0020');
 
             const environment = new world.Environment.Environment(
                 {
-                    foodLocations: [],
+                    foodLocations: [
+                        {
+                            x: 196,
+                            y: 0
+                        }
+                    ],
                     width: view.width * scaleFactor,
                     height: view.height * scaleFactor
                 },
                 new Map([
                     [searchingCreature.id, searchingCreature]
                 ]),
-                new EnvironmentSelector(),
+                new EnvironmentSelector({
+                    foodGrowthPerTime: 0,
+                    maximumFood: 50
+                }),
                 {
-                    foodGrowthPerTime: 5,
                     fooHealth: 200,
-                    maximumFood: 50,
-                    minimumCreatures: 50
+                    minimumCreatures: 0
                 });
 
             view.addEventListener('click', function(event) {

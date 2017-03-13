@@ -1,7 +1,18 @@
 import { Creature } from './../creature/index';
 import * as Random from './../random';
 
+const defaultOptions = {
+    foodGrowthPerTime: 10,
+    maximumFood: 50
+};
+
 export default class GenericSelector {
+    constructor(options = {}) {
+        this.options = Object.assign({}, defaultOptions, options);
+        this.randomFood = () =>
+            (Math.random() / this.options.foodGrowthPerTime);
+    }
+
     chooseMapLocation(map) {
         return {
             x: Random.chooseBetween(0, map.width, Math.random),
@@ -13,7 +24,11 @@ export default class GenericSelector {
         return Creature.createRandom();
     }
 
-    shouldSpawnFood(elapsedTime) {
-        return Random.chooseIf(elapsedTime, Math.random);
+    shouldSpawnFood(map, elapsedTime) {
+        if (map.foodLocations.length > this.options.maximumFood) {
+            return false;
+        }
+
+        return Random.chooseIf(elapsedTime, this.randomFood);
     }
 }

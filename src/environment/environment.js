@@ -2,10 +2,8 @@ import GenericSelector from './genericSelector';
 
 const defaultOptions = {
     eatRadius: 20,
-    foodGrowthPerTime: 10,
     foodHealth: 500,
     generationTimeLength: 30,
-    maximumFood: 50,
     minimumCreatures: 100
 };
 
@@ -101,8 +99,7 @@ export default class Environment {
 
         deadCreatures.forEach(id => this.creatures.delete(id));
 
-        if (this.selector.shouldSpawnFood(elapsedTime) &&
-            (this.map.foodLocations.length < this.options.maximumFood)) {
+        if (this.selector.shouldSpawnFood(this.map, elapsedTime)) {
             const location = this.selector.chooseMapLocation(this.map);
             this.map.foodLocations.push(location);
         }

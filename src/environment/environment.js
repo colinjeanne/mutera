@@ -12,6 +12,14 @@ const squareDistance = (a, b) =>
 
 const distance = (a, b) => Math.sqrt(squareDistance(a, b));
 
+const radiansToAngle = radians => {
+    if (radians < 0) {
+        radians += (2 * Math.PI);
+    }
+
+    return radians * 256 / Math.PI;
+};
+
 const nearestVisibleFood = (creature, foodLocations) => {
     const visibleLocations = foodLocations.
         filter(point => creature.canSee(point));
@@ -32,7 +40,7 @@ const nearestVisibleFood = (creature, foodLocations) => {
         nearest.point.x - creature.x);
 
     return {
-        angle: angleInRadians * 256 / Math.PI,
+        angle: radiansToAngle(angleInRadians),
         distance: Math.sqrt(nearest.squareDistance),
         x: nearest.point.x,
         y: nearest.point.y

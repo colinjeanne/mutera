@@ -8,6 +8,10 @@ class MockCreature {
         this.data = data;
     }
 
+    canReproduce() {
+        return true;
+    }
+
     canSee(point) {
         return this.data.canSee(point);
     }

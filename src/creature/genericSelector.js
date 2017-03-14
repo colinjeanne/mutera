@@ -3,6 +3,11 @@ import * as Random from './../random';
 import { DNA } from './../dna/index';
 
 export default class GenericSelector {
+    canReproduce(creature, stateProcessor) {
+        const maximumHealth = stateProcessor.getMaximumPropertyValue('health');
+        return creature.health > 0.75 * maximumHealth;
+    }
+
     chooseBetween(min, max) {
         return Random.chooseBetween(min, max, Math.random);
     }

@@ -122,6 +122,10 @@ export default class Creature {
             (vectorLengthSquared(relativePoint) <= frustrumLengthSquared);
     }
 
+    canReproduce() {
+        return this.selector.canReproduce(this, this.stateProcessor);
+    }
+
     toString() {
         const data = {
             age: this.state.age,

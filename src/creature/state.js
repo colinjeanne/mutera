@@ -7,6 +7,8 @@ const partialStateDefinition = {
     acceleration: {
         default: 0,
         dependencies: [],
+        min: -2,
+        max: 2,
         transfer: (current, next) => 2 * Math.tanh(next),
         variable: KnownVariables.acceleration
     },
@@ -26,6 +28,8 @@ const partialStateDefinition = {
     angularVelocity: {
         default: 0,
         dependencies: [],
+        min: -64,
+        max: 64,
         transfer: (current, next) => 64 * Math.tanh(next),
         variable: KnownVariables.angularVelocity
     },
@@ -55,6 +59,8 @@ const partialStateDefinition = {
             'angle',
             'speed'
         ],
+        min: -7,
+        max: 7,
         transfer: (current, next, angle, speed) =>
             speed * Math.cos(2 * Math.PI * angle / 511)
     },
@@ -63,6 +69,8 @@ const partialStateDefinition = {
             'angle',
             'speed'
         ],
+        min: -7,
+        max: 7,
         transfer: (current, next, angle, speed) =>
             speed * Math.sin(2 * Math.PI * angle / 511)
     },
@@ -218,6 +226,11 @@ export class StateProcessor {
         }
 
         throw new Error('State property does not have a defined range');
+    }
+
+    getMaximumPropertyValue(property) {
+        return this.stateDefinition[property].max ||
+            this.stateDefinition[property].rangeMax;
     }
 
     processStateChange(current, next, elapsedTime) {

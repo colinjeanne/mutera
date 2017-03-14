@@ -118,7 +118,8 @@ export default class Environment {
         if (this.generationTime > this.options.generationTimeLength) {
             // Choose the two oldest creatures. Mate them with each other and
             // with themselves.
-            const fittest = this.fittest;
+            const fittest = this.fittest.filter(
+                creature => creature.canReproduce());
 
             const oldest = fittest.length ? fittest[0] : null;
             const secondOldest = (fittest.length > 1) ? fittest[1] : null;

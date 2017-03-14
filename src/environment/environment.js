@@ -1,4 +1,5 @@
 import GenericSelector from './genericSelector';
+import * as KnownVariables from './../knownVariables';
 
 const defaultOptions = {
     eatRadius: 20,
@@ -85,8 +86,9 @@ export default class Environment {
             const nearestFood =
                 nearestVisibleFood(creature, this.map.foodLocations);
             if (nearestFood) {
-                input.f = nearestFood.angle;
-                input.d = nearestFood.distance;
+                input[KnownVariables.nearestFoodAngle] = nearestFood.angle;
+                input[KnownVariables.nearestFoodDistance] =
+                    nearestFood.distance;
             }
 
             creature.process(input, elapsedTime);

@@ -1,3 +1,5 @@
+import * as KnownVariables from './../knownVariables';
+
 const timeVaryingValue = (current, next, change, elapsedTime) =>
     current + change * elapsedTime;
 
@@ -6,12 +8,12 @@ const partialStateDefinition = {
         default: 0,
         dependencies: [],
         transfer: (current, next) => 2 * Math.tanh(next),
-        variable: 'S'
+        variable: KnownVariables.acceleration
     },
     age: {
         dependencies: [],
         transfer: (current, next, elapsedTime) => current + elapsedTime,
-        variable: 'g'
+        variable: KnownVariables.age
     },
     angle: {
         dependencies: [
@@ -19,13 +21,13 @@ const partialStateDefinition = {
         ],
         rangeMax: 512,
         transfer: timeVaryingValue,
-        variable: 'a'
+        variable: KnownVariables.angle
     },
     angularVelocity: {
         default: 0,
         dependencies: [],
         transfer: (current, next) => 64 * Math.tanh(next),
-        variable: 'A'
+        variable: KnownVariables.angularVelocity
     },
     changeInHealth: {
         dependencies: []
@@ -37,7 +39,7 @@ const partialStateDefinition = {
         min: 0,
         max: 4095,
         transfer: timeVaryingValue,
-        variable: 'h'
+        variable: KnownVariables.health
     },
     speed: {
         dependencies: [
@@ -46,7 +48,7 @@ const partialStateDefinition = {
         min: 0,
         max: 7,
         transfer: timeVaryingValue,
-        variable: 's'
+        variable: KnownVariables.speed
     },
     vx: {
         dependencies: [
@@ -69,14 +71,14 @@ const partialStateDefinition = {
             'vx'
         ],
         transfer: timeVaryingValue,
-        variable: 'x'
+        variable: KnownVariables.x
     },
     y: {
         dependencies: [
             'vy'
         ],
         transfer: timeVaryingValue,
-        variable: 'y'
+        variable: KnownVariables.y
     }
 };
 

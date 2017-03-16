@@ -131,9 +131,7 @@ const encodeTree = tree => {
 
 const parseLength = encoded => {
     const end = encoded.search(/[^0]/);
-    if (end > 10) {
-        throw new InvalidDNA('Giant length');
-    } else if (end === -1) {
+    if (end === -1) {
         throw new InvalidDNA('Invalid length');
     }
 

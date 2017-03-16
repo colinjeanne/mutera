@@ -11,6 +11,7 @@ const defaultMutationRates = {
         [5, 1]
     ]),
     inputVariables: base64Values,
+    maximumGeneCount: 15,
     maximumTreeDepth: 5,
     mutationsPerGene: new Map([
         [0, 0.2],
@@ -121,9 +122,17 @@ export default class GenericSelector {
             Math.random);
     }
 
-    chooseSpliceType() {
-        return Random.
-            weightedChooseOne(this.mutationRates.spliceRates, Math.random);
+    chooseSpliceType(genes) {
+        let spliceRates;
+        if (genes.length === this.mutationRates.maximumGeneCount) {
+            spliceRates = new Map([
+                [Constants.spliceType.delete, 1]
+            ]);
+        } else {
+            spliceRates = this.mutationRates.spliceRates;
+        }
+
+        return Random.weightedChooseOne(spliceRates, Math.random);
     }
 
     chooseTreeChild() {

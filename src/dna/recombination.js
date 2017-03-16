@@ -162,7 +162,7 @@ const mutateGene = (gene, selector) => {
 const spliceGenes = (genes, selector) => {
     const count = selector.chooseGeneSpliceCount();
     for (let i = 0; i < count; ++i) {
-        const type = selector.chooseSpliceType();
+        const type = selector.chooseSpliceType(genes);
         if (type === Constants.spliceType.delete) {
             if (genes.length > 1) {
                 const location = selector.chooseLocation(genes.length);

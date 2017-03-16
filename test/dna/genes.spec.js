@@ -10,11 +10,6 @@ describe('Genes', function() {
         expect(() => new DNA.DNA('10')).to.throw('Invalid length');
     });
 
-    it('cannot have more than 10 extensions', function() {
-        expect(() => new DNA.DNA('1000000000001')).
-            to.throw('Giant length');
-    });
-
     it('must have a condition', function() {
         expect(() => new DNA.DNA('11d')).to.throw('Invalid length');
     });

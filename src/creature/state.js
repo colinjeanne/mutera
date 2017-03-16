@@ -4,14 +4,6 @@ const timeVaryingValue = (current, next, change, elapsedTime) =>
     current + change * elapsedTime;
 
 const partialStateDefinition = {
-    acceleration: {
-        default: 0,
-        dependencies: [],
-        min: -2,
-        max: 2,
-        transfer: (current, next) => 2 * Math.tanh(next),
-        variable: KnownVariables.acceleration
-    },
     age: {
         dependencies: [],
         transfer: (current, next, elapsedTime) => current + elapsedTime,
@@ -46,12 +38,11 @@ const partialStateDefinition = {
         variable: KnownVariables.health
     },
     speed: {
-        dependencies: [
-            'acceleration'
-        ],
+        default: 0,
+        dependencies: [],
         min: 0,
         max: 7,
-        transfer: timeVaryingValue,
+        transfer: (current, next) => next,
         variable: KnownVariables.speed
     },
     vx: {

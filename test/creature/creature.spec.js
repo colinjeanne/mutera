@@ -98,7 +98,7 @@ describe('Creature', function() {
             velocity: '00',
             x: '00A0',
             y: '00A0',
-            dna: '1BS1TC_C_MC_M'
+            dna: '15s1TCa'
         });
 
         creature.process({}, 0.25);
@@ -107,7 +107,7 @@ describe('Creature', function() {
         expect(creature.y).to.equal(640);
 
         expect(creature.toString()).
-            to.equal('1000000000000A000A000001BS1TC_C_MC_M');
+            to.equal('1000000000000A000A0000015s1TCa');
     });
 
     it('ignores changes made to relevant state variables', function() {
@@ -127,7 +127,7 @@ describe('Creature', function() {
     it('ignores attempts to set dependent variables directly', function() {
         const creature = makeCreature({
             health: '20',
-            dna: '15s1TC_'
+            dna: '15x1TC_'
         });
 
         creature.process({}, 1);
@@ -217,12 +217,12 @@ describe('Creature', function() {
         expect(creature.health).to.equal(20);
     });
 
-    it('can accelerate', function() {
+    it('can move', function() {
         const creature = makeCreature({
             velocity: '00',
             x: '00A0',
             y: '00A0',
-            dna: '1BS1TC_C_MC_M'
+            dna: '15s1TCe'
         });
 
         expect(creature.speed).to.equal(0);
@@ -233,35 +233,32 @@ describe('Creature', function() {
         expect(creature.y).to.equal(640);
 
         creature.process({}, 0.5);
-        expect(creature.speed).to.equal(2);
-        expect(creature.x).to.equal(641.5);
+        expect(creature.speed).to.equal(1);
+        expect(creature.x).to.equal(641);
         expect(creature.y).to.equal(640);
     });
 
-    it('defaults to no acceleration if the variable is NaN', function() {
+    it('defaults to no speed if the variable is NaN', function() {
         const creature = makeCreature({
             velocity: 'G0',
             x: '00A0',
             y: '00A0',
-            dna: '1ES1TC0CWDC0CWDS'
+            dna: '1Es1TC0CWDC0CWDS'
         });
 
         expect(creature.speed).to.equal(2);
 
         creature.process({}, 1);
-        expect(creature.speed).to.equal(2);
+        expect(creature.speed).to.equal(0);
     });
 
     it('caps maximum speed', function() {
         const creature = makeCreature({
             velocity: 'W0',
-            dna: '1BS1TC_C_MC_M'
+            dna: '18s1TC_C_M'
         });
 
         expect(creature.speed).to.equal(4);
-
-        creature.process({}, 1);
-        expect(creature.speed).to.equal(6);
 
         creature.process({}, 1);
         expect(creature.speed).to.equal(7);
@@ -270,13 +267,10 @@ describe('Creature', function() {
     it('caps minimum speed', function() {
         const creature = makeCreature({
             velocity: 'O0',
-            dna: '1BS1TC0C0MC0M'
+            dna: '1Bs1TC0C0MC0M'
         });
 
         expect(creature.speed).to.equal(3);
-
-        creature.process({}, 1);
-        expect(creature.speed).to.equal(1);
 
         creature.process({}, 1);
         expect(creature.speed).to.equal(0);
@@ -450,13 +444,13 @@ describe('Creature', function() {
 
     it('keeps state variables that are not part of the standard set', function() {
         const creature = makeCreature({
-            dna: '19S5VQC0GC_'
+            dna: '19s5VQC0GCm'
         });
 
         expect(creature.state.Q).to.be.undefined;
 
         creature.process({ Q: 1 }, 1);
-        expect(creature.speed).to.closeTo(2, 0.1);
+        expect(creature.speed).to.equal(2);
         expect(creature.state.Q).to.equal(1);
     });
 });

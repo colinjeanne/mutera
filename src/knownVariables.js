@@ -1,4 +1,3 @@
-export const acceleration = 'S';
 export const age = 'g';
 export const angle = 'a';
 export const angularVelocity = 'A';

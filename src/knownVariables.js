@@ -4,8 +4,9 @@ export const angularVelocity = 'A';
 export const health = 'h';
 export const speed = 's';
 
-export const nearestFoodAngle = 'f';
-export const nearestFoodDistance = 'd';
+export const nearestLeftPeripheryFoodDistance = 'l';
+export const nearestRightPeripheryFoodDistance = 'r';
+export const nearestFocusFoodDistance = 'f';
 
 export const x = 'x';
 export const y = 'y';

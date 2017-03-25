@@ -111,13 +111,13 @@
             const frustrumLength = 300 / scaleFactor;
 
             const leftEndpoint = {
-                x: frustrumLength * Math.cos(Angle.toRadians(creature.angle + 64)),
-                y: frustrumLength * Math.sin(Angle.toRadians(creature.angle + 64))
+                x: frustrumLength * Math.cos(world.Angle.toRadians(creature.angle + 64)),
+                y: frustrumLength * Math.sin(world.Angle.toRadians(creature.angle + 64))
             };
 
-            const rightEndpoint = {
-                x: frustrumLength * Math.cos(Angle.toRadians(creature.angle - 64)),
-                y: frustrumLength * Math.sin(Angle.toRadians(creature.angle - 64))
+            const focusLeftEndpoint = {
+                x: frustrumLength * Math.cos(world.Angle.toRadians(creature.angle + 64 / 3)),
+                y: frustrumLength * Math.sin(world.Angle.toRadians(creature.angle + 64 / 3))
             };
 
             context.strokeStyle = 'blue';
@@ -131,8 +131,25 @@
                 point.x,
                 point.y,
                 frustrumLength,
-                Angle.toRadians(creature.angle + 64),
-                Angle.toRadians(creature.angle - 64),
+                world.Angle.toRadians(creature.angle + 64),
+                world.Angle.toRadians(creature.angle - 64),
+                true);
+            context.lineTo(point.x, point.y);
+            context.stroke();
+
+            context.strokeStyle = 'green';
+
+            context.beginPath();
+            context.moveTo(point.x, point.y);
+            context.lineTo(
+                focusLeftEndpoint.x + point.x,
+                focusLeftEndpoint.y + point.y);
+            context.arc(
+                point.x,
+                point.y,
+                frustrumLength,
+                world.Angle.toRadians(creature.angle + 64 / 3),
+                world.Angle.toRadians(creature.angle - 64 / 3),
                 true);
             context.lineTo(point.x, point.y);
             context.stroke();
@@ -183,8 +200,9 @@
                 'A': 'angularV',
                 'h': 'health',
                 's': 'speed',
-                'f': 'foodAngle',
-                'd': 'foodDistance'
+                'l': 'leftFoodDistance',
+                'r': 'rightFoodDistance',
+                'f': 'focusFoodDistance',
             };
 
             if (variable in known) {
@@ -284,7 +302,7 @@
         }
 
         const dnaSelector = new world.DNA.GenericSelector({
-            inputVariables: 'adf',
+            inputVariables: 'adlrf',
             maximumTreeDepth: 2,
             mutationsPerGene: new Map([
                 [0, 0.9],
@@ -336,7 +354,10 @@
                 y +
                 '00' +
                 '__' +
-                '18s1TC_C_M9A5VaVfGC09A5VaVfLC_',
+                '18s1TC_C_M' +
+                '5A1TCW' +
+                'LAHVlCWGVlVfLVfCWLOAC_' +
+                'LAHVrCWGVrVfLVfCWLOAC0',
                 {
                     selector: creatureSelector,
                     makeDNA

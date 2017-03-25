@@ -11,9 +11,10 @@ const vectorLengthSquared = point => point.x * point.x + point.y * point.y;
 
 const frustrumLength = 300;
 const frustrumLengthSquared = frustrumLength * frustrumLength;
-const fieldOfView = Angle.rangeMax / 4;
+const peripheryFieldOfView = Angle.rangeMax / 4;
+const focusFieldOfView = peripheryFieldOfView / 3;
 
-const calculateFrustrum = creature => {
+const calculateFrustrum = (creature, fieldOfView) => {
     const radiansLeft = Angle.toRadians(creature.angle + fieldOfView / 2);
     const radiansRight = Angle.toRadians(creature.angle - fieldOfView / 2);
 
@@ -32,6 +33,11 @@ const calculateFrustrum = creature => {
         right
     };
 };
+
+const calculateVisualField = creature => ({
+    periphery: calculateFrustrum(creature, peripheryFieldOfView),
+    focus: calculateFrustrum(creature, focusFieldOfView)
+});
 
 const makeRealDNA = encodedDNA => new DNA(encodedDNA);
 
@@ -64,7 +70,7 @@ export default class Creature {
             y: this.state.y
         } = deserializeCreature(encodedCreature, this.makeDNA));
 
-        this.frustrum = calculateFrustrum(this);
+        this.frustrum = calculateVisualField(this);
     }
 
     isDead() {
@@ -116,9 +122,30 @@ export default class Creature {
             y: point.y - this.y
         };
 
-        return areClockwise(this.frustrum.left, relativePoint) &&
-            !areClockwise(this.frustrum.right, relativePoint) &&
-            (vectorLengthSquared(relativePoint) <= frustrumLengthSquared);
+        if ((vectorLengthSquared(relativePoint) > frustrumLengthSquared) ||
+            !areClockwise(this.frustrum.periphery.left, relativePoint) ||
+            areClockwise(this.frustrum.periphery.right, relativePoint)) {
+            return {
+                leftPeriphery: false,
+                rightPeriphery: false,
+                focus: false
+            };
+        }
+
+        const leftPeriphery = !areClockwise(
+            this.frustrum.focus.left,
+            relativePoint);
+        const rightPeriphery = areClockwise(
+            this.frustrum.focus.right,
+            relativePoint);
+
+        const focus = !leftPeriphery && !rightPeriphery;
+
+        return {
+            leftPeriphery,
+            rightPeriphery,
+            focus
+        };
     }
 
     canReproduce() {
@@ -156,7 +183,7 @@ export default class Creature {
             dnaInput,
             next,
             elapsedTime);
-        this.frustrum = calculateFrustrum(this);
+        this.frustrum = calculateVisualField(this);
     }
 
     recombine(other) {

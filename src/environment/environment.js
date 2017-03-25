@@ -1,4 +1,3 @@
-import * as Angle from './../types/angle';
 import GenericSelector from './genericSelector';
 import * as KnownVariables from './../knownVariables';
 
@@ -12,32 +11,64 @@ const defaultOptions = {
 const squareDistance = (a, b) =>
     (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 
-const distance = (a, b) => Math.sqrt(squareDistance(a, b));
+const compareSquareDistance = (a, b) => a.squareDistance - b.squareDistance;
 
 const nearestVisibleFood = (creature, foodLocations) => {
     const visibleLocations = foodLocations.
-        filter(point => creature.canSee(point));
+        map(point => ({
+            canSee: creature.canSee(point),
+            point
+        })).
+        filter(data => {
+            return data.canSee.leftPeriphery ||
+                data.canSee.rightPeriphery ||
+                data.canSee.focus;
+        });
 
-    const sortedDistances = visibleLocations.map(point => ({
-        squareDistance: squareDistance(point, creature),
-        point
-    })).
-    sort((a, b) => a.squareDistance - b.squareDistance);
+    visibleLocations.forEach(data => {
+        data.squareDistance = squareDistance(data.point, creature);
+    });
 
-    if (sortedDistances.length === 0) {
-        return null;
+    if (visibleLocations.length === 0) {
+        return {};
     }
 
-    const nearest = sortedDistances[0];
-    const angleInRadians = Math.atan2(
-        nearest.point.y - creature.y,
-        nearest.point.x - creature.x);
+    const leftPeripheryLocations = visibleLocations.
+        filter(data => data.canSee.leftPeriphery).
+        sort(compareSquareDistance);
+
+    let leftPeripheryFood = null;
+    if (leftPeripheryLocations.length !== 0) {
+        leftPeripheryFood = leftPeripheryLocations[0];
+        leftPeripheryFood.distance =
+            Math.sqrt(leftPeripheryFood.squareDistance);
+    }
+
+    const rightPeripheryLocations = visibleLocations.
+        filter(data => data.canSee.rightPeriphery).
+        sort(compareSquareDistance);
+
+    let rightPeripheryFood = null;
+    if (rightPeripheryLocations.length !== 0) {
+        rightPeripheryFood = rightPeripheryLocations[0];
+        rightPeripheryFood.distance =
+            Math.sqrt(rightPeripheryFood.squareDistance);
+    }
+
+    const focusLocations = visibleLocations.
+        filter(data => data.canSee.focus).
+        sort(compareSquareDistance);
+
+    let focusFood = null;
+    if (focusLocations.length !== 0) {
+        focusFood = focusLocations[0];
+        focusFood.distance = Math.sqrt(focusFood.squareDistance);
+    }
 
     return {
-        angle: Angle.fromRadians(angleInRadians),
-        distance: Math.sqrt(nearest.squareDistance),
-        x: nearest.point.x,
-        y: nearest.point.y
+        leftPeripheryFood,
+        rightPeripheryFood,
+        focusFood
     };
 };
 
@@ -78,25 +109,46 @@ export default class Environment {
 
             const nearestFood =
                 nearestVisibleFood(creature, this.map.foodLocations);
-            if (nearestFood) {
-                input[KnownVariables.nearestFoodAngle] = nearestFood.angle;
-                input[KnownVariables.nearestFoodDistance] =
-                    nearestFood.distance;
+            if (nearestFood.leftPeripheryFood) {
+                input[KnownVariables.nearestLeftPeripheryFoodDistance] =
+                    nearestFood.leftPeripheryFood.distance;
+            } else {
+                input[KnownVariables.nearestLeftPeripheryFoodDistance] = -1;
+            }
+
+            if (nearestFood.rightPeripheryFood) {
+                input[KnownVariables.nearestRightPeripheryFoodDistance] =
+                    nearestFood.rightPeripheryFood.distance;
+            } else {
+                input[KnownVariables.nearestRightPeripheryFoodDistance] = -1;
+            }
+
+            if (nearestFood.focusFood) {
+                input[KnownVariables.nearestFocusFoodDistance] =
+                    nearestFood.focusFood.distance;
+            } else {
+                input[KnownVariables.nearestFocusFoodDistance] = -1;
             }
 
             creature.process(input, elapsedTime);
 
-            if (nearestFood &&
-                (distance(nearestFood, creature) < this.options.eatRadius)) {
-                creature.feed(this.options.foodHealth);
-
-                this.map.foodLocations = this.map.foodLocations.filter(
-                    location =>
-                        (location.x !== nearestFood.x) &&
-                        (location.y !== nearestFood.y));
-            }
-            else if (creature.isDead()) {
+            if (creature.isDead()) {
                 deadCreatures.push(id);
+            } else {
+                [
+                    nearestFood.leftPeripheryFood,
+                    nearestFood.rightPeripheryFood,
+                    nearestFood.focusFood
+                ].
+                filter(food => food && food.distance < this.options.eatRadius).
+                forEach(food => {
+                    creature.feed(this.options.foodHealth);
+
+                    this.map.foodLocations = this.map.foodLocations.filter(
+                        location =>
+                            (location.x !== food.point.x) &&
+                            (location.y !== food.point.y));
+                });
             }
         });
 

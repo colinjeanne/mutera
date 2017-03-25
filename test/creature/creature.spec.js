@@ -420,8 +420,20 @@ describe('Creature', function() {
             y: '0020'
         });
 
-        expect(creature.canSee({ x: 100, y: 127.99 })).to.be.true;
-        expect(creature.canSee({ x: 100, y: 128.01 })).to.be.false;
+        expect(creature.canSee({ x: 100, y: 127.99 })).to.deep.equal(
+            {
+                leftPeriphery: true,
+                rightPeriphery: false,
+                focus: false
+            }
+        );
+        expect(creature.canSee({ x: 100, y: 128.01 })).to.deep.equal(
+            {
+                leftPeriphery: false,
+                rightPeriphery: false,
+                focus: false
+            }
+        );
     });
 
     it('cannot see more than pi/4 radians to the right', function() {
@@ -431,15 +443,39 @@ describe('Creature', function() {
             y: '0020'
         });
 
-        expect(creature.canSee({ x: 0.01, y: 100 })).to.be.true;
-        expect(creature.canSee({ x: -0.01, y: 100 })).to.be.false;
+        expect(creature.canSee({ x: 0.01, y: 100 })).to.deep.equal(
+            {
+                leftPeriphery: false,
+                rightPeriphery: true,
+                focus: false
+            }
+        );
+        expect(creature.canSee({ x: -0.01, y: 100 })).to.deep.equal(
+            {
+                leftPeriphery: false,
+                rightPeriphery: false,
+                focus: false
+            }
+        );
     });
 
     it('cannot see more than 300 units away', function() {
         const creature = makeCreature({});
 
-        expect(creature.canSee({ x: 300, y: 0 })).to.be.true;
-        expect(creature.canSee({ x: 300.01, y: 0 })).to.be.false;
+        expect(creature.canSee({ x: 300, y: 0 })).to.deep.equal(
+            {
+                leftPeriphery: false,
+                rightPeriphery: false,
+                focus: true
+            }
+        );
+        expect(creature.canSee({ x: 300.01, y: 0 })).to.deep.equal(
+            {
+                leftPeriphery: false,
+                rightPeriphery: false,
+                focus: false
+            }
+        );
     });
 
     it('keeps state variables that are not part of the standard set', function() {

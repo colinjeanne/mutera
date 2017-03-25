@@ -75,10 +75,6 @@
     <script>
         let selectedCreature = null;
 
-        function angleToRadians(angle) {
-            return (2 * Math.PI * angle) / 512;
-        }
-
         const scaleFactor = 2;
         function mapToCanvas(point) {
             return {
@@ -115,13 +111,13 @@
             const frustrumLength = 300 / scaleFactor;
 
             const leftEndpoint = {
-                x: frustrumLength * Math.cos(angleToRadians(creature.angle + 64)),
-                y: frustrumLength * Math.sin(angleToRadians(creature.angle + 64))
+                x: frustrumLength * Math.cos(Angle.toRadians(creature.angle + 64)),
+                y: frustrumLength * Math.sin(Angle.toRadians(creature.angle + 64))
             };
 
             const rightEndpoint = {
-                x: frustrumLength * Math.cos(angleToRadians(creature.angle - 64)),
-                y: frustrumLength * Math.sin(angleToRadians(creature.angle - 64))
+                x: frustrumLength * Math.cos(Angle.toRadians(creature.angle - 64)),
+                y: frustrumLength * Math.sin(Angle.toRadians(creature.angle - 64))
             };
 
             context.strokeStyle = 'blue';
@@ -135,8 +131,8 @@
                 point.x,
                 point.y,
                 frustrumLength,
-                angleToRadians(creature.angle + 64),
-                angleToRadians(creature.angle - 64),
+                Angle.toRadians(creature.angle + 64),
+                Angle.toRadians(creature.angle - 64),
                 true);
             context.lineTo(point.x, point.y);
             context.stroke();

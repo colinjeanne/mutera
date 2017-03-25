@@ -1,7 +1,10 @@
+import * as Angle from './../types/angle';
 import * as KnownVariables from './../knownVariables';
 
 const timeVaryingValue = (current, next, change, elapsedTime) =>
     current + change * elapsedTime;
+
+const maxRotation = Angle.rangeMax / 8;
 
 const partialStateDefinition = {
     age: {
@@ -13,16 +16,16 @@ const partialStateDefinition = {
         dependencies: [
             'angularVelocity'
         ],
-        rangeMax: 512,
+        rangeMax: Angle.rangeMax,
         transfer: timeVaryingValue,
         variable: KnownVariables.angle
     },
     angularVelocity: {
         default: 0,
         dependencies: [],
-        min: -64,
-        max: 64,
-        transfer: (current, next) => 64 * Math.tanh(next),
+        min: -maxRotation,
+        max: maxRotation,
+        transfer: (current, next) => maxRotation * Math.tanh(next),
         variable: KnownVariables.angularVelocity
     },
     changeInHealth: {
@@ -53,7 +56,7 @@ const partialStateDefinition = {
         min: -7,
         max: 7,
         transfer: (current, next, angle, speed) =>
-            speed * Math.cos(2 * Math.PI * angle / 511)
+            speed * Math.cos(Angle.toRadians(angle))
     },
     vy: {
         dependencies: [
@@ -63,7 +66,7 @@ const partialStateDefinition = {
         min: -7,
         max: 7,
         transfer: (current, next, angle, speed) =>
-            speed * Math.sin(2 * Math.PI * angle / 511)
+            speed * Math.sin(Angle.toRadians(angle))
     },
     x: {
         dependencies: [

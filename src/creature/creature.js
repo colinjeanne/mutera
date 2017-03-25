@@ -1,10 +1,9 @@
+import * as Angle from './../types/angle';
 import { DNA } from './../dna/index';
 import GenericSelector from './genericSelector';
 import { deserializeCreature, serializeCreature } from './serialization';
 import { StateProcessor, stateToDNAInput } from './state';
 import { createRandom, recombine } from './recombination';
-
-const angleToRadians = angle => (2 * Math.PI * angle) / 512;
 
 const areClockwise = (u, v) => -u.x * v.y + u.y * v.x > 0;
 
@@ -12,11 +11,11 @@ const vectorLengthSquared = point => point.x * point.x + point.y * point.y;
 
 const frustrumLength = 300;
 const frustrumLengthSquared = frustrumLength * frustrumLength;
-const fieldOfView = 128;
+const fieldOfView = Angle.rangeMax / 4;
 
 const calculateFrustrum = creature => {
-    const radiansLeft = angleToRadians(creature.angle + fieldOfView / 2);
-    const radiansRight = angleToRadians(creature.angle - fieldOfView / 2);
+    const radiansLeft = Angle.toRadians(creature.angle + fieldOfView / 2);
+    const radiansRight = Angle.toRadians(creature.angle - fieldOfView / 2);
 
     const left = {
         x: frustrumLength * Math.cos(radiansLeft),

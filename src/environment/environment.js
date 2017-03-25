@@ -1,3 +1,4 @@
+import * as Angle from './../types/angle';
 import GenericSelector from './genericSelector';
 import * as KnownVariables from './../knownVariables';
 
@@ -12,14 +13,6 @@ const squareDistance = (a, b) =>
     (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 
 const distance = (a, b) => Math.sqrt(squareDistance(a, b));
-
-const radiansToAngle = radians => {
-    if (radians < 0) {
-        radians += (2 * Math.PI);
-    }
-
-    return radians * 256 / Math.PI;
-};
 
 const nearestVisibleFood = (creature, foodLocations) => {
     const visibleLocations = foodLocations.
@@ -41,7 +34,7 @@ const nearestVisibleFood = (creature, foodLocations) => {
         nearest.point.x - creature.x);
 
     return {
-        angle: radiansToAngle(angleInRadians),
+        angle: Angle.fromRadians(angleInRadians),
         distance: Math.sqrt(nearest.squareDistance),
         x: nearest.point.x,
         y: nearest.point.y

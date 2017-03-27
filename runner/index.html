@@ -17,6 +17,12 @@
                 border: thin solid black;
             }
 
+            #info {
+                border-left: thin solid black;
+                flex-grow: 1;
+                padding-left: 1em;
+            }
+
             #program {
                 white-space: pre;
             }
@@ -25,8 +31,8 @@
                 white-space: pre;
             }
 
-            #settings {
-                border-left: thin solid black;
+            #graphviz {
+                white-space: pre;
             }
         </style>
     </head>
@@ -36,43 +42,61 @@
             <button id="startButton" type="button">Start</button>
             <button id="stopButton" type="button">Stop</button>
         </div>
-        <div>
-            <ul id="creatures">
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-            </ul>
-            <div id="program">
-            </div>
+        <div id="info">
             <div>
+                <div id="settings">
                 <dl>
-                    <dt>Id:</dt><dd id="creatureId"></dd>
-                    <dt>Age:</dt><dd id="creatureAge"></dd>
-                    <dt>Angle:</dt><dd id="creatureAngle"></dd>
-                    <dt>Health:</dt><dd id="creatureHealth"></dd>
-                    <dt>Speed:</dt><dd id="creatureSpeed"></dd>
-                    <dt>X:</dt><dd id="creatureX"></dd>
-                    <dt>Y:</dt><dd id="creatureY"></dd>
+                    <dt>Generation:</dt><dd id="generationCount"></dd>
+                    <dt>Speed:</dt><dd><input id="speed" type="number" value="1"></dd>
                 </dl>
             </div>
-            <div id="creatureState">
+            <div>
+                <ul id="creatures">
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                </ul>
+                <div id="program">
+                </div>
+                <div>
+                    <dl>
+                        <dt>Id:</dt><dd id="creatureId"></dd>
+                        <dt>Age:</dt><dd id="creatureAge"></dd>
+                        <dt>Angle:</dt><dd id="creatureAngle"></dd>
+                        <dt>Health:</dt><dd id="creatureHealth"></dd>
+                        <dt>Speed:</dt><dd id="creatureSpeed"></dd>
+                        <dt>X:</dt><dd id="creatureX"></dd>
+                        <dt>Y:</dt><dd id="creatureY"></dd>
+                    </dl>
+                </div>
+                <div id="creatureState">
+                </div>
             </div>
-        </div>
-        <div id="settings">
-            <dl>
-                <dt>Generation:</dt><dd id="generationCount"></dd>
-                <dt>Speed:</dt><dd><input id="speed" type="number" value="1"></dd>
-            </dl>
+            <div id="graphviz">
+            </div>
         </div>
     </body>
     <script>
+        function renderGraphViz(environment, graphviz) {
+            let text = 'strict digraph {\n';
+            environment.genealogy.forEach((parentIds, id) => {
+                text += `\t"${id}" -> {`;
+                parentIds.forEach(id => text += ` "${id}" `);
+                text += '}\n';
+            });
+
+            text += `}`;
+
+            graphviz.textContent = text;
+        }
+
         let selectedCreature = null;
 
         const scaleFactor = 2;
@@ -302,7 +326,7 @@
         }
 
         const dnaSelector = new world.DNA.GenericSelector({
-            inputVariables: 'adlrf',
+            inputVariables: 'alrf',
             maximumTreeDepth: 2,
             mutationsPerGene: new Map([
                 [0, 0.9],
@@ -400,7 +424,7 @@
                     height: view.height * scaleFactor
                 },
                 new Map([
-                    [searchingCreature.id, searchingCreature]
+                    //[searchingCreature.id, searchingCreature]
                 ]),
                 new EnvironmentSelector({
                     foodGrowthPerTime: 30,
@@ -419,11 +443,14 @@
                 handleClick(point, environment);
             });
 
+            const graphviz = document.getElementById('graphviz');
+
             const speed = document.getElementById('speed');
             function run() {
                 if (isRunning) {
                     try {
                         process(context, generationItem, environment, 100);
+                        renderGraphViz(environment, graphviz);
                     }
                     catch (e) {
                         console.log(e);

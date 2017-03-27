@@ -83,6 +83,8 @@ export default class Environment {
         this.selector = selector;
         this.generationTime = 0;
         this.generationCount = 0;
+
+        this.genealogy = new Map();
     }
 
     get fittest() {
@@ -173,15 +175,30 @@ export default class Environment {
                 const oldestMutation = oldest.recombine(oldest);
                 this.creatures.set(oldestMutation.id, oldestMutation);
 
+                if (!this.genealogy.has(oldest.id)) {
+                    this.genealogy.set(oldest.id, []);
+                }
+
+                this.genealogy.get(oldest.id).push(oldestMutation.id);
+
                 if (secondOldest) {
                     const recombined = oldest.recombine(secondOldest);
                     this.creatures.set(recombined.id, recombined);
+
+                    if (!this.genealogy.has(secondOldest.id)) {
+                        this.genealogy.set(secondOldest.id, []);
+                    }
 
                     const secondOldestMutation =
                         secondOldest.recombine(secondOldest);
                     this.creatures.set(
                         secondOldestMutation.id,
                         secondOldestMutation);
+
+                    this.genealogy.get(oldest.id).push(recombined.id);
+                    this.genealogy.get(secondOldest.id).push(recombined.id);
+                    this.genealogy.get(secondOldest.id).push(
+                        secondOldestMutation.id);
                 }
             }
 

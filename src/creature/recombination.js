@@ -2,7 +2,8 @@ export const createRandom = (stateProcessor, selector) => {
     const state = stateProcessor.ensureValidProperties({
         age: 0,
         health: 3000,
-        speed: 0
+        isMoving: 0,
+        isFast: 0
     });
 
     const id = selector.generateUniqueId();
@@ -17,7 +18,8 @@ export const createRandom = (stateProcessor, selector) => {
         id,
         velocity: {
             angle: stateProcessor.chooseValueInPropertyRange('angle', selector),
-            speed: state.speed
+            isMoving: state.isMoving,
+            isFast: state.isFast
         },
         x: stateProcessor.chooseValueInPropertyRange('x', selector),
         y: stateProcessor.chooseValueInPropertyRange('y', selector)
@@ -30,7 +32,8 @@ export const recombine = (initiator, other, stateProcessor, selector) => {
     const state = stateProcessor.ensureValidProperties({
         age: 0,
         health: 3000,
-        speed: 0,
+        isMoving: 0,
+        isFast: 0,
         x: location.x,
         y: location.y
     });
@@ -48,7 +51,8 @@ export const recombine = (initiator, other, stateProcessor, selector) => {
         id,
         velocity: {
             angle,
-            speed: state.speed
+            isMoving: state.isMoving,
+            isFast: state.isFast
         },
         x: state.x,
         y: state.y

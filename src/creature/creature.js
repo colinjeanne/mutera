@@ -64,7 +64,8 @@ export default class Creature {
             id: this.id,
             velocity: {
                 angle: this.state.angle,
-                speed: this.state.speed
+                isMoving: this.state.isMoving,
+                isFast: this.state.isFast
             },
             x: this.state.x,
             y: this.state.y
@@ -89,8 +90,16 @@ export default class Creature {
         return this.state.health;
     }
 
+    get isMoving() {
+        return this.state.isMoving;
+    }
+
+    get isFast() {
+        return this.state.isFast;
+    }
+
     get speed() {
-        return this.state.speed;
+        return this.state.speed || 0;
     }
 
     get x() {
@@ -163,7 +172,8 @@ export default class Creature {
             id: this.id,
             velocity: {
                 angle: this.state.angle,
-                speed: this.state.speed
+                isMoving: this.state.isMoving,
+                isFast: this.state.isFast
             },
             x: this.state.x,
             y: this.state.y

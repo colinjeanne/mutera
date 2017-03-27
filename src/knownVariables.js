@@ -2,6 +2,8 @@ export const age = 'g';
 export const angle = 'a';
 export const angularVelocity = 'A';
 export const health = 'h';
+export const isMoving = 'm';
+export const isFast = 'F';
 export const speed = 's';
 
 export const nearestLeftPeripheryFoodDistance = 'l';

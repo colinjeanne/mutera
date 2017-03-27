@@ -1,7 +1,7 @@
-const radiansToAngle = 256 / Math.PI;
-const angleToRadians = Math.PI / 256;
-
 export const rangeMax = 512;
+
+const radiansToAngle = rangeMax / (2 * Math.PI);
+const angleToRadians = (2 * Math.PI) / rangeMax;
 
 const mod = (a, n) => a - Math.floor(a / n) * n;
 

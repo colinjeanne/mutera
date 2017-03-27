@@ -40,12 +40,37 @@ const partialStateDefinition = {
         transfer: timeVaryingValue,
         variable: KnownVariables.health
     },
+    isMoving: {
+        default: false,
+        dependencies: [],
+        transfer: (current, next) => next,
+        variable: KnownVariables.isMoving
+    },
+    isFast: {
+        default: false,
+        dependencies: [],
+        transfer: (current, next) => next,
+        variable: KnownVariables.isFast
+    },
     speed: {
         default: 0,
-        dependencies: [],
+        dependencies: [
+            'isMoving',
+            'isFast'
+        ],
         min: 0,
         max: 7,
-        transfer: (current, next) => next,
+        transfer: (current, next, isMoving, isFast) => {
+            if (isMoving <= 0) {
+                return 0;
+            }
+
+            if (isFast <= 0) {
+                return 3;
+            }
+
+            return 7;
+        },
         variable: KnownVariables.speed
     },
     vx: {

@@ -11,13 +11,17 @@ const encodeHealth = health =>
 const decodeVelocity = encoded => {
     const value = intFromBase64(encoded);
     return {
-        angle: value % 512,
-        speed: value >>> 9
+        angle: value & 0x1FF,
+        isMoving: (value & 0x200) >> 9,
+        isFast: (value & 0x400) >> 10
     };
 };
 
-const encodeVelocity = ({ angle, speed }) =>
-    intToBase64((Math.floor(speed) << 9) + Math.floor(angle), 2);
+const encodeVelocity = ({ angle, isMoving, isFast }) =>
+    intToBase64(
+        ((isFast > 0) << 10) +
+        ((isMoving > 0) << 9) +
+        Math.floor(angle), 2);
 
 const decodeLocation = encoded => intFromBase64(encoded);
 

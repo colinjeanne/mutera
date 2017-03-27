@@ -133,15 +133,16 @@
             context.fill();
 
             const frustrumLength = 300 / scaleFactor;
+            const frustrumAngle = world.Angle.rangeMax / 8;
 
             const leftEndpoint = {
-                x: frustrumLength * Math.cos(world.Angle.toRadians(creature.angle + 64)),
-                y: frustrumLength * Math.sin(world.Angle.toRadians(creature.angle + 64))
+                x: frustrumLength * Math.cos(world.Angle.toRadians(creature.angle + frustrumAngle)),
+                y: frustrumLength * Math.sin(world.Angle.toRadians(creature.angle + frustrumAngle))
             };
 
             const focusLeftEndpoint = {
-                x: frustrumLength * Math.cos(world.Angle.toRadians(creature.angle + 64 / 3)),
-                y: frustrumLength * Math.sin(world.Angle.toRadians(creature.angle + 64 / 3))
+                x: frustrumLength * Math.cos(world.Angle.toRadians(creature.angle + frustrumAngle / 3)),
+                y: frustrumLength * Math.sin(world.Angle.toRadians(creature.angle + frustrumAngle / 3))
             };
 
             context.strokeStyle = 'blue';
@@ -155,8 +156,8 @@
                 point.x,
                 point.y,
                 frustrumLength,
-                world.Angle.toRadians(creature.angle + 64),
-                world.Angle.toRadians(creature.angle - 64),
+                world.Angle.toRadians(creature.angle + frustrumAngle),
+                world.Angle.toRadians(creature.angle - frustrumAngle),
                 true);
             context.lineTo(point.x, point.y);
             context.stroke();
@@ -172,8 +173,8 @@
                 point.x,
                 point.y,
                 frustrumLength,
-                world.Angle.toRadians(creature.angle + 64 / 3),
-                world.Angle.toRadians(creature.angle - 64 / 3),
+                world.Angle.toRadians(creature.angle + frustrumAngle / 3),
+                world.Angle.toRadians(creature.angle - frustrumAngle / 3),
                 true);
             context.lineTo(point.x, point.y);
             context.stroke();
@@ -224,6 +225,8 @@
                 'A': 'angularV',
                 'h': 'health',
                 's': 'speed',
+                'm': 'isMoving',
+                'F': 'isFast',
                 'l': 'leftFoodDistance',
                 'r': 'rightFoodDistance',
                 'f': 'focusFoodDistance',
@@ -334,7 +337,7 @@
                 [2, 0.95],
                 [3, 0.99]
             ]),
-            outputVariables: 'As',
+            outputVariables: 'AmF',
             spliceRates: new Map([
                 [world.DNA.spliceType.delete, 0.1],
                 [world.DNA.spliceType.duplicate, 0.55],
@@ -378,7 +381,9 @@
                 y +
                 '00' +
                 '__' +
-                '18s1TC_C_M' +
+                '1' +
+                '5m1TC_' +
+                '5F1TC_' +
                 '5A1TCW' +
                 'LAHVlCWGVlVfLVfCWLOAC_' +
                 'LAHVrCWGVrVfLVfCWLOAC0',

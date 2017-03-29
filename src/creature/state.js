@@ -58,8 +58,6 @@ const partialStateDefinition = {
             'isMoving',
             'isFast'
         ],
-        min: 0,
-        max: 7,
         transfer: (current, next, isMoving, isFast) => {
             if (isMoving <= 0) {
                 return 0;
@@ -78,8 +76,6 @@ const partialStateDefinition = {
             'angle',
             'speed'
         ],
-        min: -7,
-        max: 7,
         transfer: (current, next, angle, speed) =>
             speed * Math.cos(Angle.toRadians(angle))
     },
@@ -88,8 +84,6 @@ const partialStateDefinition = {
             'angle',
             'speed'
         ],
-        min: -7,
-        max: 7,
         transfer: (current, next, angle, speed) =>
             speed * Math.sin(Angle.toRadians(angle))
     },

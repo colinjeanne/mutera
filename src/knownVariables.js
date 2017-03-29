@@ -1,6 +1,7 @@
 export const age = 'g';
 export const angle = 'a';
 export const angularVelocity = 'A';
+export const color = 'c';
 export const health = 'h';
 export const isMoving = 'm';
 export const isFast = 'F';

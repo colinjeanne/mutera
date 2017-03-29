@@ -10,6 +10,7 @@ exports.makeCreature = (encodingData, selector, makeDNA) => {
             y: '0000',
             velocity: '00',
             health: '00',
+            color: '0',
             dna: '15a1TC0'
         },
         encodingData);
@@ -22,6 +23,7 @@ exports.makeCreature = (encodingData, selector, makeDNA) => {
         data.y +
         data.velocity +
         data.health +
+        data.color +
         data.dna,
         {
             selector,

@@ -1,15 +1,14 @@
 export const createRandom = (stateProcessor, selector) => {
     const state = stateProcessor.ensureValidProperties({
         age: 0,
-        health: 3000,
-        isMoving: 0,
-        isFast: 0
+        health: 3000
     });
 
     const id = selector.generateUniqueId();
 
     return {
         age: state.age,
+        color: stateProcessor.chooseValueInPropertyRange('color', selector),
         dna: selector.createRandomDNA(),
         header: {
             version: '1'
@@ -18,8 +17,8 @@ export const createRandom = (stateProcessor, selector) => {
         id,
         velocity: {
             angle: stateProcessor.chooseValueInPropertyRange('angle', selector),
-            isMoving: state.isMoving,
-            isFast: state.isFast
+            isMoving: 0,
+            isFast: 0
         },
         x: stateProcessor.chooseValueInPropertyRange('x', selector),
         y: stateProcessor.chooseValueInPropertyRange('y', selector)
@@ -32,17 +31,17 @@ export const recombine = (initiator, other, stateProcessor, selector) => {
     const state = stateProcessor.ensureValidProperties({
         age: 0,
         health: 3000,
-        isMoving: 0,
-        isFast: 0,
         x: location.x,
         y: location.y
     });
 
     const angle = stateProcessor.chooseValueInPropertyRange('angle', selector);
+    const color = stateProcessor.chooseValueInPropertyRange('color', selector);
     const id = selector.generateUniqueId();
 
     return {
         age: state.age,
+        color,
         dna: initiator.dna.recombine(other.dna),
         header: {
             version: '1'
@@ -51,8 +50,8 @@ export const recombine = (initiator, other, stateProcessor, selector) => {
         id,
         velocity: {
             angle,
-            isMoving: state.isMoving,
-            isFast: state.isFast
+            isMoving: 0,
+            isFast: 0
         },
         x: state.x,
         y: state.y

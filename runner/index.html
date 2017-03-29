@@ -121,16 +121,29 @@
             context.fill();
         }
 
+        function getCreatureHue(creature) {
+            return creature.color * (360 / world.Color.rangeMax);
+        }
+
         function drawCreature(context, creature) {
             const point = mapToCanvas(creature);
 
             context.beginPath();
             context.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-            const color = Math.floor(creature.health * 255 / 4096);
-            context.fillStyle = (selectedCreature === creature) ?
-                'rgb(0,0,255)' :
-                `rgb(${color},0,0)`;
+            context.fillStyle = `hsl(${getCreatureHue(creature)},100%,50%)`;
             context.fill();
+
+            const healthWidth = Math.floor(creature.health * 10 / 4096);
+            context.fillStyle = `rgb(0, 255, 0)`;
+            context.fillRect(point.x - 5, point.y - 10, healthWidth, 3);
+            context.fillStyle = `rgb(0, 0, 0)`;
+            context.fillRect(point.x - 5 + healthWidth, point.y - 10, 10 - healthWidth, 3);
+
+            if (selectedCreature === creature) {
+                context.arc(point.x, point.y, 8, 0, 2 * Math.PI);
+                context.strokeStyle = 'rgb(0,0,255)';
+                context.stroke();
+            }
 
             const frustrumLength = 300 / scaleFactor;
             const frustrumAngle = world.Angle.rangeMax / 8;
@@ -223,6 +236,7 @@
                 'g': 'age',
                 'a': 'angle',
                 'A': 'angularV',
+                'c': 'color',
                 'h': 'health',
                 's': 'speed',
                 'm': 'isMoving',
@@ -337,7 +351,7 @@
                 [2, 0.95],
                 [3, 0.99]
             ]),
-            outputVariables: 'AmF',
+            outputVariables: 'AcmF',
             spliceRates: new Map([
                 [world.DNA.spliceType.delete, 0.1],
                 [world.DNA.spliceType.duplicate, 0.55],
@@ -381,6 +395,7 @@
                 y +
                 '00' +
                 '__' +
+                '0' +
                 '1' +
                 '5m1TC_' +
                 '5F1TC_' +

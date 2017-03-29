@@ -58,6 +58,7 @@ export default class Creature {
         this.state = {};
         ({
             age: this.state.age,
+            color: this.state.color,
             dna: this.dna,
             header: this.header,
             health: this.state.health,
@@ -84,6 +85,10 @@ export default class Creature {
 
     get angle() {
         return this.state.angle;
+    }
+
+    get color() {
+        return this.state.color;
     }
 
     get health() {
@@ -164,6 +169,7 @@ export default class Creature {
     toString() {
         const data = {
             age: this.state.age,
+            color: this.state.color,
             dna: this.dna,
             header: {
                 version: 1

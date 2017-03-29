@@ -8,6 +8,10 @@ const decodeHealth = encoded => intFromBase64(encoded);
 const encodeHealth = health =>
     intToBase64(Math.floor(health), 2);
 
+const decodeColor = encoded => intFromBase64(encoded) & 0x7;
+
+const encodeColor = color => intToBase64(color & 0x7, 1);
+
 const decodeVelocity = encoded => {
     const value = intFromBase64(encoded);
     return {
@@ -121,6 +125,12 @@ const makeSlicing = makeDNA => [
         length: 2,
         decoder: decodeHealth,
         encoder: encodeHealth
+    },
+    {
+        property: 'color',
+        length: 1,
+        decoder: decodeColor,
+        encoder: encodeColor
     },
     {
         property: 'dna',

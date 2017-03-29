@@ -50,13 +50,18 @@ describe('Creature', function() {
             to.throw('Creature missing health');
     });
 
-    it('must have a DNA', function() {
+    it('must have a color', function() {
         expect(() => new Creature('10000000000000000000000')).
+            to.throw('Creature missing color');
+    });
+
+    it('must have a DNA', function() {
+        expect(() => new Creature('100000000000000000000000')).
             to.throw('Creature missing dna');
     });
 
     it('must have a valid DNA', function() {
-        expect(() => new Creature('100000000000000000000001')).
+        expect(() => new Creature('1000000000000000000000001')).
             to.throw('DNA missing genes');
     });
 
@@ -74,6 +79,7 @@ describe('Creature', function() {
             y: '4321',
             velocity: 'AB',
             health: '21',
+            color: '7',
             dna: '15a1TC1'
         });
 
@@ -87,12 +93,13 @@ describe('Creature', function() {
         expect(creature.x).to.equal(270532);
         expect(creature.y).to.equal(1060993);
         expect(creature.health).to.equal(129);
+        expect(creature.color).to.equal(7);
         expect(creature.dna.toString()).to.equal('15a1TC1');
     });
 
     it('can convert to a string', function() {
         const creature = makeCreature({});
-        expect('' + creature).to.equal('1000000000000000000000015a1TC0');
+        expect('' + creature).to.equal('10000000000000000000000015a1TC0');
     });
 
     it('converts fields to integers before serialization', function() {
@@ -111,7 +118,7 @@ describe('Creature', function() {
         expect(creature.y).to.equal(640);
 
         expect(creature.toString()).
-            to.equal('1000000000000A000A0800015s1TCa');
+            to.equal('1000000000000A000A08000015s1TCa');
     });
 
     it('ignores changes made to relevant state variables', function() {
@@ -391,7 +398,7 @@ describe('Creature', function() {
         };
 
         const creature = Creature.createRandom({ selector });
-        expect(creature.toString()).to.equal('100000000000000000000ku1501TV0');
+        expect(creature.toString()).to.equal('100000000000000000000ku01501TV0');
     });
 
     it('cannot see more than pi/4 radians to the left', function() {

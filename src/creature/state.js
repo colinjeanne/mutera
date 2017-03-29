@@ -1,5 +1,7 @@
 import * as Angle from './../types/angle';
+import * as Color from './../types/color';
 import * as KnownVariables from './../knownVariables';
+import { mod } from './../utilities';
 
 const timeVaryingValue = (current, next, change, elapsedTime) =>
     current + change * elapsedTime;
@@ -30,6 +32,13 @@ const partialStateDefinition = {
     },
     changeInHealth: {
         dependencies: []
+    },
+    color: {
+        default: 0,
+        dependencies: [],
+        rangeMax: Color.rangeMax,
+        transfer: (current, next) => Math.floor(next),
+        variable: KnownVariables.color
     },
     health: {
         dependencies: [
@@ -64,10 +73,10 @@ const partialStateDefinition = {
             }
 
             if (isFast <= 0) {
-                return 3;
+                return 7;
             }
 
-            return 7;
+            return 16;
         },
         variable: KnownVariables.speed
     },
@@ -151,11 +160,7 @@ const ensureWithinRange = (value, definition) => {
     }
 
     if ('rangeMax' in definition) {
-        if (value < 0) {
-            return value + definition.rangeMax;
-        }
-
-        return value % definition.rangeMax;
+        return mod(value, definition.rangeMax);
     }
 
     return value;

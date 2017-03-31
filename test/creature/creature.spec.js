@@ -114,11 +114,11 @@ describe('Creature', function() {
         expect(creature.isFast).to.equal(0);
 
         creature.process({}, 0.25);
-        expect(creature.x).to.equal(640.75);
+        expect(creature.x).to.equal(641.75);
         expect(creature.y).to.equal(640);
 
         expect(creature.toString()).
-            to.equal('1000000000000A000A08000015s1TCa');
+            to.equal('1000000000000A100A08000015s1TCa');
     });
 
     it('ignores changes made to relevant state variables', function() {
@@ -240,13 +240,13 @@ describe('Creature', function() {
         expect(creature.speed).to.equal(0);
 
         creature.process({}, 0.5);
-        expect(creature.speed).to.equal(3);
-        expect(creature.x).to.equal(641.5);
+        expect(creature.speed).to.equal(7);
+        expect(creature.x).to.equal(643.5);
         expect(creature.y).to.equal(640);
 
         creature.process({}, 0.5);
-        expect(creature.speed).to.equal(3);
-        expect(creature.x).to.equal(643);
+        expect(creature.speed).to.equal(7);
+        expect(creature.x).to.equal(647);
         expect(creature.y).to.equal(640);
     });
 
@@ -317,16 +317,16 @@ describe('Creature', function() {
     it('wraps x-coordinate when going beyond the maximum range', function() {
         const creature = makeCreature({
             velocity: '80',
-            x: '00Fc',
+            x: '00FY',
             dna: '15Q1TC0'
         });
 
         expect(creature.speed).to.equal(0);
         expect(creature.angle).to.equal(0);
-        expect(creature.x).to.equal(998);
+        expect(creature.x).to.equal(994);
 
         creature.process({}, 1);
-        expect(creature.speed).to.equal(3);
+        expect(creature.speed).to.equal(7);
         expect(creature.angle).to.equal(0);
         expect(creature.x).to.be.closeTo(1, 0.001);
     });
@@ -334,16 +334,16 @@ describe('Creature', function() {
     it('wraps x-coordinate when going below 0', function() {
         const creature = makeCreature({
             velocity: 'C0',
-            x: '0002',
+            x: '0006',
             dna: '15Q1TC0'
         });
 
         expect(creature.speed).to.equal(0);
         expect(creature.angle).to.equal(256);
-        expect(creature.x).to.equal(2);
+        expect(creature.x).to.equal(6);
 
         creature.process({}, 1);
-        expect(creature.speed).to.equal(3);
+        expect(creature.speed).to.equal(7);
         expect(creature.angle).to.equal(256);
         expect(creature.x).to.be.closeTo(999, 0.001);
     });
@@ -351,16 +351,16 @@ describe('Creature', function() {
     it('wraps y-coordinate when going beyond the maximum range', function() {
         const creature = makeCreature({
             velocity: 'A0',
-            y: '00Fc',
+            y: '00FY',
             dna: '15Q1TC0'
         });
 
         expect(creature.speed).to.equal(0);
         expect(creature.angle).to.equal(128);
-        expect(creature.y).to.equal(998);
+        expect(creature.y).to.equal(994);
 
         creature.process({}, 1);
-        expect(creature.speed).to.equal(3);
+        expect(creature.speed).to.equal(7);
         expect(creature.angle).to.equal(128);
         expect(creature.y).to.be.closeTo(1, 0.001);
     });
@@ -368,16 +368,16 @@ describe('Creature', function() {
     it('wraps y-coordinate when going below 0', function() {
         const creature = makeCreature({
             velocity: 'E0',
-            y: '0002',
+            y: '0006',
             dna: '15Q1TC0'
         });
 
         expect(creature.speed).to.equal(0);
         expect(creature.angle).to.equal(384);
-        expect(creature.y).to.equal(2);
+        expect(creature.y).to.equal(6);
 
         creature.process({}, 1);
-        expect(creature.speed).to.equal(3);
+        expect(creature.speed).to.equal(7);
         expect(creature.angle).to.equal(384);
         expect(creature.y).to.be.closeTo(999, 0.001);
     });

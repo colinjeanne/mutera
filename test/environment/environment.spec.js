@@ -5,6 +5,7 @@ const { Environment } = require('./../../umd/world.js').Environment;
 const defaultCreatureData = {
     age: 1,
     angle: 0,
+    color: 0,
     health: 100,
     speed: 0,
     x: 0,
@@ -19,7 +20,7 @@ const defaultCreatureData = {
 class MockCreature {
     constructor(id, data = defaultCreatureData) {
         this.id = id;
-        this.data = data;
+        this.data = Object.assign({}, defaultCreatureData, data);
     }
 
     canReproduce() {
@@ -38,12 +39,20 @@ class MockCreature {
         this.lastFoodHealth = foodHealth;
     }
 
+    harm(healthLoss) {
+        this.lastHealthLoss = healthLoss;
+    }
+
     get age() {
         return this.data.age;
     }
 
     get angle() {
         return this.data.angle;
+    }
+
+    get color() {
+        return this.data.color;
     }
 
     get health() {
@@ -192,7 +201,7 @@ describe('Environment', function() {
 
         environment.process(3);
 
-        expect(creature.lastInput).to.deep.equal({
+        expect(creature.lastInput).to.contain.all.keys({
             l: 10,
             r: -1,
             f: -1
@@ -254,7 +263,7 @@ describe('Environment', function() {
 
         environment.process(3);
 
-        expect(creature.lastInput).to.deep.equal({
+        expect(creature.lastInput).to.contain.all.keys({
             l: -1,
             r: 10,
             f: -1
@@ -316,14 +325,221 @@ describe('Environment', function() {
 
         environment.process(3);
 
-        expect(creature.lastInput).to.deep.equal({
+        expect(creature.lastInput).to.contain.all.keys({
             l: -1,
             r: -1,
             f: 10
         });
     });
 
-    it('provides no information about food if none are visible', function() {
+    it('provides the distance and color to the nearest left periphery creature', function() {
+        const options = {
+            generationTimeLength: 2,
+            minimumCreatures: 1
+        };
+
+        const creature = new MockCreature(
+            '00001',
+            {
+                x: 50,
+                y: 50,
+                canSee: () => ({
+                    leftPeriphery: true,
+                    rightPeriphery: false,
+                    focus: false
+                })
+            });
+
+        const near = new MockCreature(
+            '00002',
+            {
+                color: 1,
+                x: 60,
+                y: 50
+            });
+
+        const far = new MockCreature(
+            '00003',
+            {
+                color: 2,
+                x: 70,
+                y: 50
+            });
+
+        const creatures = [
+            creature,
+            near,
+            far
+        ];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        environment.process(3);
+
+        expect(creature.lastInput).to.contain.all.keys({
+            H: 10,
+            I: 1,
+            J: -1,
+            K: -1,
+            L: -1,
+            M: -1
+        });
+    });
+
+    it('provides the distance and color to the nearest right periphery creature', function() {
+        const options = {
+            generationTimeLength: 2,
+            minimumCreatures: 1
+        };
+
+        const creature = new MockCreature(
+            '00001',
+            {
+                x: 50,
+                y: 50,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: true,
+                    focus: false
+                })
+            });
+
+        const near = new MockCreature(
+            '00002',
+            {
+                color: 1,
+                x: 60,
+                y: 50
+            });
+
+        const far = new MockCreature(
+            '00003',
+            {
+                color: 2,
+                x: 70,
+                y: 50
+            });
+
+        const creatures = [
+            creature,
+            near,
+            far
+        ];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        environment.process(3);
+
+        expect(creature.lastInput).to.contain.all.keys({
+            H: -1,
+            I: -1,
+            J: 10,
+            K: 1,
+            L: -1,
+            M: -1
+        });
+    });
+
+    it('provides the distance and color to the nearest focus creature', function() {
+        const options = {
+            generationTimeLength: 2,
+            minimumCreatures: 1
+        };
+
+        const creature = new MockCreature(
+            '00001',
+            {
+                x: 50,
+                y: 50,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: true
+                })
+            });
+
+        const near = new MockCreature(
+            '00002',
+            {
+                color: 1,
+                x: 60,
+                y: 50
+            });
+
+        const far = new MockCreature(
+            '00003',
+            {
+                color: 2,
+                x: 70,
+                y: 50
+            });
+
+        const creatures = [
+            creature,
+            near,
+            far
+        ];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        environment.process(3);
+
+        expect(creature.lastInput).to.contain.all.keys({
+            H: -1,
+            I: -1,
+            J: -1,
+            K: -1,
+            L: 10,
+            M: 1
+        });
+    });
+
+    it('provides no information about food or creatures if none are visible', function() {
         const options = {
             eatRadius: 50,
             generationTimeLength: 2,
@@ -374,10 +590,16 @@ describe('Environment', function() {
 
         environment.process(3);
 
-        expect(creature.lastInput).to.deep.equal({
+        expect(creature.lastInput).to.contain.all.keys({
             l: -1,
             r: -1,
-            f: -1
+            f: -1,
+            H: -1,
+            I: -1,
+            J: -1,
+            K: -1,
+            L: -1,
+            M: -1
         });
     });
 

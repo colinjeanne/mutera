@@ -2,6 +2,12 @@ import { intToBase64 } from './../base64';
 import * as Random from './../random';
 import { DNA } from './../dna/index';
 
+// See http://stackoverflow.com/questions/9048095/create-random-number-within-an-annulus
+const minimumRadius = 30;
+const maximumRadius = 50;
+const minimumRadiusSquared = minimumRadius * minimumRadius;
+const normalizer = maximumRadius * maximumRadius - minimumRadiusSquared;
+
 export default class GenericSelector {
     canReproduce(creature, stateProcessor) {
         const maximumHealth = stateProcessor.getMaximumPropertyValue('health');
@@ -13,11 +19,8 @@ export default class GenericSelector {
     }
 
     chooseLocation(x, y) {
-        // See http://stackoverflow.com/questions/9048095/create-random-number-within-an-annulus
-        // Maximum radius = 20
-        // Minimum radius = 10
-        const normalizer = 1 / 300;
-        const distance = Math.sqrt(Math.random() / normalizer + 100);
+        const distance = Math.sqrt(
+            Math.random() * normalizer + minimumRadiusSquared);
         const angle = Random.chooseBetween(-Math.PI, Math.PI, Math.random);
         return {
             x: distance * Math.cos(angle) + x,

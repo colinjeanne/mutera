@@ -233,17 +233,23 @@
 
         function renderVariable(variable) {
             const known = {
-                'g': 'age',
-                'a': 'angle',
-                'A': 'angularV',
-                'c': 'color',
-                'h': 'health',
-                's': 'speed',
-                'm': 'isMoving',
-                'F': 'isFast',
-                'l': 'leftFoodDistance',
-                'r': 'rightFoodDistance',
-                'f': 'focusFoodDistance',
+                g: 'age',
+                a: 'angle',
+                A: 'angularV',
+                c: 'color',
+                h: 'health',
+                s: 'speed',
+                m: 'isMoving',
+                F: 'isFast',
+                l: 'leftFoodDistance',
+                r: 'rightFoodDistance',
+                f: 'focusFoodDistance',
+                H: 'leftCreatureDistance',
+                I: 'leftCreatureColor',
+                J: 'rightCreatureDistance',
+                K: 'rightCreatureColor',
+                L: 'focusCreatureDistance',
+                M: 'focusCreatureColor'
             };
 
             if (variable in known) {
@@ -343,7 +349,7 @@
         }
 
         const dnaSelector = new world.DNA.GenericSelector({
-            inputVariables: 'alrf',
+            inputVariables: 'alrfHIJKLM',
             maximumTreeDepth: 2,
             mutationsPerGene: new Map([
                 [0, 0.9],
@@ -386,28 +392,6 @@
             }
         }
 
-        function makeSearchingCreature(id, x, y) {
-            return new world.Creature.Creature(
-                '1' +
-                id +
-                '00000' +
-                x +
-                y +
-                '00' +
-                '__' +
-                '0' +
-                '1' +
-                '5m1TC_' +
-                '5F1TC_' +
-                '5A1TCW' +
-                'LAHVlCWGVlVfLVfCWLOAC_' +
-                'LAHVrCWGVrVfLVfCWLOAC0',
-                {
-                    selector: creatureSelector,
-                    makeDNA
-                });
-        }
-
         function onLoad() {
             const view = document.getElementById('view');
             const generationItem = document.getElementById('generationCount');
@@ -430,28 +414,19 @@
                 startButton.hidden = isRunning;
             });
 
-            const searchingCreature = makeSearchingCreature('00001', '0000', '0020');
-
             const environment = new world.Environment.Environment(
                 {
-                    foodLocations: [
-                        {
-                            x: 196,
-                            y: 0
-                        }
-                    ],
+                    foodLocations: [],
                     width: view.width * scaleFactor,
                     height: view.height * scaleFactor
                 },
-                new Map([
-                    //[searchingCreature.id, searchingCreature]
-                ]),
+                new Map(),
                 new EnvironmentSelector({
                     foodGrowthPerTime: 30,
                     maximumFood: 50
                 }),
                 {
-                    fooHealth: 200,
+                    foodHealth: 200,
                     minimumCreatures: 50
                 });
 

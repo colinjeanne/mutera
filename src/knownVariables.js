@@ -11,5 +11,12 @@ export const nearestLeftPeripheryFoodDistance = 'l';
 export const nearestRightPeripheryFoodDistance = 'r';
 export const nearestFocusFoodDistance = 'f';
 
+export const nearestLeftPeripheryCreatureDistance = 'H';
+export const nearestLeftPeripheryCreatureColor = 'I';
+export const nearestRightPeripheryCreatureDistance = 'J';
+export const nearestRightPeripheryCreatureColor = 'K';
+export const nearestFocusPeripheryCreatureDistance = 'L';
+export const nearestFocusPeripheryCreatureColor = 'M';
+
 export const x = 'x';
 export const y = 'y';

@@ -20,9 +20,9 @@ describe('Recombination', function() {
             }
         });
 
-        const encodedPrimary = '15a1TC05b1TC15c1TC2';
-        const encodedSecondary = '15d1TV05e1TV15f1TV2';
-        const expected = '15a1TC05b1TC15f1TV2';
+        const encodedPrimary = '16Va1TC06Vb1TC16Vc1TC2';
+        const encodedSecondary = '16Vd1TV06Ve1TV16Vf1TV2';
+        const expected = '16Va1TC06Vb1TC16Vf1TV2';
         validate(encodedPrimary, encodedSecondary, selector, expected);
     });
 
@@ -37,9 +37,9 @@ describe('Recombination', function() {
             }
         });
 
-        const encodedPrimary = '15a1TC05b1TC15c1TC2';
-        const encodedSecondary = '15d1TV0';
-        const expected = '15d1TV05b1TC15c1TC2';
+        const encodedPrimary = '16Va1TC06Vb1TC16Vc1TC2';
+        const encodedSecondary = '16Vd1TV0';
+        const expected = '16Vd1TV06Vb1TC16Vc1TC2';
         validate(encodedPrimary, encodedSecondary, selector, expected);
     });
 
@@ -50,18 +50,18 @@ describe('Recombination', function() {
             }
         });
 
-        const encodedPrimary = '15a1TC0';
-        const encodedSecondary = '15d1TV05e1TV15f1TV2';
-        const expected = '15a1TC05e1TV15f1TV2';
+        const encodedPrimary = '16Va1TC0';
+        const encodedSecondary = '16Vd1TV06Ve1TV16Vf1TV2';
+        const expected = '16Va1TC06Ve1TV16Vf1TV2';
         validate(encodedPrimary, encodedSecondary, selector, expected);
     });
 
     it('can ignore excess genes from the primary', function() {
         const selector = new MockSelector();
 
-        const encodedPrimary = '15a1TC05b1TC15c1TC2';
-        const encodedSecondary = '15d1TV0';
-        const expected = '15a1TC0';
+        const encodedPrimary = '16Va1TC06Vb1TC16Vc1TC2';
+        const encodedSecondary = '16Vd1TV0';
+        const expected = '16Va1TC0';
         validate(encodedPrimary, encodedSecondary, selector, expected);
     });
 
@@ -72,9 +72,9 @@ describe('Recombination', function() {
             }
         });
 
-        const encodedPrimary = '15a1TC0';
-        const encodedSecondary = '15d1TV05e1TV15f1TV2';
-        const expected = '15d1TV0';
+        const encodedPrimary = '16Va1TC0';
+        const encodedSecondary = '16Vd1TV06Ve1TV16Vf1TV2';
+        const expected = '16Vd1TV0';
         validate(encodedPrimary, encodedSecondary, selector, expected);
     });
 });

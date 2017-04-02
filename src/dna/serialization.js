@@ -10,6 +10,13 @@ class InvalidDNA extends Error {
 
 const objectValues = o => Object.keys(o).map(key => o[key]);
 
+const parseBoolean = encoded => ({
+    operator: operators.boolean,
+    data: encoded
+});
+
+const encodeBoolean = variable => operators.boolean + variable;
+
 const parseConstant = encoded => ({
     operator: operators.constant,
     data: intFromBase64(encoded)
@@ -41,11 +48,14 @@ const updateDepths = (tree, initialDepth) => {
 const parseTree = encoded => {
     let operands = [];
 
+    let nextIsBoolean = false;
     let nextIsVariable = false;
     let nextIsConstant = false;
     encoded.split('').forEach(c => {
-        if (!nextIsConstant && !nextIsVariable) {
-            if (c === operators.variable) {
+        if (!nextIsConstant && !nextIsVariable && !nextIsBoolean) {
+            if (c === operators.boolean) {
+                nextIsBoolean = true;
+            } else if (c === operators.variable) {
                 nextIsVariable = true;
             } else if (c === operators.constant) {
                 nextIsConstant = true;
@@ -96,6 +106,9 @@ const parseTree = encoded => {
             } else {
                 throw new InvalidDNA('Unexpected token');
             }
+        } else if (nextIsBoolean) {
+            operands.push(parseBoolean(c));
+            nextIsBoolean = false;
         } else if (nextIsConstant) {
             operands.push(parseConstant(c));
             nextIsConstant = false;
@@ -116,7 +129,9 @@ const parseTree = encoded => {
 };
 
 const encodeTree = tree => {
-    if (tree.operator === operators.constant) {
+    if (tree.operator === operators.boolean) {
+        return encodeBoolean(tree.data);
+    } else if (tree.operator === operators.constant) {
         return encodeConstant(tree.data);
     } else if (tree.operator === operators.variable) {
         return encodeVariable(tree.data);
@@ -166,6 +181,24 @@ const encodeLength = length => {
     return encoded + intToBase64(value);
 };
 
+const parseOutput = encoded => {
+    if (encoded.length < 2) {
+        throw new InvalidDNA('Gene missing output variable');
+    }
+
+    const outputType = encoded[0];
+    if ((outputType !== 'B') && (outputType !== 'V')) {
+        throw new InvalidDNA('Invalid output type');
+    }
+
+    return {
+        isBoolean: outputType === 'B',
+        variable: encoded[1]
+    };
+};
+
+const encodeOutput = gene => (gene.isBoolean ? 'B' : 'V') + gene.output;
+
 const parseCondition = encoded => {
     const tree = parseTree(encoded);
     if (!isBooleanTree(tree)) {
@@ -181,24 +214,16 @@ const encodeCondition = condition => {
     return encodedLength + encodedTree;
 };
 
-const parseExpression = encoded => {
-    const tree = parseTree(encoded);
-    if (!isArithmeticOperator(tree.operator)) {
-        throw new InvalidDNA(
-            'Expression must only contain arithmetic operators');
-    }
-
-    return tree;
-};
+const parseExpression = parseTree;
 
 const encodeExpression = encodeTree;
 
 const parseGene = encoded => {
-    const output = encoded[0];
+    const output = parseOutput(encoded);
     const { dataStart, length } =
-        parseLength(encoded.substring(1));
+        parseLength(encoded.substring(2));
 
-    const end = 1 + dataStart + length;
+    const end = 2 + dataStart + length;
     if (end > encoded.length) {
         throw new InvalidDNA('Giant condition');
     }
@@ -208,26 +233,33 @@ const parseGene = encoded => {
         throw new InvalidDNA('Gene missing expression');
     }
 
-    const encodedCondition = encoded.substring(1 + dataStart, end);
+    const encodedCondition = encoded.substring(2 + dataStart, end);
     const encodedExpression = encoded.substring(end);
 
+    const expression = parseExpression(encodedExpression);
+    if (output.isBoolean !== isBooleanTree(expression)) {
+        throw new InvalidDNA('Expression type must match output type');
+    }
+
     return {
-        output,
+        isBoolean: output.isBoolean,
+        output: output.variable,
         condition: parseCondition(encodedCondition),
-        expression: parseExpression(encodedExpression)
+        expression
     };
 };
 
 const encodeGene = gene => {
+    const encodedOutput = encodeOutput(gene);
     const encodedCondition = encodeCondition(gene.condition);
     const encodedExpression = encodeExpression(gene.expression);
-    const length = gene.output.length +
+    const length = encodedOutput.length +
         encodedCondition.length +
         encodedExpression.length;
 
     const encodedLength = encodeLength(length);
     return encodedLength +
-        gene.output +
+        encodedOutput +
         encodedCondition +
         encodedExpression;
 };
@@ -266,28 +298,36 @@ const parseHeader = encoded => {
 const encodeHeader = header => header.version;
 
 export const deserializeDNA = encoded => {
-    if (!isBase64(encoded)) {
-        throw new InvalidDNA('Encoded DNA is not a base64 string');
+    try {
+        if (!isBase64(encoded)) {
+            throw new InvalidDNA('Encoded DNA is not a base64 string');
+        }
+
+        if (encoded.length === 0) {
+            throw new InvalidDNA('DNA missing header');
+        }
+
+        const encodedHeader = encoded[0];
+        const header = parseHeader(encodedHeader);
+        const encodedGenes = encoded.substring(1);
+
+        if (encodedGenes.length === 0) {
+            throw new InvalidDNA('DNA missing genes');
+        }
+
+        const genes = splitGenes(encodedGenes).map(parseGene);
+
+        return {
+            header,
+            genes
+        };
+    } catch (e) {
+        if (e instanceof InvalidDNA) {
+            e.encodedDNA = encoded;
+            e.message += `: ${encoded}`;
+            throw e;
+        }
     }
-
-    if (encoded.length === 0) {
-        throw new InvalidDNA('DNA missing header');
-    }
-
-    const encodedHeader = encoded[0];
-    const header = parseHeader(encodedHeader);
-    const encodedGenes = encoded.substring(1);
-
-    if (encodedGenes.length === 0) {
-        throw new InvalidDNA('DNA missing genes');
-    }
-
-    const genes = splitGenes(encodedGenes).map(parseGene);
-
-    return {
-        header,
-        genes
-    };
 };
 
 export const serializeDNA = (header, genes) =>

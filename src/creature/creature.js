@@ -2,8 +2,24 @@ import * as Angle from './../types/angle';
 import { DNA } from './../dna/index';
 import GenericSelector from './genericSelector';
 import { deserializeCreature, serializeCreature } from './serialization';
-import { StateProcessor, stateToDNAInput } from './state';
+import * as KnownVariables from './../knownVariables';
+import { StateProcessor } from './state';
 import { createRandom, recombine } from './recombination';
+
+const deserializedCreatureToDNAInput = deserialized => ({
+    booleans: {
+        [KnownVariables.isFast]: deserialized.velocity.isFast,
+        [KnownVariables.isMoving]: deserialized.velocity.isMoving
+    },
+    variables: {
+        [KnownVariables.age]: deserialized.age,
+        [KnownVariables.angle]: deserialized.velocity.angle,
+        [KnownVariables.color]: deserialized.color,
+        [KnownVariables.health]: deserialized.health,
+        [KnownVariables.x]: deserialized.x,
+        [KnownVariables.y]: deserialized.y
+    }
+});
 
 const areClockwise = (u, v) => -u.x * v.y + u.y * v.x > 0;
 
@@ -55,22 +71,13 @@ export default class Creature {
         this.stateProcessor = stateProcessor;
         this.selector = selector;
         this.makeDNA = makeDNA;
-        this.state = {};
-        ({
-            age: this.state.age,
-            color: this.state.color,
-            dna: this.dna,
-            header: this.header,
-            health: this.state.health,
-            id: this.id,
-            velocity: {
-                angle: this.state.angle,
-                isMoving: this.state.isMoving,
-                isFast: this.state.isFast
-            },
-            x: this.state.x,
-            y: this.state.y
-        } = deserializeCreature(encodedCreature, this.makeDNA));
+
+        const deserialized = deserializeCreature(encodedCreature, this.makeDNA);
+        this.state = deserializedCreatureToDNAInput(deserialized);
+
+        this.dna = deserialized.dna;
+        this.header = deserialized.header;
+        this.id = deserialized.id;
 
         this.frustrum = calculateVisualField(this);
     }
@@ -80,50 +87,50 @@ export default class Creature {
     }
 
     get age() {
-        return this.state.age;
+        return this.state.variables[KnownVariables.age];
     }
 
     get angle() {
-        return this.state.angle;
+        return this.state.variables[KnownVariables.angle];
     }
 
     get color() {
-        return this.state.color;
+        return this.state.variables[KnownVariables.color];
     }
 
     get health() {
-        return this.state.health;
+        return this.state.variables[KnownVariables.health];
     }
 
     get isMoving() {
-        return this.state.isMoving;
+        return this.state.booleans[KnownVariables.isMoving];
     }
 
     get isFast() {
-        return this.state.isFast;
+        return this.state.booleans[KnownVariables.isFast];
     }
 
     get speed() {
-        return this.state.speed || 0;
+        return this.state.variables[KnownVariables.speed] || 0;
     }
 
     get x() {
-        return this.state.x;
+        return this.state.variables[KnownVariables.x];
     }
 
     get y() {
-        return this.state.y;
+        return this.state.variables[KnownVariables.y];
     }
 
     feed(amount) {
-        this.state = this.stateProcessor.setStateProperty(
+        this.stateProcessor.setStateProperty(
             this.state,
             'health',
             this.health + amount);
     }
 
     harm(amount) {
-        this.state = this.stateProcessor.setStateProperty(
+        this.stateProcessor.setStateProperty(
             this.state,
             'health',
             this.health - amount);
@@ -168,31 +175,37 @@ export default class Creature {
 
     toString() {
         const data = {
-            age: this.state.age,
-            color: this.state.color,
+            age: this.age,
+            color: this.color,
             dna: this.dna,
             header: {
                 version: 1
             },
-            health: this.state.health,
+            health: this.health,
             id: this.id,
             velocity: {
-                angle: this.state.angle,
-                isMoving: this.state.isMoving,
-                isFast: this.state.isFast
+                angle: this.angle,
+                isMoving: this.isMoving,
+                isFast: this.isFast
             },
-            x: this.state.x,
-            y: this.state.y
+            x: this.x,
+            y: this.y
         };
 
         return serializeCreature(data, this.makeDNA);
     }
 
     process(input, elapsedTime) {
-        const dnaInput = Object.assign(
-            {},
-            stateToDNAInput(this.state),
-            input);
+        const dnaInput = {
+            booleans: Object.assign(
+                {},
+                this.state.booleans,
+                input ? input.booleans : {}),
+            variables: Object.assign(
+                {},
+                this.state.variables,
+                input ? input.variables : {})
+        };
 
         const next = this.dna.process(dnaInput);
         this.state = this.stateProcessor.processStateChange(

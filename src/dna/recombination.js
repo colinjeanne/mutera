@@ -22,6 +22,7 @@ const cloneTree = tree => {
 };
 
 const cloneGene = gene => ({
+    isBoolean: gene.isBoolean,
     output: gene.output,
     condition: cloneTree(gene.condition),
     expression: cloneTree(gene.expression)
@@ -49,7 +50,11 @@ const flattenGene = gene =>
     ];
 
 const mutateOutput = (gene, selector) => {
-    gene.output = selector.chooseOutputVariable();
+    if (gene.isBoolean) {
+        gene.output = selector.chooseOutputBoolean();
+    } else {
+        gene.output = selector.chooseOutputVariable();
+    }
 };
 
 const swapChildren = tree => {
@@ -71,7 +76,9 @@ const randomBooleanTree = (selector, depth) => {
     };
 
     const arity = Constants.arity(operator);
-    if (arity === 1) {
+    if (operator === Constants.operators.boolean) {
+        tree.data = selector.chooseInputBoolean();
+    } else if (arity === 1) {
         tree.lhs = randomBooleanTree(selector, depth + 1);
     } else if (arity === 2) {
         const treeGenerator = Constants.isBooleanConnective(operator) ?
@@ -104,11 +111,23 @@ const randomArithmeticTree = (selector, depth) => {
     return tree;
 };
 
-const randomGene = selector => ({
-    output: selector.chooseOutputVariable(),
-    condition: randomBooleanTree(selector, 0),
-    expression: randomArithmeticTree(selector, 0)
-});
+const randomGene = selector => {
+    const isBoolean = selector.chooseGeneIsBoolean();
+    const output = isBoolean ?
+        selector.chooseOutputBoolean() :
+        selector.chooseOutputVariable();
+    const condition = randomBooleanTree(selector, 0);
+    const expression = isBoolean ?
+        randomBooleanTree(selector, 0) :
+        randomArithmeticTree(selector, 0);
+
+    return {
+        isBoolean,
+        output,
+        condition,
+        expression
+    };
+};
 
 const replaceChild = (tree, selector) => {
     const arity = Constants.arity(tree.operator);
@@ -117,6 +136,8 @@ const replaceChild = (tree, selector) => {
             tree.data = selector.chooseInputVariable();
         } else if (tree.operator === Constants.operators.constant) {
             tree.data = selector.chooseConstant();
+        } else if (tree.operator === Constants.operators.boolean) {
+            tree.data = selector.chooseInputBoolean();
         } else if (tree.operator === Constants.operators.true) {
             // Do nothing, there is nothing that can be modified here
         } else {

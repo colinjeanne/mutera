@@ -11,6 +11,7 @@ const maxRotation = Angle.rangeMax / 8;
 const partialStateDefinition = {
     age: {
         dependencies: [],
+        isBoolean: false,
         transfer: (current, next, elapsedTime) => current + elapsedTime,
         variable: KnownVariables.age
     },
@@ -18,6 +19,7 @@ const partialStateDefinition = {
         dependencies: [
             'angularVelocity'
         ],
+        isBoolean: false,
         rangeMax: Angle.rangeMax,
         transfer: timeVaryingValue,
         variable: KnownVariables.angle
@@ -25,6 +27,7 @@ const partialStateDefinition = {
     angularVelocity: {
         default: 0,
         dependencies: [],
+        isBoolean: false,
         min: -maxRotation,
         max: maxRotation,
         transfer: (current, next) => maxRotation * Math.tanh(next),
@@ -36,6 +39,7 @@ const partialStateDefinition = {
     color: {
         default: 0,
         dependencies: [],
+        isBoolean: false,
         rangeMax: Color.rangeMax,
         transfer: (current, next) => Math.floor(next),
         variable: KnownVariables.color
@@ -44,6 +48,7 @@ const partialStateDefinition = {
         dependencies: [
             'changeInHealth'
         ],
+        isBoolean: false,
         min: 0,
         max: 4095,
         transfer: timeVaryingValue,
@@ -52,12 +57,14 @@ const partialStateDefinition = {
     isMoving: {
         default: false,
         dependencies: [],
+        isBoolean: true,
         transfer: (current, next) => next,
         variable: KnownVariables.isMoving
     },
     isFast: {
         default: false,
         dependencies: [],
+        isBoolean: true,
         transfer: (current, next) => next,
         variable: KnownVariables.isFast
     },
@@ -67,12 +74,13 @@ const partialStateDefinition = {
             'isMoving',
             'isFast'
         ],
+        isBoolean: false,
         transfer: (current, next, isMoving, isFast) => {
-            if (isMoving <= 0) {
+            if (!isMoving) {
                 return 0;
             }
 
-            if (isFast <= 0) {
+            if (!isFast) {
                 return 7;
             }
 
@@ -80,40 +88,38 @@ const partialStateDefinition = {
         },
         variable: KnownVariables.speed
     },
-    vx: {
-        dependencies: [
-            'angle',
-            'speed'
-        ],
-        transfer: (current, next, angle, speed) =>
-            speed * Math.cos(Angle.toRadians(angle))
-    },
-    vy: {
-        dependencies: [
-            'angle',
-            'speed'
-        ],
-        transfer: (current, next, angle, speed) =>
-            speed * Math.sin(Angle.toRadians(angle))
-    },
     x: {
         dependencies: [
-            'vx'
+            'angle',
+            'speed'
         ],
-        transfer: timeVaryingValue,
+        isBoolean: false,
+        transfer: (current, next, angle, speed, elapsedTime) =>
+            current + speed * Math.cos(Angle.toRadians(angle)) * elapsedTime,
         variable: KnownVariables.x
     },
     y: {
         dependencies: [
-            'vy'
+            'angle',
+            'speed'
         ],
-        transfer: timeVaryingValue,
+        isBoolean: false,
+        transfer: (current, next, angle, speed, elapsedTime) =>
+            current + speed * Math.sin(Angle.toRadians(angle)) * elapsedTime,
         variable: KnownVariables.y
     }
 };
 
-const knownProperties = Object.keys(partialStateDefinition).
-    filter(property => partialStateDefinition[property].variable).
+const knownBooleans = Object.keys(partialStateDefinition).
+    filter(property =>
+        partialStateDefinition[property].isBoolean &&
+        partialStateDefinition[property].variable).
+    map(property => partialStateDefinition[property].variable);
+
+const knownVariables = Object.keys(partialStateDefinition).
+    filter(property =>
+        !partialStateDefinition[property].isBoolean &&
+        partialStateDefinition[property].variable).
     map(property => partialStateDefinition[property].variable);
 
 const makeStateDefinition = (changeInHealthPerTime, mapWidth, mapHeight) => {
@@ -180,7 +186,15 @@ const applyStateChange = (state, current, next, definition, elapsedTime) => {
     const args = [
         current,
         next,
-        ...definition.dependencies.map(dependency => state[dependency]),
+        ...definition.dependencies.map(dependency => {
+            const definition = partialStateDefinition[dependency];
+            if (definition.variable) {
+                const type = typeFromDefinition(definition);
+                return state[type][definition.variable];
+            }
+
+            return state[dependency];
+        }),
         elapsedTime
     ];
 
@@ -188,21 +202,8 @@ const applyStateChange = (state, current, next, definition, elapsedTime) => {
     return ensureWithinRange(value, definition);
 };
 
-export const stateToDNAInput = state => Object.keys(state).
-    reduce(
-        (aggregate, property) => {
-            const definition = partialStateDefinition[property];
-            if (!definition) {
-                aggregate[property] = state[property];
-            } else {
-                const variable = partialStateDefinition[property].variable;
-                if (variable) {
-                    aggregate[variable] = state[property];
-                }
-            }
-            return aggregate;
-        },
-        {});
+const typeFromDefinition = definition =>
+    definition.isBoolean ? 'booleans' : 'variables';
 
 export class StateProcessor {
     constructor(changeInHealthPerTime, mapWidth, mapHeight) {
@@ -212,12 +213,12 @@ export class StateProcessor {
             mapHeight);
     }
 
-    ensureValidProperties(state) {
-        return Object.keys(state).reduce(
+    ensureValidProperties(properties) {
+        return Object.keys(properties).reduce(
             (aggregate, property) => {
                 const definition = this.stateDefinition[property];
                 aggregate[property] =
-                    ensureWithinRange(state[property], definition);
+                    ensureWithinRange(properties[property], definition);
                 return aggregate;
             },
             {});
@@ -225,12 +226,8 @@ export class StateProcessor {
 
     setStateProperty(state, property, value) {
         const definition = this.stateDefinition[property];
-        return Object.assign(
-            {},
-            state,
-            {
-                [property]: ensureWithinRange(value, definition)
-            });
+        const type = typeFromDefinition(definition);
+        state[type][definition.variable] = ensureWithinRange(value, definition);
     }
 
     chooseValueInPropertyRange(property, selector) {
@@ -252,29 +249,50 @@ export class StateProcessor {
     }
 
     processStateChange(current, next, elapsedTime) {
-        const known = stateUpdatePlan.reduce(
-            (state, property) => {
-                const definition = this.stateDefinition[property];
-                state[property] = applyStateChange(
-                    state,
-                    current[definition.variable],
-                    next[definition.variable],
-                    definition,
-                    elapsedTime);
-                return state;
-            },
-            {});
-
-        const unknownProperties = Object.keys(next).reduce(
-            (aggregate, property) => {
-                if (knownProperties.indexOf(property) === -1) {
-                    aggregate[property] = next[property];
+        const unknownBooleans = Object.keys(next.booleans).reduce(
+            (aggregate, variable) => {
+                if (knownBooleans.indexOf(variable) === -1) {
+                    aggregate[variable] = next.booleans[variable];
                 }
 
                 return aggregate;
             },
             {});
 
-        return Object.assign(unknownProperties, known);
+        const unknownVariables = Object.keys(next.variables).reduce(
+            (aggregate, variable) => {
+                if (knownVariables.indexOf(variable) === -1) {
+                    aggregate[variable] = next.variables[variable];
+                }
+
+                return aggregate;
+            },
+            {});
+
+        return stateUpdatePlan.reduce(
+            (state, property) => {
+                const definition = this.stateDefinition[property];
+                if (definition.variable) {
+                    const type = typeFromDefinition(definition);
+                    state[type][definition.variable] = applyStateChange(
+                        state,
+                        current[type][definition.variable],
+                        next[type][definition.variable],
+                        definition,
+                        elapsedTime);
+                } else {
+                    state[property] = applyStateChange(
+                        state,
+                        0,
+                        0,
+                        definition,
+                        elapsedTime);
+                }
+                return state;
+            },
+            {
+                booleans: unknownBooleans,
+                variables: unknownVariables
+            });
     }
 }

@@ -17,8 +17,8 @@ export const createRandom = (stateProcessor, selector) => {
         id,
         velocity: {
             angle: stateProcessor.chooseValueInPropertyRange('angle', selector),
-            isMoving: 0,
-            isFast: 0
+            isMoving: false,
+            isFast: false
         },
         x: stateProcessor.chooseValueInPropertyRange('x', selector),
         y: stateProcessor.chooseValueInPropertyRange('y', selector)
@@ -50,8 +50,8 @@ export const recombine = (initiator, other, stateProcessor, selector) => {
         id,
         velocity: {
             angle,
-            isMoving: 0,
-            isFast: 0
+            isMoving: false,
+            isFast: false
         },
         x: state.x,
         y: state.y

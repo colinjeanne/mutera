@@ -173,29 +173,32 @@ export default class Environment {
                 return;
             }
 
-            const input = {};
+            const input = {
+                booleans: {},
+                variables: {}
+            };
 
             const nearestFood =
                 nearestVisibleFood(creature, this.map.foodLocations);
             if (nearestFood.leftPeripheryFood) {
-                input[KnownVariables.nearestLeftPeripheryFoodDistance] =
+                input.variables[KnownVariables.nearestLeftPeripheryFoodDistance] =
                     nearestFood.leftPeripheryFood.distance;
             } else {
-                input[KnownVariables.nearestLeftPeripheryFoodDistance] = -1;
+                input.variables[KnownVariables.nearestLeftPeripheryFoodDistance] = -1;
             }
 
             if (nearestFood.rightPeripheryFood) {
-                input[KnownVariables.nearestRightPeripheryFoodDistance] =
+                input.variables[KnownVariables.nearestRightPeripheryFoodDistance] =
                     nearestFood.rightPeripheryFood.distance;
             } else {
-                input[KnownVariables.nearestRightPeripheryFoodDistance] = -1;
+                input.variables[KnownVariables.nearestRightPeripheryFoodDistance] = -1;
             }
 
             if (nearestFood.focusFood) {
-                input[KnownVariables.nearestFocusFoodDistance] =
+                input.variables[KnownVariables.nearestFocusFoodDistance] =
                     nearestFood.focusFood.distance;
             } else {
-                input[KnownVariables.nearestFocusFoodDistance] = -1;
+                input.variables[KnownVariables.nearestFocusFoodDistance] = -1;
             }
 
             const nearestCreatures = nearestVisibleCreatures(
@@ -203,35 +206,35 @@ export default class Environment {
                 this.creatures);
 
             if (nearestCreatures.leftPeripheryCreature) {
-                input[KnownVariables.nearestLeftPeripheryCreatureDistance] =
+                input.variables[KnownVariables.nearestLeftPeripheryCreatureDistance] =
                     nearestCreatures.leftPeripheryCreature.distance;
-                input[KnownVariables.nearestLeftPeripheryCreatureColor] =
+                input.variables[KnownVariables.nearestLeftPeripheryCreatureColor] =
                     nearestCreatures.leftPeripheryCreature.color;
             } else {
-                input[KnownVariables.nearestLeftPeripheryCreatureDistance] = -1;
-                input[KnownVariables.nearestLeftPeripheryCreatureColor] = -1;
+                input.variables[KnownVariables.nearestLeftPeripheryCreatureDistance] = -1;
+                input.variables[KnownVariables.nearestLeftPeripheryCreatureColor] = -1;
             }
 
             if (nearestCreatures.rightPeripheryCreature) {
-                input[KnownVariables.nearestRightPeripheryCreatureDistance] =
+                input.variables[KnownVariables.nearestRightPeripheryCreatureDistance] =
                     nearestCreatures.rightPeripheryCreature.distance;
-                input[KnownVariables.nearestRightPeripheryCreatureColor] =
+                input.variables[KnownVariables.nearestRightPeripheryCreatureColor] =
                     nearestCreatures.rightPeripheryCreature.color;
             } else {
-                input[KnownVariables.nearestRightPeripheryCreatureDistance] =
+                input.variables[KnownVariables.nearestRightPeripheryCreatureDistance] =
                     -1;
-                input[KnownVariables.nearestRightPeripheryCreatureColor] = -1;
+                input.variables[KnownVariables.nearestRightPeripheryCreatureColor] = -1;
             }
 
             if (nearestCreatures.focusCreature) {
-                input[KnownVariables.nearestFocusPeripheryCreatureDistance] =
+                input.variables[KnownVariables.nearestFocusPeripheryCreatureDistance] =
                     nearestCreatures.focusCreature.distance;
-                input[KnownVariables.nearestFocusPeripheryCreatureColor] =
+                input.variables[KnownVariables.nearestFocusPeripheryCreatureColor] =
                     nearestCreatures.focusCreature.color;
             } else {
-                input[KnownVariables.nearestFocusPeripheryCreatureDistance] =
+                input.variables[KnownVariables.nearestFocusPeripheryCreatureDistance] =
                     -1;
-                input[KnownVariables.nearestFocusPeripheryCreatureColor] = -1;
+                input.variables[KnownVariables.nearestFocusPeripheryCreatureColor] = -1;
             }
 
             if (nearestCreatures.visibleOverlapping) {

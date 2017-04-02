@@ -29,12 +29,20 @@ const defaultSelector = {
         return 1;
     },
 
+    chooseGeneIsBoolean() {
+        return false;
+    },
+
     chooseGeneMutationCount() {
         return 0;
     },
 
     chooseGeneSpliceCount() {
         return 0;
+    },
+
+    chooseInputBoolean() {
+        return '0';
     },
 
     chooseInputVariable() {
@@ -47,6 +55,10 @@ const defaultSelector = {
 
     chooseMutationType() {
         return DNA.mutationType.replaceChild;
+    },
+
+    chooseOutputBoolean() {
+        return '0';
     },
 
     chooseOutputVariable() {
@@ -100,12 +112,20 @@ exports.default = class MockSelector {
         return this.sequences.chooseGeneCount();
     }
 
+    chooseGeneIsBoolean() {
+        return this.sequences.chooseGeneIsBoolean();
+    }
+
     chooseGeneMutationCount() {
         return this.sequences.chooseGeneMutationCount();
     }
 
     chooseGeneSpliceCount() {
         return this.sequences.chooseGeneSpliceCount();
+    }
+
+    chooseInputBoolean() {
+        return this.sequences.chooseInputBoolean();
     }
 
     chooseInputVariable() {
@@ -118,6 +138,10 @@ exports.default = class MockSelector {
 
     chooseMutationType() {
         return this.sequences.chooseMutationType();
+    }
+
+    chooseOutputBoolean() {
+        return this.sequences.chooseOutputBoolean();
     }
 
     chooseOutputVariable() {

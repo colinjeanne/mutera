@@ -239,8 +239,6 @@
                 c: 'color',
                 h: 'health',
                 s: 'speed',
-                m: 'isMoving',
-                F: 'isFast',
                 l: 'leftFoodDistance',
                 r: 'rightFoodDistance',
                 f: 'focusFoodDistance',
@@ -259,6 +257,19 @@
             return variable;
         }
 
+        function renderBoolean(boolean) {
+            const known = {
+                m: 'isMoving',
+                F: 'isFast'
+            };
+
+            if (boolean in known) {
+                return known[boolean];
+            }
+
+            return boolean;
+        }
+
         function renderTree(tree) {
             if (tree.operator === world.DNA.operators.constant) {
                 return world.DNA.constants[tree.data].toString();
@@ -266,6 +277,8 @@
                 return renderVariable(tree.data);
             } else if (tree.operator === world.DNA.operators.true) {
                 return 'T';
+            } else if (tree.operator === world.DNA.operators.boolean) {
+                return renderBoolean(tree.data);
             }
 
             const rhs = tree.rhs ? ` ${renderTree(tree.rhs)}` : '';
@@ -274,7 +287,10 @@
         }
 
         function renderGene(gene) {
-            return `if ${renderTree(gene.condition)}:\n\t${renderVariable(gene.output)} = ${renderTree(gene.expression)}\n`;
+            const output = gene.isBoolean ?
+                renderBoolean(gene.output) :
+                renderVariable(gene.output);
+            return `if ${renderTree(gene.condition)}:\n\t${output} = ${renderTree(gene.expression)}\n`;
         }
 
         function renderProgram(creature) {
@@ -349,6 +365,7 @@
         }
 
         const dnaSelector = new world.DNA.GenericSelector({
+            inputBooleans: 'm',
             inputVariables: 'alrfHIJKLM',
             maximumTreeDepth: 2,
             mutationsPerGene: new Map([
@@ -357,7 +374,8 @@
                 [2, 0.95],
                 [3, 0.99]
             ]),
-            outputVariables: 'AcmF',
+            outputBooleans: 'mF',
+            outputVariables: 'Ac',
             spliceRates: new Map([
                 [world.DNA.spliceType.delete, 0.1],
                 [world.DNA.spliceType.duplicate, 0.55],

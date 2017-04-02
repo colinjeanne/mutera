@@ -202,9 +202,12 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastInput).to.contain.all.keys({
-            l: 10,
-            r: -1,
-            f: -1
+            booleans: {},
+            variables: {
+                l: 10,
+                r: -1,
+                f: -1
+            }
         });
     });
 
@@ -264,9 +267,12 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastInput).to.contain.all.keys({
-            l: -1,
-            r: 10,
-            f: -1
+            booleans: {},
+            variables: {
+                l: -1,
+                r: 10,
+                f: -1
+            }
         });
     });
 
@@ -326,9 +332,12 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastInput).to.contain.all.keys({
-            l: -1,
-            r: -1,
-            f: 10
+            booleans: {},
+            variables: {
+                l: -1,
+                r: -1,
+                f: 10
+            }
         });
     });
 
@@ -392,12 +401,15 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastInput).to.contain.all.keys({
-            H: 10,
-            I: 1,
-            J: -1,
-            K: -1,
-            L: -1,
-            M: -1
+            booleans: {},
+            variables: {
+                H: 10,
+                I: 1,
+                J: -1,
+                K: -1,
+                L: -1,
+                M: -1
+            }
         });
     });
 
@@ -461,12 +473,15 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastInput).to.contain.all.keys({
-            H: -1,
-            I: -1,
-            J: 10,
-            K: 1,
-            L: -1,
-            M: -1
+            booleans: {},
+            variables: {
+                H: -1,
+                I: -1,
+                J: 10,
+                K: 1,
+                L: -1,
+                M: -1
+            }
         });
     });
 
@@ -530,12 +545,15 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastInput).to.contain.all.keys({
-            H: -1,
-            I: -1,
-            J: -1,
-            K: -1,
-            L: 10,
-            M: 1
+            booleans: {},
+            variables: {
+                H: -1,
+                I: -1,
+                J: -1,
+                K: -1,
+                L: 10,
+                M: 1
+            }
         });
     });
 
@@ -591,15 +609,18 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastInput).to.contain.all.keys({
-            l: -1,
-            r: -1,
-            f: -1,
-            H: -1,
-            I: -1,
-            J: -1,
-            K: -1,
-            L: -1,
-            M: -1
+            booleans: {},
+            variables: {
+                l: -1,
+                r: -1,
+                f: -1,
+                H: -1,
+                I: -1,
+                J: -1,
+                K: -1,
+                L: -1,
+                M: -1
+            }
         });
     });
 

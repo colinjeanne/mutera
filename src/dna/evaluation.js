@@ -1,68 +1,67 @@
 import { constants, operators } from './constants';
 
-const isConditionMet = (condition, context) => {
-    switch (condition.operator) {
-    case operators.greaterThan:
-        return evaluateExpression(condition.lhs, context) >
-            evaluateExpression(condition.rhs, context);
-
-    case operators.lessThan:
-        return evaluateExpression(condition.lhs, context) <
-            evaluateExpression(condition.rhs, context);
-
-    case operators.and:
-        return isConditionMet(condition.lhs, context) &&
-            isConditionMet(condition.rhs, context);
-
-    case operators.or:
-        return isConditionMet(condition.lhs, context) ||
-            isConditionMet(condition.rhs, context);
-
-    case operators.not:
-        return !isConditionMet(condition.lhs, context);
-
+const evaluateTree = (tree, context) => {
+    switch (tree.operator) {
     case operators.true:
         return true;
-    }
 
-    throw new Error('Unexpected condition operator');
-};
+    case operators.boolean:
+        return context.booleans[tree.data] || false;
 
-const evaluateExpression = (expression, context) => {
-    switch (expression.operator) {
     case operators.variable:
-        return context[expression.data] || 0;
+        return context.variables[tree.data] || 0;
 
     case operators.constant:
-        return constants[expression.data];
+        return constants[tree.data];
 
     case operators.add:
-        return evaluateExpression(expression.lhs, context) +
-            evaluateExpression(expression.rhs, context);
+        return evaluateTree(tree.lhs, context) +
+            evaluateTree(tree.rhs, context);
 
     case operators.subtract:
-        return evaluateExpression(expression.lhs, context) -
-            evaluateExpression(expression.rhs, context);
+        return evaluateTree(tree.lhs, context) -
+            evaluateTree(tree.rhs, context);
 
     case operators.multiply:
-        return evaluateExpression(expression.lhs, context) *
-            evaluateExpression(expression.rhs, context);
+        return evaluateTree(tree.lhs, context) *
+            evaluateTree(tree.rhs, context);
 
     case operators.divide:
-        return evaluateExpression(expression.lhs, context) /
-            evaluateExpression(expression.rhs, context);
+        return evaluateTree(tree.lhs, context) /
+            evaluateTree(tree.rhs, context);
+
+    case operators.greaterThan:
+        return evaluateTree(tree.lhs, context) >
+            evaluateTree(tree.rhs, context);
+
+    case operators.lessThan:
+        return evaluateTree(tree.lhs, context) <
+            evaluateTree(tree.rhs, context);
+
+    case operators.and:
+        return evaluateTree(tree.lhs, context) &&
+            evaluateTree(tree.rhs, context);
+
+    case operators.or:
+        return evaluateTree(tree.lhs, context) ||
+            evaluateTree(tree.rhs, context);
+
+    case operators.not:
+        return !evaluateTree(tree.lhs, context);
     }
 
-    throw new Error('Unexpected expression operator');
+    throw new Error('Unexpected tree operator');
 };
 
 export const evaluateGenes = (genes, input) => {
-    let output = Object.assign({}, input);
+    const output = {};
+    output.variables = input ? Object.assign({}, input.variables) : {};
+    output.booleans = input ? Object.assign({}, input.booleans) : {};
 
     genes.forEach(gene => {
-        if (isConditionMet(gene.condition, output)) {
-            output[gene.output] =
-                evaluateExpression(gene.expression, output);
+        if (evaluateTree(gene.condition, output)) {
+            const type = gene.isBoolean ? 'booleans': 'variables';
+            output[type][gene.output] = evaluateTree(gene.expression, output);
         }
     });
 

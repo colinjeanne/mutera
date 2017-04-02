@@ -10,6 +10,11 @@ const defaultMutationRates = {
         [4, 0.8],
         [5, 1]
     ]),
+    geneIsBoolean: new Map([
+        [true, 0.5],
+        [false, 1]
+    ]),
+    inputBooleans: base64Values,
     inputVariables: base64Values,
     maximumGeneCount: 15,
     maximumTreeDepth: 5,
@@ -20,6 +25,7 @@ const defaultMutationRates = {
         [3, 0.8],
         [4, 1]
     ]),
+    outputBooleans: base64Values,
     outputVariables: base64Values,
     primaryParentGeneSelection: 0.5,
     spliceRates: new Map([
@@ -85,6 +91,11 @@ export default class GenericSelector {
             weightedChooseOne(this.mutationRates.geneCount, Math.random);
     }
 
+    chooseGeneIsBoolean() {
+        return Random.
+            weightedChooseOne(this.mutationRates.geneIsBoolean, Math.random);
+    }
+
     chooseGeneMutationCount() {
         return Random.
             weightedChooseOne(this.mutationRates.mutationsPerGene, Math.random);
@@ -93,6 +104,10 @@ export default class GenericSelector {
     chooseGeneSpliceCount() {
         return Random.
             weightedChooseOne(this.mutationRates.splicesPerGene, Math.random);
+    }
+
+    chooseInputBoolean() {
+        return Random.chooseOne(this.mutationRates.inputBooleans, Math.random);
     }
 
     chooseInputVariable() {
@@ -114,6 +129,10 @@ export default class GenericSelector {
         }
 
         return Random.chooseOne(possibleMutations, Math.random);
+    }
+
+    chooseOutputBoolean() {
+        return Random.chooseOne(this.mutationRates.outputBooleans, Math.random);
     }
 
     chooseOutputVariable() {

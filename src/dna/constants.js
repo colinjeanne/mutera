@@ -7,6 +7,7 @@ export const operators = {
     true: 'T',
     variable: 'V',
     constant: 'C',
+    boolean: 'B',
     add: 'P',
     subtract: 'S',
     multiply: 'M',
@@ -37,6 +38,7 @@ const operatorsByType = {
     ],
 
     [operatorTypes.booleanOperator]: [
+        operators.boolean,
         operators.greaterThan,
         operators.lessThan,
         operators.true
@@ -58,6 +60,7 @@ export const isBooleanConnective = operator =>
     operatorsByType[operatorTypes.booleanConnective].indexOf(operator) !== -1;
 
 const nullaryOperators = [
+    operators.boolean,
     operators.constant,
     operators.true,
     operators.variable
@@ -88,7 +91,9 @@ export const swappableOperators = operator => {
     // Don't allow variable and constants to be swapped because the set of
     // variables may be restricted while the set of constants is not.
     const unswappable = [
+        operators.boolean,
         operators.constant,
+        operators.true,
         operators.variable
     ];
 

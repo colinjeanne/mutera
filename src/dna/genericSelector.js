@@ -54,21 +54,32 @@ export default class GenericSelector {
 
     chooseArithmeticOperator(depth) {
         const shouldTerminate = this.shouldTerminate(depth);
-        const operators = shouldTerminate ?
+        let operators = shouldTerminate ?
             Constants.selectOperators(Constants.operatorTypes.arithmetic, 0) :
             Constants.selectOperators(Constants.operatorTypes.arithmetic, 2);
+
+        if (this.mutationRates.inputVariables.length === 0) {
+            operators = operators.filter(operator =>
+                operator !== Constants.operators.variable);
+        }
+
         return Random.chooseOne(operators, Math.random);
     }
 
     chooseBooleanOperator(depth) {
         const shouldTerminate = this.shouldTerminate(depth);
-        const operators = shouldTerminate ?
+        let operators = shouldTerminate ?
             Constants.selectOperators(Constants.operatorTypes.boolean, 0) :
             ([
                 ...Constants.
                     selectOperators(Constants.operatorTypes.boolean, 1),
                 ...Constants.selectOperators(Constants.operatorTypes.boolean, 2)
             ]);
+
+        if (this.mutationRates.inputBooleans.length === 0) {
+            operators = operators.filter(operator =>
+                operator !== Constants.operators.boolean);
+        }
 
         return Random.chooseOne(operators, Math.random);
     }

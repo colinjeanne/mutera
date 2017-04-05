@@ -54,7 +54,7 @@ const defaultSelector = {
     },
 
     chooseMutationType() {
-        return DNA.mutationType.replaceChild;
+        return DNA.mutationType.replaceTree;
     },
 
     chooseOutputBoolean() {

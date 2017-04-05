@@ -48,7 +48,24 @@ export default class GenericSelector {
             mutationRates);
     }
 
-    chooseAlternateOperator(alternates) {
+    chooseAlternateOperator(alternates, depth) {
+        if (alternates.includes(Constants.operators.boolean) &&
+            (this.mutationRates.inputBooleans.length === 0)) {
+            alternates = alternates.filter(
+                operator => operator !== Constants.operators.boolean);
+        }
+
+        if (alternates.includes(Constants.operators.variable) &&
+            (this.mutationRates.inputVariables.length === 0)) {
+            alternates = alternates.filter(
+                operator => operator !== Constants.operators.variable);
+        }
+
+        if (this.shouldTerminate(depth)) {
+            alternates = alternates.filter(
+                operator => Constants.arity(operator) === 0);
+        }
+
         return Random.chooseOne(alternates, Math.random);
     }
 
@@ -131,8 +148,7 @@ export default class GenericSelector {
 
     chooseMutationType(operator) {
         const possibleMutations = [
-            Constants.mutationType.replaceChild,
-            Constants.mutationType.swapOperator
+            Constants.mutationType.replaceTree
         ];
 
         if (Constants.arity(operator) === 2) {
@@ -180,7 +196,7 @@ export default class GenericSelector {
     }
 
     shouldTerminate(depth) {
-        return (depth === this.mutationRates.maximumTreeDepth) ||
+        return (depth >= this.mutationRates.maximumTreeDepth) ||
             Random.chooseIf(this.mutationRates.treeRecursionRate, Math.random);
     }
 }

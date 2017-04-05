@@ -80,29 +80,12 @@ export const arity = operator => {
     return 2;
 };
 
-const operatorType = operator =>
-    Object.keys(operatorsByType).find(type =>
-        operatorsByType[type].indexOf(operator) !== -1);
-
 export const selectOperators = (type, operatorArity) =>
     operatorsByType[type].filter(op => arity(op) === operatorArity);
 
-export const swappableOperators = operator => {
-    // Don't allow variable and constants to be swapped because the set of
-    // variables may be restricted while the set of constants is not.
-    const unswappable = [
-        operators.boolean,
-        operators.constant,
-        operators.true,
-        operators.variable
-    ];
-
-    if (unswappable.indexOf(operator) !== -1) {
-        return operator;
-    }
-
-    return selectOperators(operatorType(operator), arity(operator));
-};
+export const swappableOperators = operator => (isArithmeticOperator(operator) ?
+    operatorsByType[operatorTypes.arithmetic] :
+    operatorsByType[operatorTypes.boolean]);
 
 export const constants = (() => {
     const values = [];
@@ -119,7 +102,6 @@ export const spliceType = {
 };
 
 export const mutationType = {
-    replaceChild: 'replaceChild',
-    swapOperator: 'swapOperator',
+    replaceTree: 'replaceTree',
     swapChildren: 'swapChildren'
 };

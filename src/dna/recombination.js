@@ -63,9 +63,35 @@ const swapChildren = tree => {
     tree.rhs = temp;
 };
 
-const swapOperator = (tree, selector) => {
+const replaceTree = (tree, selector) => {
     const alternates = Constants.swappableOperators(tree.operator);
-    tree.operator = selector.chooseAlternateOperator(alternates);
+    const operator = selector.chooseAlternateOperator(alternates, tree.depth);
+    const canUseChildren = Constants.isBooleanConnective(tree.operator) ===
+        Constants.isBooleanConnective(operator);
+
+    const lhs = canUseChildren ? tree.lhs : undefined;
+    const rhs = canUseChildren ? tree.rhs : undefined;
+
+    tree.operator = operator;
+    tree.lhs = undefined;
+    tree.rhs = undefined;
+    tree.data = undefined;
+
+    if (tree.operator === Constants.operators.boolean) {
+        tree.data = selector.chooseInputBoolean();
+    } else if (tree.operator === Constants.operators.constant) {
+        tree.data = tree.data = selector.chooseConstant();
+    } else if (tree.operator === Constants.operators.variable) {
+        tree.data = selector.chooseInputVariable();
+    } else if (tree.operator === Constants.operators.not) {
+        tree.lhs = lhs ? lhs : randomBooleanTree(selector, tree.depth + 1);
+    } else if (Constants.isBooleanConnective(tree.operator)) {
+        tree.lhs = lhs ? lhs : randomBooleanTree(selector, tree.depth + 1);
+        tree.rhs = rhs ? rhs : randomBooleanTree(selector, tree.depth + 1);
+    } else {
+        tree.lhs = lhs ? lhs : randomArithmeticTree(selector, tree.depth + 1);
+        tree.rhs = lhs ? rhs : randomArithmeticTree(selector, tree.depth + 1);
+    }
 };
 
 const randomBooleanTree = (selector, depth) => {
@@ -129,36 +155,9 @@ const randomGene = selector => {
     };
 };
 
-const replaceChild = (tree, selector) => {
-    const arity = Constants.arity(tree.operator);
-    if (arity === 0) {
-        if (tree.operator === Constants.operators.variable) {
-            tree.data = selector.chooseInputVariable();
-        } else if (tree.operator === Constants.operators.constant) {
-            tree.data = selector.chooseConstant();
-        } else if (tree.operator === Constants.operators.boolean) {
-            tree.data = selector.chooseInputBoolean();
-        } else if (tree.operator === Constants.operators.true) {
-            // Do nothing, there is nothing that can be modified here
-        } else {
-            throw new Error('Unknown operator');
-        }
-    } else if (arity === 1) {
-        tree.lhs = randomBooleanTree(selector, tree.depth + 1);
-    } else {
-        const child = selector.chooseTreeChild();
-        if (!Constants.isBooleanConnective(tree.operator)) {
-            tree[child] = randomArithmeticTree(selector, tree.depth + 1);
-        } else {
-            tree[child] = randomBooleanTree(selector, tree.depth + 1);
-        }
-    }
-};
-
 const mutateTree = (tree, selector) => {
     const mapping = {
-        [Constants.mutationType.replaceChild]: replaceChild,
-        [Constants.mutationType.swapOperator]: swapOperator,
+        [Constants.mutationType.replaceTree]: replaceTree,
         [Constants.mutationType.swapChildren]: swapChildren
     };
 

@@ -109,8 +109,11 @@
             context.fill();
         }
 
-        function getCreatureHue(creature) {
-            return creature.color * (360 / world.Color.rangeMax);
+        function getCreatureColor(creature) {
+            const red = creature.isRed ? 255 : 0;
+            const green = creature.isGreen ? 255 : 0;
+            const blue = creature.isBlue ? 255 : 0
+            return `rgb(${red}, ${green}, ${blue})`;
         }
 
         function drawCreature(context, creature) {
@@ -118,8 +121,10 @@
 
             context.beginPath();
             context.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-            context.fillStyle = `hsl(${getCreatureHue(creature)},100%,50%)`;
+            context.fillStyle = getCreatureColor(creature);
+            context.strokeStyle = `black`;
             context.fill();
+            context.stroke();
 
             const healthWidth = Math.floor(creature.health * 10 / 4096);
             context.fillStyle = `rgb(0, 255, 0)`;
@@ -224,18 +229,14 @@
                 g: 'age',
                 a: 'angle',
                 A: 'angularV',
-                c: 'color',
                 h: 'health',
                 s: 'speed',
                 l: 'leftFoodDistance',
                 r: 'rightFoodDistance',
                 f: 'focusFoodDistance',
                 H: 'leftCreatureDistance',
-                I: 'leftCreatureColor',
-                J: 'rightCreatureDistance',
-                K: 'rightCreatureColor',
-                L: 'focusCreatureDistance',
-                M: 'focusCreatureColor'
+                L: 'rightCreatureDistance',
+                P: 'focusCreatureDistance'
             };
 
             if (variable in known) {
@@ -247,8 +248,20 @@
 
         function renderBoolean(boolean) {
             const known = {
+                c: 'isRed',
+                d: 'isGreen',
+                e: 'isBlue',
                 m: 'isMoving',
-                F: 'isFast'
+                F: 'isFast',
+                I: 'leftCreatureIsRed',
+                J: 'leftCreatureIsGreen',
+                K: 'leftCreatureIsBlue',
+                M: 'rightCreatureIsRed',
+                N: 'rightCreatureisGreen',
+                O: 'rightCreatureIsBlue',
+                Q: 'focusCreatureIsRed',
+                R: 'focusCreatureIsGreen',
+                S: 'focusCreatureIsBlue'
             };
 
             if (boolean in known) {
@@ -335,8 +348,8 @@
         }
 
         const dnaSelector = new world.DNA.GenericSelector({
-            inputBooleans: '',
-            inputVariables: 'lrfHIJKLM',
+            inputBooleans: 'IJKMNOQRS',
+            inputVariables: 'lrfHLP',
             maximumTreeDepth: 2,
             mutationsPerGene: new Map([
                 [0, 0.9],
@@ -344,8 +357,8 @@
                 [2, 0.95],
                 [3, 0.99]
             ]),
-            outputBooleans: 'mF',
-            outputVariables: 'Ac',
+            outputBooleans: 'mFcde',
+            outputVariables: 'A',
             spliceRates: new Map([
                 [world.DNA.spliceType.delete, 0.1],
                 [world.DNA.spliceType.duplicate, 0.55],

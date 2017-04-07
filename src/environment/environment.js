@@ -205,37 +205,35 @@ export default class Environment {
                 creature,
                 this.creatures);
 
-            if (nearestCreatures.leftPeripheryCreature) {
-                input.variables[KnownVariables.nearestLeftPeripheryCreatureDistance] =
-                    nearestCreatures.leftPeripheryCreature.distance;
-                input.variables[KnownVariables.nearestLeftPeripheryCreatureColor] =
-                    nearestCreatures.leftPeripheryCreature.color;
-            } else {
-                input.variables[KnownVariables.nearestLeftPeripheryCreatureDistance] = -1;
-                input.variables[KnownVariables.nearestLeftPeripheryCreatureColor] = -1;
-            }
+            [
+                ['leftPeriphery', 'Left'],
+                ['rightPeriphery', 'Right'],
+                ['focus', 'Focus']
+            ].forEach(data => {
+                const nearestCreature = nearestCreatures[`${data[0]}Creature`];
+                const rootName = `nearest${data[1]}Creature`;
+                const distanceVariable = KnownVariables[`${rootName}Distance`];
 
-            if (nearestCreatures.rightPeripheryCreature) {
-                input.variables[KnownVariables.nearestRightPeripheryCreatureDistance] =
-                    nearestCreatures.rightPeripheryCreature.distance;
-                input.variables[KnownVariables.nearestRightPeripheryCreatureColor] =
-                    nearestCreatures.rightPeripheryCreature.color;
-            } else {
-                input.variables[KnownVariables.nearestRightPeripheryCreatureDistance] =
-                    -1;
-                input.variables[KnownVariables.nearestRightPeripheryCreatureColor] = -1;
-            }
+                const colors = [
+                    [`${rootName}IsRed`, 'isRed'],
+                    [`${rootName}IsGreen`, 'isGreen'],
+                    [`${rootName}IsBlue`, 'isBlue']
+                ];
 
-            if (nearestCreatures.focusCreature) {
-                input.variables[KnownVariables.nearestFocusPeripheryCreatureDistance] =
-                    nearestCreatures.focusCreature.distance;
-                input.variables[KnownVariables.nearestFocusPeripheryCreatureColor] =
-                    nearestCreatures.focusCreature.color;
-            } else {
-                input.variables[KnownVariables.nearestFocusPeripheryCreatureDistance] =
-                    -1;
-                input.variables[KnownVariables.nearestFocusPeripheryCreatureColor] = -1;
-            }
+                if (nearestCreature) {
+                    input.variables[distanceVariable] =
+                        nearestCreature.distance;
+                    colors.forEach(color => {
+                        input.booleans[KnownVariables[color[0]]] =
+                            nearestCreature.creature[color[1]];
+                    });
+                } else {
+                    input.variables[distanceVariable] = -1;
+                    colors.forEach(color => {
+                        input.booleans[KnownVariables[color[0]]] = false;
+                    });
+                }
+            });
 
             if (nearestCreatures.visibleOverlapping) {
                 nearestCreatures.visibleOverlapping.forEach(other => {

@@ -93,7 +93,9 @@ describe('Creature', function() {
         expect(creature.x).to.equal(270532);
         expect(creature.y).to.equal(1060993);
         expect(creature.health).to.equal(129);
-        expect(creature.color).to.equal(7);
+        expect(creature.isRed).to.equal(true);
+        expect(creature.isGreen).to.equal(true);
+        expect(creature.isBlue).to.equal(true);
         expect(creature.dna.toString()).to.equal('16Va1TC1');
     });
 

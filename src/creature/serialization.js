@@ -8,9 +8,17 @@ const decodeHealth = encoded => intFromBase64(encoded);
 const encodeHealth = health =>
     intToBase64(Math.floor(health), 2);
 
-const decodeColor = encoded => intFromBase64(encoded) & 0x7;
+const decodeColor = encoded => {
+    const value = intFromBase64(encoded);
+    return {
+        isRed: !!(value & 0x1),
+        isGreen: !!(value & 0x2),
+        isBlue: !!(value & 0x4)
+    };
+};
 
-const encodeColor = color => intToBase64(color & 0x7, 1);
+const encodeColor = ({ isRed, isGreen, isBlue }) =>
+    intToBase64((isRed ? 0x1 : 0) + (isGreen ? 0x2 : 0) + (isBlue ? 0x4 : 0));
 
 const decodeVelocity = encoded => {
     const value = intFromBase64(encoded);

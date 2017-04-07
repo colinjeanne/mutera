@@ -8,7 +8,11 @@ export const createRandom = (stateProcessor, selector) => {
 
     return {
         age: state.age,
-        color: stateProcessor.chooseValueInPropertyRange('color', selector),
+        color: {
+            isRed: false,
+            isGreen: false,
+            isBlue: false
+        },
         dna: selector.createRandomDNA(),
         header: {
             version: '1'
@@ -36,12 +40,15 @@ export const recombine = (initiator, other, stateProcessor, selector) => {
     });
 
     const angle = stateProcessor.chooseValueInPropertyRange('angle', selector);
-    const color = stateProcessor.chooseValueInPropertyRange('color', selector);
     const id = selector.generateUniqueId();
 
     return {
         age: state.age,
-        color,
+        color: {
+            isRed: false,
+            isGreen: false,
+            isBlue: false
+        },
         dna: initiator.dna.recombine(other.dna),
         header: {
             version: '1'

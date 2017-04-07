@@ -1,5 +1,4 @@
 import * as Angle from './../types/angle';
-import * as Color from './../types/color';
 import * as KnownVariables from './../knownVariables';
 import { mod } from './../utilities';
 
@@ -36,13 +35,26 @@ const partialStateDefinition = {
     changeInHealth: {
         dependencies: []
     },
-    color: {
-        default: 0,
+    isRed: {
+        default: false,
         dependencies: [],
-        isBoolean: false,
-        rangeMax: Color.rangeMax,
-        transfer: (current, next) => Math.floor(next),
-        variable: KnownVariables.color
+        isBoolean: true,
+        transfer: (current, next) => next,
+        variable: KnownVariables.isRed
+    },
+    isGreen: {
+        default: false,
+        dependencies: [],
+        isBoolean: true,
+        transfer: (current, next) => next,
+        variable: KnownVariables.isGreen
+    },
+    isBlue: {
+        default: false,
+        dependencies: [],
+        isBoolean: true,
+        transfer: (current, next) => next,
+        variable: KnownVariables.isBlue
     },
     health: {
         dependencies: [

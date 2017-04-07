@@ -5,7 +5,9 @@ const { Environment } = require('./../../umd/world.js').Environment;
 const defaultCreatureData = {
     age: 1,
     angle: 0,
-    color: 0,
+    isRed: false,
+    isGreen: false,
+    isBlue: false,
     health: 100,
     speed: 0,
     x: 0,
@@ -51,8 +53,16 @@ class MockCreature {
         return this.data.angle;
     }
 
-    get color() {
-        return this.data.color;
+    get isRed() {
+        return this.data.isRed;
+    }
+
+    get isGreen() {
+        return this.data.isGreen;
+    }
+
+    get isBlue() {
+        return this.data.isBlue;
     }
 
     get health() {
@@ -362,7 +372,7 @@ describe('Environment', function() {
         const near = new MockCreature(
             '00002',
             {
-                color: 1,
+                isRed: true,
                 x: 60,
                 y: 50
             });
@@ -370,7 +380,7 @@ describe('Environment', function() {
         const far = new MockCreature(
             '00003',
             {
-                color: 2,
+                isGreen: true,
                 x: 70,
                 y: 50
             });
@@ -400,17 +410,8 @@ describe('Environment', function() {
 
         environment.process(3);
 
-        expect(creature.lastInput).to.contain.all.keys({
-            booleans: {},
-            variables: {
-                H: 10,
-                I: 1,
-                J: -1,
-                K: -1,
-                L: -1,
-                M: -1
-            }
-        });
+        expect(creature.lastInput.booleans.I).to.be.true;
+        expect(creature.lastInput.variables.H).to.equal(10);
     });
 
     it('provides the distance and color to the nearest right periphery creature', function() {
@@ -434,7 +435,7 @@ describe('Environment', function() {
         const near = new MockCreature(
             '00002',
             {
-                color: 1,
+                isRed: true,
                 x: 60,
                 y: 50
             });
@@ -442,7 +443,7 @@ describe('Environment', function() {
         const far = new MockCreature(
             '00003',
             {
-                color: 2,
+                isGreen: true,
                 x: 70,
                 y: 50
             });
@@ -472,17 +473,8 @@ describe('Environment', function() {
 
         environment.process(3);
 
-        expect(creature.lastInput).to.contain.all.keys({
-            booleans: {},
-            variables: {
-                H: -1,
-                I: -1,
-                J: 10,
-                K: 1,
-                L: -1,
-                M: -1
-            }
-        });
+        expect(creature.lastInput.booleans.M).to.be.true;
+        expect(creature.lastInput.variables.L).to.equal(10);
     });
 
     it('provides the distance and color to the nearest focus creature', function() {
@@ -506,7 +498,7 @@ describe('Environment', function() {
         const near = new MockCreature(
             '00002',
             {
-                color: 1,
+                isRed: true,
                 x: 60,
                 y: 50
             });
@@ -514,7 +506,7 @@ describe('Environment', function() {
         const far = new MockCreature(
             '00003',
             {
-                color: 2,
+                isGreen: true,
                 x: 70,
                 y: 50
             });
@@ -544,17 +536,8 @@ describe('Environment', function() {
 
         environment.process(3);
 
-        expect(creature.lastInput).to.contain.all.keys({
-            booleans: {},
-            variables: {
-                H: -1,
-                I: -1,
-                J: -1,
-                K: -1,
-                L: 10,
-                M: 1
-            }
-        });
+        expect(creature.lastInput.booleans.Q).to.be.true;
+        expect(creature.lastInput.variables.P).to.equal(10);
     });
 
     it('provides no information about food or creatures if none are visible', function() {

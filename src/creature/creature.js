@@ -8,13 +8,15 @@ import { createRandom, recombine } from './recombination';
 
 const deserializedCreatureToDNAInput = deserialized => ({
     booleans: {
+        [KnownVariables.isRed]: deserialized.color.isRed,
+        [KnownVariables.isGreen]: deserialized.color.isGreen,
+        [KnownVariables.isBlue]: deserialized.color.isBlue,
         [KnownVariables.isFast]: deserialized.velocity.isFast,
         [KnownVariables.isMoving]: deserialized.velocity.isMoving
     },
     variables: {
         [KnownVariables.age]: deserialized.age,
         [KnownVariables.angle]: deserialized.velocity.angle,
-        [KnownVariables.color]: deserialized.color,
         [KnownVariables.health]: deserialized.health,
         [KnownVariables.x]: deserialized.x,
         [KnownVariables.y]: deserialized.y
@@ -94,8 +96,16 @@ export default class Creature {
         return this.state.variables[KnownVariables.angle];
     }
 
-    get color() {
-        return this.state.variables[KnownVariables.color];
+    get isRed() {
+        return this.state.booleans[KnownVariables.isRed];
+    }
+
+    get isGreen() {
+        return this.state.booleans[KnownVariables.isGreen];
+    }
+
+    get isBlue() {
+        return this.state.booleans[KnownVariables.isBlue];
     }
 
     get health() {
@@ -176,7 +186,11 @@ export default class Creature {
     toString() {
         const data = {
             age: this.age,
-            color: this.color,
+            color: {
+                isRed: this.isRed,
+                isGreen: this.isGreen,
+                isBlue: this.isBlue
+            },
             dna: this.dna,
             header: {
                 version: 1

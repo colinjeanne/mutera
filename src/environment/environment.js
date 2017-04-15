@@ -14,9 +14,9 @@ const squareDistance = (a, b) =>
 const compareSquareDistance = (a, b) => a.squareDistance - b.squareDistance;
 
 const dataIsVisible = data =>
-    data.canSee.leftPeriphery ||
-    data.canSee.rightPeriphery ||
-    data.canSee.focus;
+    data.leftPeriphery ||
+    data.rightPeriphery ||
+    data.focus;
 
 const nearestVisibleFood = (creature, foodLocations) => {
     const visibleLocations = foodLocations.
@@ -24,7 +24,7 @@ const nearestVisibleFood = (creature, foodLocations) => {
             canSee: creature.canSee(point),
             point
         })).
-        filter(dataIsVisible);
+        filter(foodLocation => dataIsVisible(foodLocation.canSee));
 
     visibleLocations.forEach(data => {
         data.squareDistance = squareDistance(data.point, creature);
@@ -73,64 +73,37 @@ const nearestVisibleFood = (creature, foodLocations) => {
     };
 };
 
-const nearestVisibleCreatures = (creature, creatures) => {
-    const visibleLocations = Array.from(creatures.values()).
-        filter(other => other.id !== creature.id).
-        map(other => ({
-            canSee: creature.canSee(other),
-            creature: other
+const nearestVisibleCreatures = relationships => {
+    const orderedRelations = Array.from(relationships.entries()).
+        map(([id, relation]) => ({
+            id,
+            squareDistance: relation.squareDistance,
+            visible: relation.visible
         })).
-        filter(dataIsVisible);
-
-    visibleLocations.forEach(data => {
-        data.squareDistance = squareDistance(data.creature, creature);
-    });
-
-    if (visibleLocations.length === 0) {
-        return {};
-    }
-
-    const visibleOverlapping = visibleLocations.
-        filter(data => data.squareDistance <= 100).
-        map(data => data.creature);
-
-    const leftPeripheryLocations = visibleLocations.
-        filter(data => data.canSee.leftPeriphery).
         sort(compareSquareDistance);
 
-    let leftPeripheryCreature = null;
-    if (leftPeripheryLocations.length !== 0) {
-        leftPeripheryCreature = leftPeripheryLocations[0];
-        leftPeripheryCreature.distance =
-            Math.sqrt(leftPeripheryCreature.squareDistance);
+    let leftCreature = orderedRelations.find(relation =>
+        relation.visible.leftPeriphery);
+    if (leftCreature) {
+        leftCreature.distance = Math.sqrt(leftCreature.squareDistance);
     }
 
-    const rightPeripheryLocations = visibleLocations.
-        filter(data => data.canSee.rightPeriphery).
-        sort(compareSquareDistance);
-
-    let rightPeripheryCreature = null;
-    if (rightPeripheryLocations.length !== 0) {
-        rightPeripheryCreature = rightPeripheryLocations[0];
-        rightPeripheryCreature.distance =
-            Math.sqrt(rightPeripheryCreature.squareDistance);
+    let rightCreature = orderedRelations.find(relation =>
+        relation.visible.rightPeriphery);
+    if (rightCreature) {
+        rightCreature.distance = Math.sqrt(rightCreature.squareDistance);
     }
 
-    const focusLocations = visibleLocations.
-        filter(data => data.canSee.focus).
-        sort(compareSquareDistance);
-
-    let focusCreature = null;
-    if (focusLocations.length !== 0) {
-        focusCreature = focusLocations[0];
+    let focusCreature = orderedRelations.find(relation =>
+        relation.visible.focus);
+    if (focusCreature) {
         focusCreature.distance = Math.sqrt(focusCreature.squareDistance);
     }
 
     return {
-        leftPeripheryCreature,
-        rightPeripheryCreature,
-        focusCreature,
-        visibleOverlapping
+        leftCreature,
+        rightCreature,
+        focusCreature
     };
 };
 
@@ -167,7 +140,49 @@ export default class Environment {
     }
 
     process(elapsedTime) {
+        const relations = new Map();
+        this.creatures.forEach(creature => {
+            const relationships = new Map();
+            this.creatures.forEach(other => {
+                if (other !== creature) {
+                    const distance = squareDistance(creature, other);
+                    relationships.set(other.id, {
+                        squareDistance: distance,
+                        overlapping: distance <= 100,
+                        visible: creature.canSee(other)
+                    });
+                }
+            });
+
+            relations.set(creature.id, relationships);
+        });
+
+        relations.forEach((relationships, id) => {
+            const creature = this.creatures.get(id);
+            relationships.forEach((relation, otherId) => {
+                if (relation.overlapping) {
+                    const otherRelationship = relations.get(otherId).get(id);
+
+                    const canSeeOther = dataIsVisible(relation.visible);
+                    const canOtherSee = dataIsVisible(otherRelationship.visible);
+                    if (canSeeOther && !canOtherSee) {
+                        creature.feed(this.options.foodHealth);
+                    } else if (!canSeeOther && canOtherSee) {
+                        creature.harm(this.options.foodHealth);
+                    } else {
+                        creature.harm(this.options.foodHealth);
+                    }
+                }
+            });
+        });
+
         const deadCreatures = [];
+        this.creatures.forEach(creature => {
+            if (creature.isDead()) {
+                deadCreatures.push(creature.id);
+            }
+        });
+
         this.creatures.forEach((creature, id) => {
             if (deadCreatures.includes(id)) {
                 return;
@@ -201,16 +216,17 @@ export default class Environment {
                 input.variables[KnownVariables.nearestFocusFoodDistance] = -1;
             }
 
+            const relationships = relations.get(creature.id);
             const nearestCreatures = nearestVisibleCreatures(
-                creature,
+                relationships,
                 this.creatures);
 
             [
-                ['leftPeriphery', 'Left'],
-                ['rightPeriphery', 'Right'],
+                ['left', 'Left'],
+                ['right', 'Right'],
                 ['focus', 'Focus']
             ].forEach(data => {
-                const nearestCreature = nearestCreatures[`${data[0]}Creature`];
+                const nearest = nearestCreatures[`${data[0]}Creature`];
                 const rootName = `nearest${data[1]}Creature`;
                 const distanceVariable = KnownVariables[`${rootName}Distance`];
 
@@ -220,12 +236,12 @@ export default class Environment {
                     [`${rootName}IsBlue`, 'isBlue']
                 ];
 
-                if (nearestCreature) {
-                    input.variables[distanceVariable] =
-                        nearestCreature.distance;
+                if (nearest) {
+                    const nearestCreature = this.creatures.get(nearest.id);
+                    input.variables[distanceVariable] = nearest.distance;
                     colors.forEach(color => {
                         input.booleans[KnownVariables[color[0]]] =
-                            nearestCreature.creature[color[1]];
+                            nearestCreature[color[1]];
                     });
                 } else {
                     input.variables[distanceVariable] = -1;
@@ -234,17 +250,6 @@ export default class Environment {
                     });
                 }
             });
-
-            if (nearestCreatures.visibleOverlapping) {
-                nearestCreatures.visibleOverlapping.forEach(other => {
-                    creature.feed(
-                        Math.min(other.health, this.options.foodHealth));
-                    other.harm(this.options.foodHealth);
-                    if (other.isDead()) {
-                        deadCreatures.push(other.id);
-                    }
-                });
-            }
 
             creature.process(input, elapsedTime);
 

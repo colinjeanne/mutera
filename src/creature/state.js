@@ -1,4 +1,4 @@
-import * as Angle from './../types/angle';
+import * as Angle from './angle';
 import * as KnownVariables from './../knownVariables';
 import { mod } from './../utilities';
 

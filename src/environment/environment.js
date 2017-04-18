@@ -1,4 +1,5 @@
 import GenericSelector from './genericSelector';
+import { squareDistance } from './../geometry';
 import * as KnownVariables from './../knownVariables';
 
 const defaultOptions = {
@@ -7,9 +8,6 @@ const defaultOptions = {
     generationTimeLength: 30,
     minimumCreatures: 100
 };
-
-const squareDistance = (a, b) =>
-    (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 
 const compareSquareDistance = (a, b) => a.squareDistance - b.squareDistance;
 

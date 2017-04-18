@@ -1,6 +1,7 @@
-import * as Angle from './../types/angle';
+import * as Angle from './angle';
 import { DNA } from './../dna/index';
 import GenericSelector from './genericSelector';
+import { Sector } from './../geometry';
 import { deserializeCreature, serializeCreature } from './serialization';
 import * as KnownVariables from './../knownVariables';
 import { StateProcessor } from './state';
@@ -23,33 +24,15 @@ const deserializedCreatureToDNAInput = deserialized => ({
     }
 });
 
-const areClockwise = (u, v) => -u.x * v.y + u.y * v.x > 0;
-
-const vectorLengthSquared = point => point.x * point.x + point.y * point.y;
-
 const frustrumLength = 300;
-const frustrumLengthSquared = frustrumLength * frustrumLength;
-const peripheryFieldOfView = Angle.rangeMax / 4;
+const peripheryFieldOfView = Math.PI / 2;
 const focusFieldOfView = peripheryFieldOfView / 3;
 
 const calculateFrustrum = (creature, fieldOfView) => {
-    const radiansLeft = Angle.toRadians(creature.angle + fieldOfView / 2);
-    const radiansRight = Angle.toRadians(creature.angle - fieldOfView / 2);
+    const radiansLeft = creature.angle + fieldOfView / 2;
+    const radiansRight = creature.angle - fieldOfView / 2;
 
-    const left = {
-        x: frustrumLength * Math.cos(radiansLeft),
-        y: frustrumLength * Math.sin(radiansLeft)
-    };
-
-    const right = {
-        x: frustrumLength * Math.cos(radiansRight),
-        y: frustrumLength * Math.sin(radiansRight)
-    };
-
-    return {
-        left,
-        right
-    };
+    return new Sector(frustrumLength, radiansRight, radiansLeft);
 };
 
 const calculateVisualField = creature => ({
@@ -81,6 +64,8 @@ export default class Creature {
         this.header = deserialized.header;
         this.id = deserialized.id;
 
+        this.radians = Angle.toRadians(
+            this.state.variables[KnownVariables.angle]);
         this.frustrum = calculateVisualField(this);
     }
 
@@ -93,7 +78,7 @@ export default class Creature {
     }
 
     get angle() {
-        return this.state.variables[KnownVariables.angle];
+        return this.radians;
     }
 
     get isRed() {
@@ -147,35 +132,35 @@ export default class Creature {
     }
 
     canSee(point) {
-        // http://stackoverflow.com/questions/13652518/efficiently-find-points-inside-a-circle-sector
         const relativePoint = {
             x: point.x - this.x,
             y: point.y - this.y
         };
 
-        if ((vectorLengthSquared(relativePoint) > frustrumLengthSquared) ||
-            !areClockwise(this.frustrum.periphery.left, relativePoint) ||
-            areClockwise(this.frustrum.periphery.right, relativePoint)) {
+        if (!this.frustrum.periphery.contains(relativePoint)) {
             return {
                 leftPeriphery: false,
                 rightPeriphery: false,
                 focus: false
             };
+        } else if (this.frustrum.focus.contains(relativePoint)) {
+            return {
+                leftPeriphery: false,
+                rightPeriphery: false,
+                focus: true
+            };
+        } else if (this.frustrum.focus.isClockwiseToCenter(relativePoint)) {
+            return {
+                leftPeriphery: false,
+                rightPeriphery: true,
+                focus: false
+            };
         }
 
-        const leftPeriphery = !areClockwise(
-            this.frustrum.focus.left,
-            relativePoint);
-        const rightPeriphery = areClockwise(
-            this.frustrum.focus.right,
-            relativePoint);
-
-        const focus = !leftPeriphery && !rightPeriphery;
-
         return {
-            leftPeriphery,
-            rightPeriphery,
-            focus
+            leftPeriphery: true,
+            rightPeriphery: false,
+            focus: false
         };
     }
 
@@ -198,7 +183,7 @@ export default class Creature {
             health: this.health,
             id: this.id,
             velocity: {
-                angle: this.angle,
+                angle: this.state.variables[KnownVariables.angle],
                 isMoving: this.isMoving,
                 isFast: this.isFast
             },
@@ -226,6 +211,8 @@ export default class Creature {
             dnaInput,
             next,
             elapsedTime);
+        this.radians = Angle.toRadians(
+            this.state.variables[KnownVariables.angle]);
         this.frustrum = calculateVisualField(this);
     }
 

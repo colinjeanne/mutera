@@ -86,7 +86,7 @@ describe('Creature', function() {
         expect(creature.header).to.deep.equal({ version: '1' });
         expect(creature.id).to.equal('12345');
         expect(creature.age).to.equal(640);
-        expect(creature.angle).to.equal(139);
+        expect(creature.angle).to.closeTo(1.706, 0.001);
         expect(creature.isMoving).to.be.true;
         expect(creature.isFast).to.be.false;
         expect(creature.speed).to.equal(0);
@@ -262,10 +262,10 @@ describe('Creature', function() {
             dna: '1CVA1TC_C_MC_M'
         });
 
-        expect(creature.angle).to.equal(132);
+        expect(creature.angle).to.closeTo(1.620, 0.001);
 
         creature.process({}, 1);
-        expect(creature.angle).to.equal(196);
+        expect(creature.angle).to.closeTo(2.405, 0.001);
     });
 
     it('defaults to no rotation if the variable is NaN', function() {
@@ -288,10 +288,10 @@ describe('Creature', function() {
             dna: '1CVA1TC0C0MC0M'
         });
 
-        expect(creature.angle).to.equal(4);
+        expect(creature.angle).to.closeTo(0.049, 0.001);
 
         creature.process({}, 1);
-        expect(creature.angle).to.equal(452);
+        expect(creature.angle).to.closeTo(5.547, 0.001);
     });
 
     it('can rotate all the way around counterclockwise', function() {
@@ -300,10 +300,10 @@ describe('Creature', function() {
             dna: '1CVA1TC_C_MC_M'
         });
 
-        expect(creature.angle).to.equal(452);
+        expect(creature.angle).to.closeTo(5.547, 0.001);
 
         creature.process({}, 1);
-        expect(creature.angle).to.equal(4);
+        expect(creature.angle).to.closeTo(0.049, 0.001);
     });
 
     it('wraps x-coordinate when going beyond the maximum range', function() {
@@ -331,12 +331,12 @@ describe('Creature', function() {
         });
 
         expect(creature.speed).to.equal(0);
-        expect(creature.angle).to.equal(256);
+        expect(creature.angle).to.closeTo(Math.PI, 0.001);
         expect(creature.x).to.equal(6);
 
         creature.process({}, 1);
         expect(creature.speed).to.equal(7);
-        expect(creature.angle).to.equal(256);
+        expect(creature.angle).to.closeTo(Math.PI, 0.001);
         expect(creature.x).to.be.closeTo(999, 0.001);
     });
 
@@ -348,12 +348,12 @@ describe('Creature', function() {
         });
 
         expect(creature.speed).to.equal(0);
-        expect(creature.angle).to.equal(128);
+        expect(creature.angle).to.closeTo(Math.PI / 2, 0.001);
         expect(creature.y).to.equal(994);
 
         creature.process({}, 1);
         expect(creature.speed).to.equal(7);
-        expect(creature.angle).to.equal(128);
+        expect(creature.angle).to.closeTo(Math.PI / 2, 0.001);
         expect(creature.y).to.be.closeTo(1, 0.001);
     });
 
@@ -365,12 +365,12 @@ describe('Creature', function() {
         });
 
         expect(creature.speed).to.equal(0);
-        expect(creature.angle).to.equal(384);
+        expect(creature.angle).to.closeTo(3 * Math.PI / 2, 0.001);
         expect(creature.y).to.equal(6);
 
         creature.process({}, 1);
         expect(creature.speed).to.equal(7);
-        expect(creature.angle).to.equal(384);
+        expect(creature.angle).to.closeTo(3 * Math.PI / 2, 0.001);
         expect(creature.y).to.be.closeTo(999, 0.001);
     });
 

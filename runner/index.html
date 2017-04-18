@@ -139,16 +139,16 @@
             }
 
             const frustrumLength = 300 / scaleFactor;
-            const frustrumAngle = world.Angle.rangeMax / 8;
+            const frustrumAngle = Math.PI / 4;
 
             const leftEndpoint = {
-                x: frustrumLength * Math.cos(world.Angle.toRadians(creature.angle + frustrumAngle)),
-                y: frustrumLength * Math.sin(world.Angle.toRadians(creature.angle + frustrumAngle))
+                x: frustrumLength * Math.cos(creature.angle + frustrumAngle),
+                y: frustrumLength * Math.sin(creature.angle + frustrumAngle)
             };
 
             const focusLeftEndpoint = {
-                x: frustrumLength * Math.cos(world.Angle.toRadians(creature.angle + frustrumAngle / 3)),
-                y: frustrumLength * Math.sin(world.Angle.toRadians(creature.angle + frustrumAngle / 3))
+                x: frustrumLength * Math.cos(creature.angle + frustrumAngle / 3),
+                y: frustrumLength * Math.sin(creature.angle + frustrumAngle / 3)
             };
 
             context.strokeStyle = 'blue';
@@ -162,8 +162,8 @@
                 point.x,
                 point.y,
                 frustrumLength,
-                world.Angle.toRadians(creature.angle + frustrumAngle),
-                world.Angle.toRadians(creature.angle - frustrumAngle),
+                creature.angle + frustrumAngle,
+                creature.angle - frustrumAngle,
                 true);
             context.lineTo(point.x, point.y);
             context.stroke();
@@ -179,8 +179,8 @@
                 point.x,
                 point.y,
                 frustrumLength,
-                world.Angle.toRadians(creature.angle + frustrumAngle / 3),
-                world.Angle.toRadians(creature.angle - frustrumAngle / 3),
+                creature.angle + frustrumAngle / 3,
+                creature.angle - frustrumAngle / 3,
                 true);
             context.lineTo(point.x, point.y);
             context.stroke();

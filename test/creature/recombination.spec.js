@@ -64,7 +64,7 @@ describe('Creature recombination', function() {
             selector);
 
         const child = first.recombine(second);
-        expect(child.angle).to.equal(256);
+        expect(child.angle).to.equal(Math.PI);
     });
 
     it('places the new creature close to the parent', function() {

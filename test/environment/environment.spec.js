@@ -16,6 +16,12 @@ const defaultCreatureData = {
         leftPeriphery: false,
         rightPeriphery: false,
         focus: false
+    }),
+    hear: () => ({
+        front: 0,
+        left: 0,
+        back: 0,
+        right: 0
     })
 };
 
@@ -31,6 +37,10 @@ class MockCreature {
 
     canSee(point) {
         return this.data.canSee(point);
+    }
+
+    hear(point) {
+        return this.data.hear(point);
     }
 
     isDead() {
@@ -603,6 +613,69 @@ describe('Environment', function() {
                 K: -1,
                 L: -1,
                 M: -1
+            }
+        });
+    });
+
+    it('provides information on the amount of sound in each direction', function() {
+        const options = {
+            generationTimeLength: 2,
+            minimumCreatures: 1
+        };
+
+        const creature = new MockCreature(
+            '00001',
+            {
+                x: 50,
+                y: 50,
+                hear: () => ({
+                    front: 1,
+                    left: 2,
+                    back: 3,
+                    right: 4
+                })
+            });
+
+        const other = new MockCreature(
+            '00002',
+            {
+                x: 70,
+                y: 70,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: false
+                })
+            });
+
+        const creatures = [creature, other];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        environment.process(3);
+
+        expect(creature.lastInput).to.contain.all.keys({
+            booleans: {},
+            variables: {
+                W: 1,
+                X: 2,
+                Y: 3,
+                Z: 4
             }
         });
     });

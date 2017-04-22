@@ -105,6 +105,24 @@ const nearestVisibleCreatures = relationships => {
     };
 };
 
+const totalAudioEffects = (relationships, creatures) =>
+    Array.from(relationships.entries()).
+        filter(([id]) => !creatures.get(id).isDead()).
+        map(([, relation]) => relation.audioEffect).
+        reduce((totalEffects, effect) => {
+            totalEffects.front += effect.front;
+            totalEffects.left += effect.left;
+            totalEffects.back += effect.back;
+            totalEffects.right += effect.right;
+            return totalEffects;
+        },
+        {
+            front: 0,
+            left: 0,
+            back: 0,
+            right: 0
+        });
+
 export default class Environment {
     constructor(map, creatures, selector = new GenericSelector(), options = {}) {
         this.map = map;
@@ -147,7 +165,8 @@ export default class Environment {
                     relationships.set(other.id, {
                         squareDistance: distance,
                         overlapping: distance <= 100,
-                        visible: creature.canSee(other)
+                        visible: creature.canSee(other),
+                        audioEffect: creature.hear(other)
                     });
                 }
             });
@@ -247,6 +266,19 @@ export default class Environment {
                         input.booleans[KnownVariables[color[0]]] = false;
                     });
                 }
+            });
+
+            const audioEffects = totalAudioEffects(
+                relationships,
+                this.creatures);
+
+            [
+                ['front', KnownVariables.frontSound],
+                ['left', KnownVariables.leftSound],
+                ['back', KnownVariables.backSound],
+                ['right', KnownVariables.rightSound]
+            ].forEach(([property, variable]) => {
+                input.variables[variable] = audioEffects[property];
             });
 
             creature.process(input, elapsedTime);

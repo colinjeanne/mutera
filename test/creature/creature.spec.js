@@ -458,6 +458,49 @@ describe('Creature', function() {
         );
     });
 
+    it('can hear creatures in the front', function() {
+        const creature = makeCreature({
+            x: '0010',
+            y: '0010'
+        });
+
+        expect(creature.hear({ x: 74, y: 64 }).front).to.be.greaterThan(0);
+    });
+
+    it('can hear creatures in the back', function() {
+        const creature = makeCreature({
+            x: '0010',
+            y: '0010'
+        });
+
+        expect(creature.hear({ x: 54, y: 64 }).back).to.be.greaterThan(0);
+    });
+
+    it('can hear creatures to the left', function() {
+        const creature = makeCreature({
+            x: '0010',
+            y: '0010'
+        });
+
+        expect(creature.hear({ x: 64, y: 74 }).left).to.be.greaterThan(0);
+    });
+
+    it('can hear creatures to the right', function() {
+        const creature = makeCreature({
+            x: '0010',
+            y: '0010'
+        });
+
+        expect(creature.hear({ x: 64, y: 54 }).right).to.be.greaterThan(0);
+    });
+
+    it('cannot hear creatures more than 600 units away', function() {
+        const creature = makeCreature({});
+
+        expect(creature.hear({ x: 600, y: 0 }).front).to.be.greaterThan(0);
+        expect(creature.hear({ x: 600.01, y: 0 }).front).to.equal(0);
+    });
+
     it('keeps state variables that are not part of the standard set', function() {
         const creature = makeCreature({
             dna: '1AVA5VQC0GCm'

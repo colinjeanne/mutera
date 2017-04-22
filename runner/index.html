@@ -236,7 +236,11 @@
                 f: 'focusFoodDistance',
                 H: 'leftCreatureDistance',
                 L: 'rightCreatureDistance',
-                P: 'focusCreatureDistance'
+                P: 'focusCreatureDistance',
+                W: 'frontSound',
+                X: 'leftSound',
+                Y: 'backSound',
+                Z: 'rightSound'
             };
 
             if (variable in known) {
@@ -349,7 +353,7 @@
 
         const dnaSelector = new world.DNA.GenericSelector({
             inputBooleans: 'IJKMNOQRS',
-            inputVariables: 'lrfHLP',
+            inputVariables: 'lrfHLPWXYZ',
             maximumTreeDepth: 2,
             mutationsPerGene: new Map([
                 [0, 0.9],

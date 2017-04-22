@@ -26,5 +26,10 @@ export const nearestFocusCreatureIsRed = 'Q';
 export const nearestFocusCreatureIsGreen = 'R';
 export const nearestFocusCreatureIsBlue = 'S';
 
+export const frontSound = 'W';
+export const leftSound = 'X';
+export const backSound = 'Y';
+export const rightSound = 'Z';
+
 export const x = 'x';
 export const y = 'y';

@@ -1,7 +1,7 @@
 import * as Angle from './angle';
 import { DNA } from './../dna/index';
 import GenericSelector from './genericSelector';
-import { Sector } from './../geometry';
+import { Sector, squareDistance } from './../geometry';
 import { deserializeCreature, serializeCreature } from './serialization';
 import * as KnownVariables from './../knownVariables';
 import { StateProcessor } from './state';
@@ -24,20 +24,26 @@ const deserializedCreatureToDNAInput = deserialized => ({
     }
 });
 
-const frustrumLength = 300;
+const visualRange = 300;
 const peripheryFieldOfView = Math.PI / 2;
 const focusFieldOfView = peripheryFieldOfView / 3;
 
-const calculateFrustrum = (creature, fieldOfView) => {
-    const radiansLeft = creature.angle + fieldOfView / 2;
-    const radiansRight = creature.angle - fieldOfView / 2;
+const auditoryRange = 600;
+const volumeAtTen = 25600;
 
-    return new Sector(frustrumLength, radiansRight, radiansLeft);
-};
+const calculateSector = (angle, range, arcLength) =>
+    new Sector(range, angle - arcLength / 2, angle + arcLength / 2);
 
-const calculateVisualField = creature => ({
-    periphery: calculateFrustrum(creature, peripheryFieldOfView),
-    focus: calculateFrustrum(creature, focusFieldOfView)
+const calculateVisualField = angle => ({
+    periphery: calculateSector(angle, visualRange, peripheryFieldOfView),
+    focus: calculateSector(angle, visualRange, focusFieldOfView)
+});
+
+const calculateAuditoryField = angle => ({
+    front: calculateSector(angle, auditoryRange, Math.PI / 2),
+    left: calculateSector(angle + Math.PI / 2, auditoryRange, Math.PI / 2),
+    back: calculateSector(angle + Math.PI, auditoryRange, Math.PI / 2),
+    right: calculateSector(angle - Math.PI / 2, auditoryRange, Math.PI / 2)
 });
 
 const makeRealDNA = encodedDNA => new DNA(encodedDNA);
@@ -66,7 +72,8 @@ export default class Creature {
 
         this.radians = Angle.toRadians(
             this.state.variables[KnownVariables.angle]);
-        this.frustrum = calculateVisualField(this);
+        this.visualField = calculateVisualField(this.angle);
+        this.auditoryField = calculateAuditoryField(this.angle);
     }
 
     isDead() {
@@ -137,19 +144,19 @@ export default class Creature {
             y: point.y - this.y
         };
 
-        if (!this.frustrum.periphery.contains(relativePoint)) {
+        if (!this.visualField.periphery.contains(relativePoint)) {
             return {
                 leftPeriphery: false,
                 rightPeriphery: false,
                 focus: false
             };
-        } else if (this.frustrum.focus.contains(relativePoint)) {
+        } else if (this.visualField.focus.contains(relativePoint)) {
             return {
                 leftPeriphery: false,
                 rightPeriphery: false,
                 focus: true
             };
-        } else if (this.frustrum.focus.isClockwiseToCenter(relativePoint)) {
+        } else if (this.visualField.focus.isClockwiseToCenter(relativePoint)) {
             return {
                 leftPeriphery: false,
                 rightPeriphery: true,
@@ -162,6 +169,39 @@ export default class Creature {
             rightPeriphery: false,
             focus: false
         };
+    }
+
+    hear(point) {
+        const relativePoint = {
+            x: point.x - this.x,
+            y: point.y - this.y
+        };
+
+        const effect = {
+            front: 0,
+            left: 0,
+            back: 0,
+            right: 0
+        };
+
+        const d = squareDistance(this, point);
+        if (d > auditoryRange * auditoryRange) {
+            return effect;
+        }
+
+        const volume = volumeAtTen / d;
+
+        if (this.auditoryField.front.contains(relativePoint)) {
+            effect.front = volume;
+        } else if (this.auditoryField.left.contains(relativePoint)) {
+            effect.left = volume;
+        } else if (this.auditoryField.back.contains(relativePoint)) {
+            effect.back = volume;
+        } else {
+            effect.right = volume;
+        }
+
+        return effect;
     }
 
     canReproduce() {
@@ -213,7 +253,8 @@ export default class Creature {
             elapsedTime);
         this.radians = Angle.toRadians(
             this.state.variables[KnownVariables.angle]);
-        this.frustrum = calculateVisualField(this);
+        this.visualField = calculateVisualField(this.angle);
+        this.auditoryField = calculateAuditoryField(this.angle);
     }
 
     recombine(other) {

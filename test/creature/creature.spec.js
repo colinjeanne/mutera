@@ -87,6 +87,7 @@ describe('Creature', function() {
         expect(creature.id).to.equal('12345');
         expect(creature.age).to.equal(640);
         expect(creature.angle).to.closeTo(1.706, 0.001);
+        expect(creature.isAggressive).to.be.false;
         expect(creature.isMoving).to.be.true;
         expect(creature.isFast).to.be.false;
         expect(creature.speed).to.equal(0);
@@ -174,6 +175,16 @@ describe('Creature', function() {
 
         creature.process({}, 0.5);
         expect(creature.health).to.equal(106);
+    });
+
+    it('loses health twice as fast when aggresive', function() {
+        const creature = makeCreature({
+            health: '40',
+            dna: '15Ba1TT'
+        });
+
+        creature.process({}, 1);
+        expect(creature.health).to.equal(56);
     });
 
     it('caps maximum health', function() {

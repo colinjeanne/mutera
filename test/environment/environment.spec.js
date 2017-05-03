@@ -5,10 +5,13 @@ const { Environment } = require('./../../umd/world.js').Environment;
 const defaultCreatureData = {
     age: 1,
     angle: 0,
+    isAggressive: false,
     isRed: false,
     isGreen: false,
     isBlue: false,
     health: 100,
+    isMoving: false,
+    isFast: false,
     speed: 0,
     x: 0,
     y: 0,
@@ -29,6 +32,9 @@ class MockCreature {
     constructor(id, data = defaultCreatureData) {
         this.id = id;
         this.data = Object.assign({}, defaultCreatureData, data);
+
+        this.lastFoodHealth = 0;
+        this.lastHealthLoss = 0;
     }
 
     canReproduce() {
@@ -63,6 +69,10 @@ class MockCreature {
         return this.data.angle;
     }
 
+    get isAggressive() {
+        return this.data.isAggressive;
+    }
+
     get isRed() {
         return this.data.isRed;
     }
@@ -77,6 +87,14 @@ class MockCreature {
 
     get health() {
         return this.data.health;
+    }
+
+    get isMoving() {
+        return this.data.isMoving;
+    }
+
+    get isFast() {
+        return this.data.isFast;
     }
 
     get speed() {
@@ -678,6 +696,127 @@ describe('Environment', function() {
                 Z: 4
             }
         });
+    });
+
+    it('aggressive creatures attack creatures they can see', function() {
+        const options = {
+            generationTimeLength: 2,
+            minimumCreatures: 1
+        };
+
+        const creature = new MockCreature(
+            '00001',
+            {
+                isAggressive: true,
+                health: 1000,
+                x: 50,
+                y: 50,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: true
+                })
+            });
+
+        const other = new MockCreature(
+            '00002',
+            {
+                health: 1000,
+                x: 55,
+                y: 55,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: false
+                })
+            });
+
+        const creatures = [creature, other];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        environment.process(1);
+
+        expect(creature.lastFoodHealth).to.equal(500);
+        expect(creature.lastHealthLoss).to.equal(0);
+        expect(other.lastFoodHealth).to.equal(0);
+        expect(other.lastHealthLoss).to.equal(500);
+    });
+
+    it('two aggressive creatures attack each other', function() {
+        const options = {
+            generationTimeLength: 2,
+            minimumCreatures: 1
+        };
+
+        const creature = new MockCreature(
+            '00001',
+            {
+                isAggressive: true,
+                health: 1000,
+                x: 50,
+                y: 50,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: true
+                })
+            });
+
+        const other = new MockCreature(
+            '00002',
+            {
+                isAggressive: true,
+                health: 1000,
+                x: 55,
+                y: 55,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: true
+                })
+            });
+
+        const creatures = [creature, other];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        environment.process(1);
+
+        expect(creature.lastFoodHealth).to.equal(0);
+        expect(creature.lastHealthLoss).to.equal(500);
+        expect(other.lastFoodHealth).to.equal(0);
+        expect(other.lastHealthLoss).to.equal(500);
     });
 
     it('feeds creatures when they are close enough to food', function() {

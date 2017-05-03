@@ -58,13 +58,28 @@ const partialStateDefinition = {
     },
     health: {
         dependencies: [
-            'changeInHealth'
+            'changeInHealth',
+            'isAggressive'
         ],
         isBoolean: false,
         min: 0,
         max: 4095,
-        transfer: timeVaryingValue,
+        transfer: (current, next, baseChangeRate, isAggressive, elapsedTime) => {
+            let changeRate = baseChangeRate;
+            if (isAggressive) {
+                changeRate *= 2;
+            }
+
+            return current + changeRate * elapsedTime;
+        },
         variable: KnownVariables.health
+    },
+    isAggressive: {
+        default: false,
+        dependencies: [],
+        isBoolean: true,
+        transfer: (current, next) => next,
+        variable: KnownVariables.isAggressive
     },
     isMoving: {
         default: false,

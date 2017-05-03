@@ -178,15 +178,22 @@ export default class Environment {
             const creature = this.creatures.get(id);
             relationships.forEach((relation, otherId) => {
                 if (relation.overlapping) {
+                    const otherCreature = this.creatures.get(otherId);
                     const otherRelationship = relations.get(otherId).get(id);
 
                     const canSeeOther = dataIsVisible(relation.visible);
+                    const canAttack = canSeeOther && creature.isAggressive;
+
                     const canOtherSee = dataIsVisible(otherRelationship.visible);
-                    if (canSeeOther && !canOtherSee) {
-                        creature.feed(this.options.foodHealth);
-                    } else if (!canSeeOther && canOtherSee) {
-                        creature.harm(this.options.foodHealth);
-                    } else {
+                    const canBeAttacked = canOtherSee &&
+                        otherCreature.isAggressive;
+
+                    if (canAttack && !canBeAttacked) {
+                        creature.feed(
+                            Math.min(
+                                this.options.foodHealth,
+                                otherCreature.health));
+                    } else if (canBeAttacked) {
                         creature.harm(this.options.foodHealth);
                     }
                 }

@@ -25,12 +25,14 @@ const decodeVelocity = encoded => {
     return {
         angle: value & 0x1FF,
         isMoving: !!((value & 0x200) >> 9),
-        isFast: !!((value & 0x400) >> 10)
+        isFast: !!((value & 0x400) >> 10),
+        isAggressive: !!((value & 0x800) >> 11)
     };
 };
 
-const encodeVelocity = ({ angle, isMoving, isFast }) =>
+const encodeVelocity = ({ angle, isAggressive, isMoving, isFast }) =>
     intToBase64(
+        ((isAggressive ? 1 : 0) << 11) +
         ((isFast ? 1 : 0) << 10) +
         ((isMoving ? 1 : 0) << 9) +
         Math.floor(angle), 2);

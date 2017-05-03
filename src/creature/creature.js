@@ -9,6 +9,7 @@ import { createRandom, recombine } from './recombination';
 
 const deserializedCreatureToDNAInput = deserialized => ({
     booleans: {
+        [KnownVariables.isAggressive]: deserialized.velocity.isAggressive,
         [KnownVariables.isRed]: deserialized.color.isRed,
         [KnownVariables.isGreen]: deserialized.color.isGreen,
         [KnownVariables.isBlue]: deserialized.color.isBlue,
@@ -86,6 +87,10 @@ export default class Creature {
 
     get angle() {
         return this.radians;
+    }
+
+    get isAggressive() {
+        return this.state.booleans[KnownVariables.isAggressive];
     }
 
     get isRed() {
@@ -224,6 +229,7 @@ export default class Creature {
             id: this.id,
             velocity: {
                 angle: this.state.variables[KnownVariables.angle],
+                isAggressive: this.isAggressive,
                 isMoving: this.isMoving,
                 isFast: this.isFast
             },

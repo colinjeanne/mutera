@@ -31,13 +31,11 @@ export const createRandom = (stateProcessor, selector) => {
 };
 
 export const recombine = (initiator, other, stateProcessor, selector) => {
-    const location = selector.chooseLocation(initiator.x, initiator.y);
-
     const state = stateProcessor.ensureValidProperties({
         age: 0,
         health: 3000,
-        x: location.x,
-        y: location.y
+        x: initiator.x,
+        y: initiator.y
     });
 
     const angle = stateProcessor.chooseValueInPropertyRange('angle', selector);

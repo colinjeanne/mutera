@@ -109,6 +109,24 @@
             context.fill();
         }
 
+        function drawEgg(context, egg) {
+            const point = mapToCanvas(egg.creature);
+
+            context.beginPath();
+            context.moveTo(point.x, point.y - 8);
+            context.lineTo(point.x + 8 * Math.sqrt(3) / 2, point.y + 8 / 2);
+            context.lineTo(point.x - 8 * Math.sqrt(3) / 2, point.y + 8 / 2);
+            context.lineTo(point.x, point.y - 8);
+            context.fillStyle = 'gray';
+            context.fill();
+
+            const gestationWidth = Math.floor(egg.elapsedGestationTime * 10 / egg.gestationTime);
+            context.fillStyle = `rgb(0, 255, 0)`;
+            context.fillRect(point.x - 5, point.y - 10, gestationWidth, 3);
+            context.fillStyle = `rgb(0, 0, 0)`;
+            context.fillRect(point.x - 5 + gestationWidth, point.y - 10, 10 - gestationWidth, 3);
+        }
+
         function getCreatureColor(creature) {
             const red = creature.isRed ? 255 : 0;
             const green = creature.isGreen ? 255 : 0;
@@ -195,6 +213,9 @@
 
             environment.map.foodLocations.forEach(
                 point => drawFood(context, mapToCanvas(point)));
+
+            environment.map.eggs.forEach(
+                egg => drawEgg(context, egg));
 
             environment.creatures.forEach(
                 creature => drawCreature(context, creature));
@@ -422,6 +443,7 @@
 
             const environment = new world.Environment.Environment(
                 {
+                    eggs: [],
                     foodLocations: [],
                     width: view.width * scaleFactor,
                     height: view.height * scaleFactor

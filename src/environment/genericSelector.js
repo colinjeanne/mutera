@@ -24,6 +24,10 @@ export default class GenericSelector {
         return Creature.createRandom();
     }
 
+    deserializeCreature(encodedCreature) {
+        return new Creature(encodedCreature);
+    }
+
     shouldSpawnFood(map, elapsedTime) {
         if (map.foodLocations.length > this.options.maximumFood) {
             return false;

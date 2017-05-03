@@ -127,6 +127,7 @@ describe('Environment', function() {
 
     beforeEach(function() {
         map = {
+            eggs: [],
             foodLocations: [],
             height: 100,
             width: 100
@@ -868,7 +869,7 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastFoodHealth).to.equal(10);
-        expect(map.foodLocations).to.be.empty;
+        expect(environment.toJSON().map.foodLocations).to.be.empty;
     });
 
     it('removes dead creatures', function() {
@@ -965,6 +966,7 @@ describe('Environment', function() {
 
     it('recombines the sole creature with itself', function() {
         const options = {
+            eggGestationTime: 15,
             generationTimeLength: 2,
             minimumCreatures: 1
         };
@@ -998,16 +1000,20 @@ describe('Environment', function() {
 
         environment.process(3);
 
-        const expectedCreatures = environment.toJSON().creatures;
-        expect(expectedCreatures).to.have.lengthOf(2);
-        expect(expectedCreatures).to.include.members([
-            creatures[0].toString(),
-            '0000100001'
+        const expectedEggs = environment.toJSON().map.eggs;
+        expect(expectedEggs).to.have.lengthOf(1);
+        expect(expectedEggs).to.deep.include.members([
+            {
+                creature: '0000100001',
+                elapsedGestationTime: 0,
+                gestationTime: 15
+            }
         ]);
     });
 
     it('recombines the two oldest creatures with themselves and each other', function() {
         const options = {
+            eggGestationTime: 15,
             generationTimeLength: 2,
             minimumCreatures: 1
         };
@@ -1043,15 +1049,82 @@ describe('Environment', function() {
 
         environment.process(3);
 
+        const expectedEggs = environment.toJSON().map.eggs;
+        expect(expectedEggs).to.have.lengthOf(3);
+        expect(expectedEggs).to.deep.include.members([
+            {
+                creature: '0000200002',
+                elapsedGestationTime: 0,
+                gestationTime: 15
+            },
+            {
+                creature: '0000100001',
+                elapsedGestationTime: 0,
+                gestationTime: 15
+            },
+            {
+                creature: '0000200001',
+                elapsedGestationTime: 0,
+                gestationTime: 15
+            }
+        ]);
+    });
+
+    it('gestates eggs when their elapsed time is greater than their gestation time', function() {
+        const options = {
+            generationTimeLength: 2,
+            minimumCreatures: 0
+        };
+
+        map.eggs = [
+            {
+                creature: '00001',
+                elapsedGestationTime: 14,
+                gestationTime: 15
+            },
+            {
+                creature: '00002',
+                elapsedGestationTime: 10,
+                gestationTime: 15
+            }
+        ];
+
+        const selector = {
+            createRandomCreature() {
+                return Creature.createRandom();
+            },
+
+            deserializeCreature(encodedCreature) {
+                return new MockCreature(encodedCreature);
+            },
+
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            new Map(),
+            selector,
+            options);
+
+        environment.process(1);
+
+        const expectedEggs = environment.toJSON().map.eggs;
+        expect(expectedEggs).to.have.lengthOf(1);
+        expect(expectedEggs).to.deep.include.members([
+            {
+                creature: '00002',
+                elapsedGestationTime: 11,
+                gestationTime: 15
+            }
+        ]);
+
         const expectedCreatures = environment.toJSON().creatures;
-        expect(expectedCreatures).to.have.lengthOf(6);
+        expect(expectedCreatures).to.have.lengthOf(1);
         expect(expectedCreatures).to.include.members([
-            creatures[0].toString(),
-            creatures[1].toString(),
-            creatures[2].toString(),
-            '0000200002',
-            '0000100001',
-            '0000200001'
+            '00001'
         ]);
     });
 });

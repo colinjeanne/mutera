@@ -6,6 +6,7 @@ const defaultOptions = {
     eatRadius: 20,
     foodHealth: 500,
     generationTimeLength: 30,
+    eggGestationTime: 150,
     minimumCreatures: 100
 };
 
@@ -125,7 +126,16 @@ const totalAudioEffects = (relationships, creatures) =>
 
 export default class Environment {
     constructor(map, creatures, selector = new GenericSelector(), options = {}) {
-        this.map = map;
+        this.map = {
+            eggs: map.eggs.map(egg => ({
+                creature: selector.deserializeCreature(egg.creature),
+                elapsedGestationTime: egg.elapsedGestationTime,
+                gestationTime: egg.gestationTime
+            })),
+            foodLocations: map.foodLocations,
+            height: map.height,
+            width: map.width
+        };
         this.creatures = creatures;
         this.options = Object.assign(
             {},
@@ -317,6 +327,16 @@ export default class Environment {
             this.map.foodLocations.push(location);
         }
 
+        this.map.eggs.forEach(egg => {
+            egg.elapsedGestationTime += elapsedTime;
+            if (egg.elapsedGestationTime >= egg.gestationTime) {
+                this.creatures.set(egg.creature.id, egg.creature);
+            }
+        });
+
+        this.map.eggs = this.map.eggs.filter(egg =>
+            egg.elapsedGestationTime < egg.gestationTime);
+
         this.generationTime += elapsedTime;
         if (this.generationTime > this.options.generationTimeLength) {
             // Choose the two oldest creatures. Mate them with each other and
@@ -329,7 +349,11 @@ export default class Environment {
 
             if (oldest) {
                 const oldestMutation = oldest.recombine(oldest);
-                this.creatures.set(oldestMutation.id, oldestMutation);
+                this.map.eggs.push({
+                    creature: oldestMutation,
+                    elapsedGestationTime: 0,
+                    gestationTime: this.options.eggGestationTime
+                });
 
                 if (!this.genealogy.has(oldest.id)) {
                     this.genealogy.set(oldest.id, []);
@@ -339,7 +363,11 @@ export default class Environment {
 
                 if (secondOldest) {
                     const recombined = oldest.recombine(secondOldest);
-                    this.creatures.set(recombined.id, recombined);
+                    this.map.eggs.push({
+                        creature: recombined,
+                        elapsedGestationTime: 0,
+                        gestationTime: this.options.eggGestationTime
+                    });
 
                     if (!this.genealogy.has(secondOldest.id)) {
                         this.genealogy.set(secondOldest.id, []);
@@ -347,9 +375,11 @@ export default class Environment {
 
                     const secondOldestMutation =
                         secondOldest.recombine(secondOldest);
-                    this.creatures.set(
-                        secondOldestMutation.id,
-                        secondOldestMutation);
+                    this.map.eggs.push({
+                        creature: secondOldestMutation,
+                        elapsedGestationTime: 0,
+                        gestationTime: this.options.eggGestationTime
+                    });
 
                     this.genealogy.get(oldest.id).push(recombined.id);
                     this.genealogy.get(secondOldest.id).push(recombined.id);
@@ -371,7 +401,16 @@ export default class Environment {
 
     toJSON() {
         return {
-            map: this.map,
+            map: {
+                eggs: this.map.eggs.map(egg => ({
+                    creature: egg.creature.toString(),
+                    elapsedGestationTime: egg.elapsedGestationTime,
+                    gestationTime: egg.gestationTime
+                })),
+                foodLocations: this.map.foodLocations,
+                height: this.map.height,
+                width: this.map.width
+            },
             creatures: Array.from(this.creatures.values()).
                 map(creature => creature.toString()),
             generationCount: this.generationCount

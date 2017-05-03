@@ -8,10 +8,6 @@ describe('Creature recombination', function() {
                 return min;
             },
 
-            chooseLocation(x, y) {
-                return { x, y };
-            },
-
             generateUniqueId() {
                 return '00000';
             }
@@ -42,10 +38,6 @@ describe('Creature recombination', function() {
                 return 256;
             },
 
-            chooseLocation(x, y) {
-                return { x, y };
-            },
-
             generateUniqueId() {
                 return '00000';
             }
@@ -67,17 +59,10 @@ describe('Creature recombination', function() {
         expect(child.angle).to.equal(Math.PI);
     });
 
-    it('places the new creature close to the parent', function() {
+    it('places the new creature at the parent', function() {
         const selector = {
             chooseBetween() {
                 return 0;
-            },
-
-            chooseLocation() {
-                return {
-                    x: 182,
-                    y: 192
-                };
             },
 
             generateUniqueId() {
@@ -100,7 +85,7 @@ describe('Creature recombination', function() {
             selector);
 
         const child = first.recombine(second);
-        expect(child.x).to.equal(182);
+        expect(child.x).to.equal(192);
         expect(child.y).to.equal(192);
     });
 
@@ -108,10 +93,6 @@ describe('Creature recombination', function() {
         const selector = {
             chooseBetween() {
                 return 0;
-            },
-
-            chooseLocation(x, y) {
-                return { x, y };
             },
 
             generateUniqueId() {
@@ -139,10 +120,6 @@ describe('Creature recombination', function() {
         const selector = {
             chooseBetween() {
                 return 0;
-            },
-
-            chooseLocation(x, y) {
-                return { x, y };
             },
 
             generateUniqueId() {

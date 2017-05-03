@@ -187,6 +187,26 @@ describe('Creature', function() {
         expect(creature.health).to.equal(56);
     });
 
+    it('loses health twice as fast when moving fast', function() {
+        const creature = makeCreature({
+            health: '40',
+            dna: '15BF1TT5Bm1TT'
+        });
+
+        creature.process({}, 1);
+        expect(creature.health).to.equal(56);
+    });
+
+    it('loses health at the normal rate when fast but not moving', function() {
+        const creature = makeCreature({
+            health: '40',
+            dna: '15BF1TT'
+        });
+
+        creature.process({}, 1);
+        expect(creature.health).to.equal(156);
+    });
+
     it('caps maximum health', function() {
         const creature = makeCreature({
             health: '_w',

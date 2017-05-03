@@ -325,8 +325,9 @@ export const deserializeDNA = encoded => {
         if (e instanceof InvalidDNA) {
             e.encodedDNA = encoded;
             e.message += `: ${encoded}`;
-            throw e;
         }
+
+        throw e;
     }
 };
 

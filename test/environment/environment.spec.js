@@ -12,6 +12,8 @@ const defaultCreatureData = {
     health: 100,
     isMoving: false,
     isFast: false,
+    shouldReproduceAsexually: false,
+    shouldReproduceSexually: false,
     speed: 0,
     x: 0,
     y: 0,
@@ -35,10 +37,6 @@ class MockCreature {
 
         this.lastFoodHealth = 0;
         this.lastHealthLoss = 0;
-    }
-
-    canReproduce() {
-        return true;
     }
 
     canSee(point) {
@@ -97,6 +95,14 @@ class MockCreature {
         return this.data.isFast;
     }
 
+    get shouldReproduceAsexually() {
+        return this.data.shouldReproduceAsexually;
+    }
+
+    get shouldReproduceSexually() {
+        return this.data.shouldReproduceSexually;
+    }
+
     get speed() {
         return this.data.speed;
     }
@@ -150,7 +156,8 @@ describe('Environment', function() {
         const expected = {
             map,
             creatures: creatures.map(creature => creature.toString()),
-            generationCount: 0
+            reproductionCooldown: [],
+            simulationTime: 0
         };
 
         expect(environment.toJSON()).to.deep.equal(expected);
@@ -158,7 +165,6 @@ describe('Environment', function() {
 
     it('generates more creatures when below the minimum', function() {
         const options = {
-            generationTimeLength: 1,
             minimumCreatures: 10
         };
 
@@ -188,7 +194,6 @@ describe('Environment', function() {
     it('provides the distance to the nearest left periphery food item', function() {
         const options = {
             eatRadius: 50,
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -253,7 +258,6 @@ describe('Environment', function() {
     it('provides the distance to the nearest right periphery food item', function() {
         const options = {
             eatRadius: 50,
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -318,7 +322,6 @@ describe('Environment', function() {
     it('provides the distance to the nearest focus food item', function() {
         const options = {
             eatRadius: 50,
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -382,7 +385,6 @@ describe('Environment', function() {
 
     it('provides the distance and color to the nearest left periphery creature', function() {
         const options = {
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -426,6 +428,10 @@ describe('Environment', function() {
         ]));
 
         const selector = {
+            isMateSuccessful() {
+                return false;
+            },
+
             shouldSpawnFood() {
                 return false;
             }
@@ -445,7 +451,6 @@ describe('Environment', function() {
 
     it('provides the distance and color to the nearest right periphery creature', function() {
         const options = {
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -489,6 +494,10 @@ describe('Environment', function() {
         ]));
 
         const selector = {
+            isMateSuccessful() {
+                return false;
+            },
+
             shouldSpawnFood() {
                 return false;
             }
@@ -508,7 +517,6 @@ describe('Environment', function() {
 
     it('provides the distance and color to the nearest focus creature', function() {
         const options = {
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -552,6 +560,10 @@ describe('Environment', function() {
         ]));
 
         const selector = {
+            isMateSuccessful() {
+                return false;
+            },
+
             shouldSpawnFood() {
                 return false;
             }
@@ -572,7 +584,6 @@ describe('Environment', function() {
     it('provides no information about food or creatures if none are visible', function() {
         const options = {
             eatRadius: 50,
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -596,6 +607,10 @@ describe('Environment', function() {
         ]));
 
         const selector = {
+            isMateSuccessful() {
+                return false;
+            },
+
             shouldSpawnFood() {
                 return false;
             }
@@ -638,7 +653,6 @@ describe('Environment', function() {
 
     it('provides information on the amount of sound in each direction', function() {
         const options = {
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -675,6 +689,10 @@ describe('Environment', function() {
         ]));
 
         const selector = {
+            isMateSuccessful() {
+                return false;
+            },
+
             shouldSpawnFood() {
                 return false;
             }
@@ -701,7 +719,6 @@ describe('Environment', function() {
 
     it('aggressive creatures attack creatures they can see', function() {
         const options = {
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -761,7 +778,6 @@ describe('Environment', function() {
 
     it('two aggressive creatures attack each other', function() {
         const options = {
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -824,7 +840,6 @@ describe('Environment', function() {
         const options = {
             eatRadius: 50,
             foodHealth: 10,
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
@@ -874,7 +889,6 @@ describe('Environment', function() {
 
     it('removes dead creatures', function() {
         const options = {
-            generationTimeLength: 10,
             minimumCreatures: 1
         };
 
@@ -891,6 +905,10 @@ describe('Environment', function() {
         const selector = {
             createRandomCreature() {
                 return Creature.createRandom();
+            },
+
+            isMateSuccessful() {
+                return false;
             },
 
             shouldSpawnFood() {
@@ -913,7 +931,6 @@ describe('Environment', function() {
 
     it('replenishes at least one food item per unit of time', function() {
         const options = {
-            generationTimeLength: 10,
             minimumCreatures: 0
         };
 
@@ -943,7 +960,6 @@ describe('Environment', function() {
 
     it('performs no recombinations when there are no creatures', function() {
         const options = {
-            generationTimeLength: 2,
             minimumCreatures: 0
         };
 
@@ -964,15 +980,20 @@ describe('Environment', function() {
         expect(environment.toJSON().creatures).to.be.empty;
     });
 
-    it('recombines the sole creature with itself', function() {
+    it('allows asexual reproduction', function() {
         const options = {
             eggGestationTime: 15,
-            generationTimeLength: 2,
-            minimumCreatures: 1
+            minimumCreatures: 1,
+            reproductionCooldownTime: 100
         };
 
         const creatures = [
-            new MockCreature('00001')
+            new MockCreature(
+                '00001',
+                {
+                    health: 4000,
+                    shouldReproduceAsexually: true
+                })
         ];
 
         const creaturesMap = new Map(creatures.map(creature => [
@@ -1000,7 +1021,8 @@ describe('Environment', function() {
 
         environment.process(3);
 
-        const expectedEggs = environment.toJSON().map.eggs;
+        const json = environment.toJSON();
+        const expectedEggs = json.map.eggs;
         expect(expectedEggs).to.have.lengthOf(1);
         expect(expectedEggs).to.deep.include.members([
             {
@@ -1009,19 +1031,164 @@ describe('Environment', function() {
                 gestationTime: 15
             }
         ]);
+
+        expect(creatures[0].lastHealthLoss).to.equal(2000);
+        expect(json.reproductionCooldown).to.deep.equal([
+            ['00001', 100]
+        ]);
     });
 
-    it('recombines the two oldest creatures with themselves and each other', function() {
+    it('only triggers sexual reproduction if at least one creature wants it', function() {
         const options = {
             eggGestationTime: 15,
-            generationTimeLength: 2,
             minimumCreatures: 1
         };
 
         const creatures = [
-            new MockCreature('00001', { age: 100 }),
-            new MockCreature('00002', { age: 500 }),
-            new MockCreature('00003', { age: 50 })
+            new MockCreature(
+                '00001',
+                {
+                    angle: 0,
+                    shouldReproduceAsexually: false,
+                    shouldReproduceSexually: false,
+                    x: 100,
+                    y: 100
+                }),
+            new MockCreature(
+                '00002',
+                {
+                    angle: Math.PI,
+                    shouldReproduceAsexually: false,
+                    shouldReproduceSexually: false,
+                    x: 101,
+                    y: 100
+                })
+        ];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            createRandomCreature() {
+                return Creature.createRandom();
+            },
+
+            isMateSuccessful() {
+                return true;
+            },
+
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        expect(environment.toJSON().creatures).to.have.lengthOf(2);
+
+        environment.process(3);
+
+        const expectedEggs = environment.toJSON().map.eggs;
+        expect(expectedEggs).to.be.empty;
+    });
+
+    it('allows sexual reproduction', function() {
+        const options = {
+            eggGestationTime: 15,
+            minimumCreatures: 1,
+            reproductionCooldownTime: 100
+        };
+
+        const creatures = [
+            new MockCreature(
+                '00001',
+                {
+                    angle: 0,
+                    canSee: () => ({
+                        leftPeriphery: false,
+                        rightPeriphery: false,
+                        focus: true
+                    }),
+                    shouldReproduceAsexually: false,
+                    shouldReproduceSexually: true,
+                    x: 100,
+                    y: 100
+                }),
+            new MockCreature(
+                '00002',
+                {
+                    angle: Math.PI,
+                    shouldReproduceAsexually: false,
+                    shouldReproduceSexually: false,
+                    x: 101,
+                    y: 100
+                })
+        ];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            createRandomCreature() {
+                return Creature.createRandom();
+            },
+
+            isMateSuccessful() {
+                return true;
+            },
+
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        expect(environment.toJSON().creatures).to.have.lengthOf(2);
+
+        environment.process(3);
+
+        const json = environment.toJSON();
+        const expectedEggs = json.map.eggs;
+        expect(expectedEggs).to.deep.equal([
+            {
+                creature: '0000100002',
+                elapsedGestationTime: 0,
+                gestationTime: 15
+            }
+        ]);
+
+        expect(json.reproductionCooldown).to.deep.equal([
+            ['00001', 100]
+        ]);
+    });
+
+    it('prevents reproduction for a short period of time', function() {
+        const options = {
+            eggGestationTime: 100,
+            minimumCreatures: 1,
+            reproductionCooldownTime: 5
+        };
+
+        const creatures = [
+            new MockCreature(
+                '00001',
+                {
+                    health: 4000,
+                    shouldReproduceAsexually: true
+                })
         ];
 
         const creaturesMap = new Map(creatures.map(creature => [
@@ -1045,34 +1212,32 @@ describe('Environment', function() {
             selector,
             options);
 
-        expect(environment.toJSON().creatures).to.have.lengthOf(3);
+        expect(environment.toJSON().creatures).to.have.lengthOf(1);
 
-        environment.process(3);
+        environment.process(1);
 
-        const expectedEggs = environment.toJSON().map.eggs;
-        expect(expectedEggs).to.have.lengthOf(3);
-        expect(expectedEggs).to.deep.include.members([
-            {
-                creature: '0000200002',
-                elapsedGestationTime: 0,
-                gestationTime: 15
-            },
-            {
-                creature: '0000100001',
-                elapsedGestationTime: 0,
-                gestationTime: 15
-            },
-            {
-                creature: '0000200001',
-                elapsedGestationTime: 0,
-                gestationTime: 15
-            }
+        expect(environment.toJSON().map.eggs).to.have.lengthOf(1);
+        expect(environment.toJSON().reproductionCooldown).to.deep.equal([
+            ['00001', 5]
+        ]);
+
+        environment.process(1);
+
+        expect(environment.toJSON().map.eggs).to.have.lengthOf(1);
+        expect(environment.toJSON().reproductionCooldown).to.deep.equal([
+            ['00001', 4]
+        ]);
+
+        environment.process(4);
+
+        expect(environment.toJSON().map.eggs).to.have.lengthOf(2);
+        expect(environment.toJSON().reproductionCooldown).to.deep.equal([
+            ['00001', 5]
         ]);
     });
 
     it('gestates eggs when their elapsed time is greater than their gestation time', function() {
         const options = {
-            generationTimeLength: 2,
             minimumCreatures: 0
         };
 

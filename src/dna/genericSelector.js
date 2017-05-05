@@ -20,10 +20,7 @@ const defaultMutationRates = {
         [14, 0.99],
         [15, 1]
     ]),
-    geneIsBoolean: new Map([
-        [true, 0.5],
-        [false, 1]
-    ]),
+    geneBooleanRate: 0.5,
     inputBooleans: base64Values,
     inputVariables: base64Values,
     maximumGeneCount: 15,
@@ -131,7 +128,7 @@ export default class GenericSelector {
 
     chooseGeneIsBoolean() {
         return Random.
-            weightedChooseOne(this.mutationRates.geneIsBoolean, Math.random);
+            chooseIf(this.mutationRates.geneBooleanRate, Math.random);
     }
 
     chooseGeneMutationCount() {

@@ -2,7 +2,7 @@ const expect = require('chai').expect;
 const { makeCreature } = require('./../helpers.js');
 
 describe('Creature recombination', function() {
-    it('defaults the health and speed', function() {
+    it('defaults the speed', function() {
         const selector = {
             chooseBetween(min) {
                 return min;
@@ -27,7 +27,7 @@ describe('Creature recombination', function() {
             },
             selector);
 
-        const child = first.recombine(second);
+        const child = first.recombine(second, 3000);
         expect(child.health).to.equal(3000);
         expect(child.speed).to.equal(0);
     });
@@ -55,7 +55,7 @@ describe('Creature recombination', function() {
             },
             selector);
 
-        const child = first.recombine(second);
+        const child = first.recombine(second, 3000);
         expect(child.angle).to.equal(Math.PI);
     });
 
@@ -84,7 +84,7 @@ describe('Creature recombination', function() {
             },
             selector);
 
-        const child = first.recombine(second);
+        const child = first.recombine(second, 3000);
         expect(child.x).to.equal(192);
         expect(child.y).to.equal(192);
     });
@@ -112,7 +112,7 @@ describe('Creature recombination', function() {
             },
             selector);
 
-        const child = first.recombine(second);
+        const child = first.recombine(second, 3000);
         expect(child.id).to.equal('10000');
     });
 
@@ -147,7 +147,7 @@ describe('Creature recombination', function() {
 
         const second = makeCreature({}, selector, makeDNA);
 
-        const child = first.recombine(second);
+        const child = first.recombine(second, 3000);
         expect(child.dna.toString()).to.equal('16V01TC0');
     });
 });

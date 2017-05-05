@@ -117,6 +117,16 @@ export default class Creature {
         return this.state.booleans[KnownVariables.isFast];
     }
 
+    get shouldReproduceAsexually() {
+        return this.state.booleans[KnownVariables.shouldReproduceAsexually] ||
+            false;
+    }
+
+    get shouldReproduceSexually() {
+        return this.state.booleans[KnownVariables.shouldReproduceSexually] ||
+            false;
+    }
+
     get speed() {
         return this.state.variables[KnownVariables.speed] || 0;
     }
@@ -209,10 +219,6 @@ export default class Creature {
         return effect;
     }
 
-    canReproduce() {
-        return this.selector.canReproduce(this, this.stateProcessor);
-    }
-
     toString() {
         const data = {
             age: this.age,
@@ -263,8 +269,13 @@ export default class Creature {
         this.auditoryField = calculateAuditoryField(this.angle);
     }
 
-    recombine(other) {
-        const data = recombine(this, other, this.stateProcessor, this.selector);
+    recombine(other, startingHealth) {
+        const data = recombine(
+            this,
+            other,
+            startingHealth,
+            this.stateProcessor,
+            this.selector);
         return new Creature(
             serializeCreature(data, this.makeDNA),
             {

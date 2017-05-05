@@ -549,4 +549,28 @@ describe('Creature', function() {
         expect(creature.state.booleans.Z).to.equal(true);
         expect(creature.state.variables.Q).to.equal(1);
     });
+
+    it('can choose to reproduce asexually', function() {
+        const creature = makeCreature({
+            dna: '15Br1TT'
+        });
+
+        expect(creature.shouldReproduceAsexually).to.be.false;
+
+        creature.process({}, 1);
+
+        expect(creature.shouldReproduceAsexually).to.be.true;
+    });
+
+    it('can choose to reproduce sexually', function() {
+        const creature = makeCreature({
+            dna: '15Bs1TT'
+        });
+
+        expect(creature.shouldReproduceSexually).to.be.false;
+
+        creature.process({}, 1);
+
+        expect(creature.shouldReproduceSexually).to.be.true;
+    });
 });

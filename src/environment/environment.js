@@ -4,10 +4,10 @@ import * as KnownVariables from './../knownVariables';
 
 const defaultOptions = {
     eatRadius: 20,
+    eggGestationTime: 300,
     foodHealth: 500,
-    generationTimeLength: 30,
-    eggGestationTime: 150,
-    minimumCreatures: 100
+    minimumCreatures: 100,
+    reproductionCooldownTime: 100
 };
 
 const compareSquareDistance = (a, b) => a.squareDistance - b.squareDistance;
@@ -137,35 +137,20 @@ export default class Environment {
             width: map.width
         };
         this.creatures = creatures;
+        this.reproductionCooldown = new Map();
         this.options = Object.assign(
             {},
             defaultOptions,
             options);
         this.selector = selector;
-        this.generationTime = 0;
-        this.generationCount = 0;
+        this.simulationTime = 0;
 
         this.genealogy = new Map();
     }
 
-    get fittest() {
-        return Array.from(this.creatures.values()).
-            sort((a, b) => {
-                if (a.age > b.age) {
-                    return -1;
-                } else if (b.age > a.age) {
-                    return 1;
-                } else if (a.health > b.health) {
-                    return -1;
-                } else if (b.health > a.health) {
-                    return 1;
-                }
-
-                return 0;
-            });
-    }
-
     process(elapsedTime) {
+        this.simulationTime += elapsedTime;
+
         const relations = new Map();
         this.creatures.forEach(creature => {
             const relationships = new Map();
@@ -184,6 +169,18 @@ export default class Environment {
             relations.set(creature.id, relationships);
         });
 
+        // Tick down the reproductive cooldowns
+        this.reproductionCooldown.forEach((cooldownTime, id, map) => {
+            const newCooldownTime = cooldownTime - elapsedTime;
+            if (newCooldownTime > 0) {
+                map.set(id, cooldownTime - elapsedTime);
+            } else {
+                map.delete(id);
+            }
+        });
+
+        const newEggs = [];
+
         relations.forEach((relationships, id) => {
             const creature = this.creatures.get(id);
             relationships.forEach((relation, otherId) => {
@@ -198,6 +195,13 @@ export default class Environment {
                     const canBeAttacked = canOtherSee &&
                         otherCreature.isAggressive;
 
+                    const cooldownTime = this.reproductionCooldown.get(id);
+                    const canInitiateReproduction = canSeeOther &&
+                        !canAttack &&
+                        !canBeAttacked &&
+                        creature.shouldReproduceSexually &&
+                        !cooldownTime;
+
                     if (canAttack && !canBeAttacked) {
                         creature.feed(
                             Math.min(
@@ -205,6 +209,36 @@ export default class Environment {
                                 otherCreature.health));
                     } else if (canBeAttacked) {
                         creature.harm(this.options.foodHealth);
+                    } else if (canInitiateReproduction) {
+                        const shouldMate = this.selector.isMateSuccessful(
+                            creature,
+                            otherCreature);
+                        if (shouldMate) {
+                            const reproduced =
+                                creature.recombine(otherCreature, 3000);
+                            newEggs.push({
+                                creature: reproduced,
+                                elapsedGestationTime: 0,
+                                gestationTime: this.options.eggGestationTime
+                            });
+
+                            if (!this.genealogy.has(creature.id)) {
+                                this.genealogy.set(creature.id, []);
+                            }
+
+                            this.genealogy.get(creature.id).push(reproduced.id);
+
+                            if (!this.genealogy.has(otherCreature.id)) {
+                                this.genealogy.set(otherCreature.id, []);
+                            }
+
+                            this.genealogy.get(otherCreature.id).
+                                push(reproduced.id);
+
+                            this.reproductionCooldown.set(
+                                id,
+                                this.options.reproductionCooldownTime);
+                        }
                     }
                 }
             });
@@ -317,10 +351,37 @@ export default class Environment {
                             (location.x !== food.point.x) &&
                             (location.y !== food.point.y));
                 });
+
+                const cooldownTime = this.reproductionCooldown.get(id);
+                if (creature.shouldReproduceAsexually && !cooldownTime) {
+                    const reproduced = creature.recombine(
+                        creature,
+                        creature.health / 2);
+                    newEggs.push({
+                        creature: reproduced,
+                        elapsedGestationTime: 0,
+                        gestationTime: this.options.eggGestationTime
+                    });
+
+                    if (!this.genealogy.has(creature.id)) {
+                        this.genealogy.set(creature.id, []);
+                    }
+
+                    this.genealogy.get(creature.id).push(reproduced.id);
+
+                    creature.harm(creature.health / 2);
+
+                    this.reproductionCooldown.set(
+                        id,
+                        this.options.reproductionCooldownTime);
+                }
             }
         });
 
-        deadCreatures.forEach(id => this.creatures.delete(id));
+        deadCreatures.forEach(id => {
+            this.creatures.delete(id);
+            this.reproductionCooldown.delete(id);
+        });
 
         if (this.selector.shouldSpawnFood(this.map, elapsedTime)) {
             const location = this.selector.chooseMapLocation(this.map);
@@ -334,68 +395,14 @@ export default class Environment {
             }
         });
 
-        this.map.eggs = this.map.eggs.filter(egg =>
-            egg.elapsedGestationTime < egg.gestationTime);
+        this.map.eggs = this.map.eggs.
+            filter(egg => egg.elapsedGestationTime < egg.gestationTime).
+            concat(newEggs);
 
-        this.generationTime += elapsedTime;
-        if (this.generationTime > this.options.generationTimeLength) {
-            // Choose the two oldest creatures. Mate them with each other and
-            // with themselves.
-            const fittest = this.fittest.filter(
-                creature => creature.canReproduce());
-
-            const oldest = fittest.length ? fittest[0] : null;
-            const secondOldest = (fittest.length > 1) ? fittest[1] : null;
-
-            if (oldest) {
-                const oldestMutation = oldest.recombine(oldest);
-                this.map.eggs.push({
-                    creature: oldestMutation,
-                    elapsedGestationTime: 0,
-                    gestationTime: this.options.eggGestationTime
-                });
-
-                if (!this.genealogy.has(oldest.id)) {
-                    this.genealogy.set(oldest.id, []);
-                }
-
-                this.genealogy.get(oldest.id).push(oldestMutation.id);
-
-                if (secondOldest) {
-                    const recombined = oldest.recombine(secondOldest);
-                    this.map.eggs.push({
-                        creature: recombined,
-                        elapsedGestationTime: 0,
-                        gestationTime: this.options.eggGestationTime
-                    });
-
-                    if (!this.genealogy.has(secondOldest.id)) {
-                        this.genealogy.set(secondOldest.id, []);
-                    }
-
-                    const secondOldestMutation =
-                        secondOldest.recombine(secondOldest);
-                    this.map.eggs.push({
-                        creature: secondOldestMutation,
-                        elapsedGestationTime: 0,
-                        gestationTime: this.options.eggGestationTime
-                    });
-
-                    this.genealogy.get(oldest.id).push(recombined.id);
-                    this.genealogy.get(secondOldest.id).push(recombined.id);
-                    this.genealogy.get(secondOldest.id).push(
-                        secondOldestMutation.id);
-                }
-            }
-
-            // Make sure the minimum number of creatures is met
-            while (this.creatures.size < this.options.minimumCreatures) {
-                const creature = this.selector.createRandomCreature();
-                this.creatures.set(creature.id, creature);
-            }
-
-            this.generationTime = 0;
-            ++this.generationCount;
+        // Make sure the minimum number of creatures is met
+        while (this.creatures.size < this.options.minimumCreatures) {
+            const creature = this.selector.createRandomCreature();
+            this.creatures.set(creature.id, creature);
         }
     }
 
@@ -404,8 +411,8 @@ export default class Environment {
             map: {
                 eggs: this.map.eggs.map(egg => ({
                     creature: egg.creature.toString(),
-                    elapsedGestationTime: egg.elapsedGestationTime,
-                    gestationTime: egg.gestationTime
+                    elapsedGestationTime: Math.floor(egg.elapsedGestationTime),
+                    gestationTime: Math.floor(egg.gestationTime)
                 })),
                 foodLocations: this.map.foodLocations,
                 height: this.map.height,
@@ -413,7 +420,13 @@ export default class Environment {
             },
             creatures: Array.from(this.creatures.values()).
                 map(creature => creature.toString()),
-            generationCount: this.generationCount
+            reproductionCooldown: Array.from(
+                this.reproductionCooldown.entries()).
+                map(([id, cooldownTime]) => [
+                    id,
+                    Math.floor(cooldownTime)
+                ]),
+            simulationTime: this.simulationTime
         };
     }
 }

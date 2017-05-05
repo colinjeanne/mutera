@@ -9,11 +9,6 @@ const minimumRadiusSquared = minimumRadius * minimumRadius;
 const normalizer = maximumRadius * maximumRadius - minimumRadiusSquared;
 
 export default class GenericSelector {
-    canReproduce(creature, stateProcessor) {
-        const maximumHealth = stateProcessor.getMaximumPropertyValue('health');
-        return creature.health > 0.75 * maximumHealth;
-    }
-
     chooseBetween(min, max) {
         return Random.chooseBetween(min, max, Math.random);
     }

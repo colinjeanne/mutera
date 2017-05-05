@@ -46,7 +46,7 @@
             <div>
                 <div id="settings">
                 <dl>
-                    <dt>Generation:</dt><dd id="generationCount"></dd>
+                    <dt>Simulation Time:</dt><dd id="simulationTime"></dd>
                     <dt>Speed:</dt><dd><input id="speed" type="number" value="1"></dd>
                 </dl>
             </div>
@@ -278,6 +278,8 @@
                 e: 'isBlue',
                 a: 'isAggressive',
                 m: 'isMoving',
+                r: 'shouldReproduceAsexually',
+                s: 'shouldReproduceSexually',
                 F: 'isFast',
                 I: 'leftCreatureIsRed',
                 J: 'leftCreatureIsGreen',
@@ -365,17 +367,18 @@
             renderProgram(creature);
         }
 
-        function process(context, generationItem, environment, elapsedTimeMs) {
+        function process(context, simulationTimeItem, environment, elapsedTimeMs) {
             environment.process(elapsedTimeMs / 1000);
             render(context, environment);
-            generationItem.textContent = environment.generationCount;
+            simulationTimeItem.textContent = environment.simulationTime;
 
             renderCreatureState(selectedCreature);
         }
 
         const dnaSelector = new world.DNA.GenericSelector({
+            geneBooleanRate: 7/9,
             inputBooleans: 'IJKMNOQRS',
-            inputVariables: 'lrfHLPWXYZ',
+            inputVariables: 'hlrfHLPWXYZ',
             maximumTreeDepth: 2,
             mutationsPerGene: new Map([
                 [0, 0.9],
@@ -383,7 +386,7 @@
                 [2, 0.95],
                 [3, 0.99]
             ]),
-            outputBooleans: 'amFcde',
+            outputBooleans: 'amFcders',
             outputVariables: 'A',
             spliceRates: new Map([
                 [world.DNA.spliceType.delete, 0.1],
@@ -421,7 +424,7 @@
 
         function onLoad() {
             const view = document.getElementById('view');
-            const generationItem = document.getElementById('generationCount');
+            const simulationTimeItem = document.getElementById('simulationTime');
             const context = view.getContext('2d');
             let isRunning = true;
 
@@ -454,7 +457,7 @@
                     maximumFood: 50
                 }),
                 {
-                    foodHealth: 200,
+                    foodHealth: 750,
                     minimumCreatures: 50
                 });
 
@@ -472,7 +475,7 @@
             function run() {
                 if (isRunning) {
                     try {
-                        process(context, generationItem, environment, 100);
+                        process(context, simulationTimeItem, environment, 100);
                         renderGraphViz(environment, graphviz);
                     }
                     catch (e) {

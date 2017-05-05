@@ -2,8 +2,10 @@ import { Creature } from './../creature/index';
 import * as Random from './../random';
 
 const defaultOptions = {
+    aggressivePartnerMateRate: 0.3,
     foodGrowthPerTime: 10,
-    maximumFood: 50
+    maximumFood: 50,
+    neutralPartnerMateRate: 0.75
 };
 
 export default class GenericSelector {
@@ -26,6 +28,23 @@ export default class GenericSelector {
 
     deserializeCreature(encodedCreature) {
         return new Creature(encodedCreature);
+    }
+
+    isMateSuccessful(initiator, other) {
+        if (initiator.shouldReproduceSexually &&
+            other.shouldReproduceSexually) {
+            return true;
+        }
+
+        if (other.isAggressive) {
+            return Random.chooseIf(
+                this.options.aggressivePartnerMateRate,
+                Math.random);
+        }
+
+        return Random.chooseIf(
+            this.options.neutralPartnerMateRate,
+            Math.random);
     }
 
     shouldSpawnFood(map, elapsedTime) {

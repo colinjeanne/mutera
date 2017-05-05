@@ -30,10 +30,10 @@ export const createRandom = (stateProcessor, selector) => {
     };
 };
 
-export const recombine = (initiator, other, stateProcessor, selector) => {
+export const recombine = (initiator, other, startingHealth, stateProcessor, selector) => {
     const state = stateProcessor.ensureValidProperties({
         age: 0,
-        health: 3000,
+        health: startingHealth,
         x: initiator.x,
         y: initiator.y
     });

@@ -32,5 +32,8 @@ export const leftSound = 'X';
 export const backSound = 'Y';
 export const rightSound = 'Z';
 
+export const shouldReproduceAsexually = 'r';
+export const shouldReproduceSexually = 's';
+
 export const x = 'x';
 export const y = 'y';

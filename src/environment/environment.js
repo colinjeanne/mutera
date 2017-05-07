@@ -6,7 +6,8 @@ const defaultOptions = {
     eatRadius: 20,
     eggGestationTime: 300,
     foodHealth: 500,
-    minimumCreatures: 100,
+    minimumCarnivores: 50,
+    minimumHerbivores: 50,
     reproductionCooldownTime: 100
 };
 
@@ -202,6 +203,12 @@ const audioEffectsInputData = (relationships, creatures) => {
         variables
     };
 };
+
+const countCarnivores = creatures => Array.from(creatures.values()).
+    filter(creature => creature.isCarnivore).length;
+
+const countHerbivores = creatures => Array.from(creatures.values()).
+    filter(creature => !creature.isCarnivore).length;
 
 export default class Environment {
     constructor(map, creatures, selector = new GenericSelector(), options = {}) {
@@ -443,8 +450,21 @@ export default class Environment {
             concat(newEggs);
 
         // Make sure the minimum number of creatures is met
-        while (this.creatures.size < this.options.minimumCreatures) {
-            const creature = this.selector.createRandomCreature();
+        const newCarnivores = this.options.minimumCarnivores -
+            countCarnivores(this.creatures);
+        for (let i = 0; i < newCarnivores; ++i) {
+            const creature = this.selector.createRandomCreature({
+                isCarnivore: true
+            });
+            this.creatures.set(creature.id, creature);
+        }
+
+        const newHerbivores = this.options.minimumHerbivores -
+            countHerbivores(this.creatures);
+        for (let i = 0; i < newHerbivores; ++i) {
+            const creature = this.selector.createRandomCreature({
+                isCarnivore: false
+            });
             this.creatures.set(creature.id, creature);
         }
     }

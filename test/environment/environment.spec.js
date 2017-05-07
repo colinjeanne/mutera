@@ -170,12 +170,13 @@ describe('Environment', function() {
 
     it('generates more creatures when below the minimum', function() {
         const options = {
-            minimumCreatures: 10
+            minimumCarnivores: 5,
+            minimumHerbivores: 5
         };
 
         const selector = {
-            createRandomCreature() {
-                return Creature.createRandom();
+            createRandomCreature({ isCarnivore }) {
+                return Creature.createRandom({ isCarnivore });
             },
 
             shouldSpawnFood() {
@@ -199,7 +200,8 @@ describe('Environment', function() {
     it('provides the distance to the nearest left periphery food item', function() {
         const options = {
             eatRadius: 50,
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -263,7 +265,8 @@ describe('Environment', function() {
     it('provides the distance to the nearest right periphery food item', function() {
         const options = {
             eatRadius: 50,
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -327,7 +330,8 @@ describe('Environment', function() {
     it('provides the distance to the nearest focus food item', function() {
         const options = {
             eatRadius: 50,
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -388,10 +392,11 @@ describe('Environment', function() {
         });
     });
 
-    it('directs carnivores to eggs and herbavores to plants', function() {
+    it('directs carnivores to eggs and herbivores to plants', function() {
         const options = {
             foodHealth: 100,
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const carnivore = new MockCreature(
@@ -407,7 +412,7 @@ describe('Environment', function() {
                 })
             });
 
-        const herbavore = new MockCreature(
+        const herbivore = new MockCreature(
             '00002',
             {
                 x: 50,
@@ -421,7 +426,7 @@ describe('Environment', function() {
 
         const creatures = [
             carnivore,
-            herbavore
+            herbivore
         ];
 
         const creaturesMap = new Map(creatures.map(creature => [
@@ -487,8 +492,8 @@ describe('Environment', function() {
 
         expect(carnivore.lastInput.variables.f).to.equal(10);
         expect(carnivore.lastFoodHealth).to.equal(100);
-        expect(herbavore.lastInput.variables.f).to.equal(10);
-        expect(herbavore.lastFoodHealth).to.equal(100);
+        expect(herbivore.lastInput.variables.f).to.equal(10);
+        expect(herbivore.lastFoodHealth).to.equal(100);
 
         const json = environment.toJSON();
         expect(json.map.eggs).to.deep.equal(
@@ -510,7 +515,8 @@ describe('Environment', function() {
 
     it('provides the distance and color to the nearest left periphery creature', function() {
         const options = {
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -576,7 +582,8 @@ describe('Environment', function() {
 
     it('provides the distance and color to the nearest right periphery creature', function() {
         const options = {
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -642,7 +649,8 @@ describe('Environment', function() {
 
     it('provides the distance and color to the nearest focus creature', function() {
         const options = {
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -709,7 +717,8 @@ describe('Environment', function() {
     it('provides no information about food or creatures if none are visible', function() {
         const options = {
             eatRadius: 50,
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -778,7 +787,8 @@ describe('Environment', function() {
 
     it('provides information on the amount of sound in each direction', function() {
         const options = {
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -844,7 +854,8 @@ describe('Environment', function() {
 
     it('aggressive carnivores attack and eat creatures they can see', function() {
         const options = {
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -902,9 +913,10 @@ describe('Environment', function() {
         expect(other.lastHealthLoss).to.equal(500);
     });
 
-    it('aggressive herbavores harm creatures they can see', function() {
+    it('aggressive herbivores harm creatures they can see', function() {
         const options = {
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -963,7 +975,8 @@ describe('Environment', function() {
 
     it('two aggressive creatures attack each other', function() {
         const options = {
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -1025,7 +1038,8 @@ describe('Environment', function() {
         const options = {
             eatRadius: 50,
             foodHealth: 10,
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -1085,11 +1099,12 @@ describe('Environment', function() {
         expect(environment.toJSON().map.eggs).to.be.empty;
     });
 
-    it('feeds herbavores when they are close enough to food', function() {
+    it('feeds herbivores when they are close enough to food', function() {
         const options = {
             eatRadius: 50,
             foodHealth: 10,
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creature = new MockCreature(
@@ -1138,7 +1153,8 @@ describe('Environment', function() {
 
     it('removes dead creatures', function() {
         const options = {
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creatures = [
@@ -1152,10 +1168,6 @@ describe('Environment', function() {
         ]));
 
         const selector = {
-            createRandomCreature() {
-                return Creature.createRandom();
-            },
-
             isMateSuccessful() {
                 return false;
             },
@@ -1180,7 +1192,8 @@ describe('Environment', function() {
 
     it('replenishes at least one food item per unit of time', function() {
         const options = {
-            minimumCreatures: 0
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const selector = {
@@ -1210,7 +1223,8 @@ describe('Environment', function() {
     it('allows asexual reproduction', function() {
         const options = {
             eggGestationTime: 15,
-            minimumCreatures: 1,
+            minimumCarnivores: 0,
+            minimumHerbivores: 0,
             reproductionCooldownTime: 100
         };
 
@@ -1268,7 +1282,8 @@ describe('Environment', function() {
     it('only triggers sexual reproduction between creatures of the same type', function() {
         const options = {
             eggGestationTime: 15,
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creatures = [
@@ -1299,10 +1314,6 @@ describe('Environment', function() {
         ]));
 
         const selector = {
-            createRandomCreature() {
-                return Creature.createRandom();
-            },
-
             isMateSuccessful() {
                 return true;
             },
@@ -1329,7 +1340,8 @@ describe('Environment', function() {
     it('only triggers sexual reproduction if at least one creature wants it', function() {
         const options = {
             eggGestationTime: 15,
-            minimumCreatures: 1
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         const creatures = [
@@ -1359,10 +1371,6 @@ describe('Environment', function() {
         ]));
 
         const selector = {
-            createRandomCreature() {
-                return Creature.createRandom();
-            },
-
             isMateSuccessful() {
                 return true;
             },
@@ -1389,7 +1397,8 @@ describe('Environment', function() {
     it('allows sexual reproduction', function() {
         const options = {
             eggGestationTime: 15,
-            minimumCreatures: 1,
+            minimumCarnivores: 0,
+            minimumHerbivores: 0,
             reproductionCooldownTime: 100
         };
 
@@ -1466,7 +1475,8 @@ describe('Environment', function() {
     it('prevents reproduction for a short period of time', function() {
         const options = {
             eggGestationTime: 100,
-            minimumCreatures: 1,
+            minimumCarnivores: 0,
+            minimumHerbivores: 0,
             reproductionCooldownTime: 5
         };
 
@@ -1526,7 +1536,8 @@ describe('Environment', function() {
 
     it('gestates eggs when their elapsed time is greater than their gestation time', function() {
         const options = {
-            minimumCreatures: 0
+            minimumCarnivores: 0,
+            minimumHerbivores: 0
         };
 
         map.eggs = [

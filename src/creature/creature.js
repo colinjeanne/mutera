@@ -289,11 +289,12 @@ export default class Creature {
 
     static createRandom(
         {
+            isCarnivore = false,
             stateProcessor = genericStateProcessor,
             selector = genericSelector,
             makeDNA = makeRealDNA
         } = {}) {
-        const data = createRandom(stateProcessor, selector);
+        const data = createRandom(isCarnivore, stateProcessor, selector);
         return new Creature(
             serializeCreature(data, makeDNA),
             {

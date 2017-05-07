@@ -418,10 +418,6 @@ describe('Creature', function() {
                 return min;
             },
 
-            chooseIsCarnivore() {
-                return true;
-            },
-
             createRandomDNA() {
                 return new DNA('16V01TV0');
             },
@@ -431,7 +427,7 @@ describe('Creature', function() {
             }
         };
 
-        const creature = Creature.createRandom({ selector });
+        const creature = Creature.createRandom({ isCarnivore: true, selector });
         expect(creature.toString()).to.equal('100000000000000000000ku0116V01TV0');
     });
 

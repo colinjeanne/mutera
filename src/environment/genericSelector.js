@@ -22,8 +22,8 @@ export default class GenericSelector {
         };
     }
 
-    createRandomCreature() {
-        return Creature.createRandom();
+    createRandomCreature({ isCarnivore }) {
+        return Creature.createRandom({ isCarnivore });
     }
 
     deserializeCreature(encodedCreature) {

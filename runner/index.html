@@ -437,8 +437,9 @@
                 super(options);
             }
 
-            createRandomCreature() {
+            createRandomCreature({ isCarnivore }) {
                 return world.Creature.Creature.createRandom({
+                    isCarnivore,
                     stateProcessor: creatureStateProcessor,
                     selector: creatureSelector,
                     makeDNA
@@ -482,7 +483,8 @@
                 }),
                 {
                     foodHealth: 750,
-                    minimumCreatures: 50
+                    minimumCarnivores: 25,
+                    minimumHerbavores: 25
                 });
 
             view.addEventListener('click', function(event) {

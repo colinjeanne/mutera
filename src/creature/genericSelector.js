@@ -13,10 +13,6 @@ export default class GenericSelector {
         return Random.chooseBetween(min, max, Math.random);
     }
 
-    chooseIsCarnivore() {
-        return Random.chooseIf(0.5, Math.random);
-    }
-
     chooseLocation(x, y) {
         const distance = Math.sqrt(
             Math.random() * normalizer + minimumRadiusSquared);

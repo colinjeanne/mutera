@@ -1,4 +1,4 @@
-export const createRandom = (stateProcessor, selector) => {
+export const createRandom = (isCarnivore, stateProcessor, selector) => {
     const state = stateProcessor.ensureValidProperties({
         age: 0,
         health: 3000
@@ -19,7 +19,7 @@ export const createRandom = (stateProcessor, selector) => {
         },
         health: state.health,
         id,
-        isCarnivore: selector.chooseIsCarnivore(),
+        isCarnivore,
         velocity: {
             angle: stateProcessor.chooseValueInPropertyRange('angle', selector),
             isAggressive: false,

@@ -116,6 +116,35 @@ describe('Creature recombination', function() {
         expect(child.id).to.equal('10000');
     });
 
+    it('uses the type of the initiator', function() {
+        const selector = {
+            chooseBetween() {
+                return 0;
+            },
+
+            generateUniqueId() {
+                return '10000';
+            }
+        };
+
+        const first = makeCreature(
+            {
+                id: '12345',
+                isCarnivore: '1'
+            },
+            selector);
+
+        const second = makeCreature(
+            {
+                id: '54321',
+                isCarnivore: '0'
+            },
+            selector);
+
+        const child = first.recombine(second, 3000);
+        expect(child.isCarnivore).to.be.true;
+    });
+
     it('recombines the parent DNA', function() {
         const selector = {
             chooseBetween() {

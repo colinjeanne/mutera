@@ -17,13 +17,13 @@ const dataIsVisible = data =>
     data.rightPeriphery ||
     data.focus;
 
-const nearestVisibleFood = (creature, foodLocations) => {
-    const visibleLocations = foodLocations.
+const nearestVisibleObject = (creature, objectLocations) => {
+    const visibleLocations = objectLocations.
         map(point => ({
             canSee: creature.canSee(point),
             point
         })).
-        filter(foodLocation => dataIsVisible(foodLocation.canSee));
+        filter(location => dataIsVisible(location.canSee));
 
     visibleLocations.forEach(data => {
         data.squareDistance = squareDistance(data.point, creature);
@@ -37,39 +37,59 @@ const nearestVisibleFood = (creature, foodLocations) => {
         filter(data => data.canSee.leftPeriphery).
         sort(compareSquareDistance);
 
-    let leftPeripheryFood = null;
+    let leftPeriphery = null;
     if (leftPeripheryLocations.length !== 0) {
-        leftPeripheryFood = leftPeripheryLocations[0];
-        leftPeripheryFood.distance =
-            Math.sqrt(leftPeripheryFood.squareDistance);
+        leftPeriphery = leftPeripheryLocations[0];
+        leftPeriphery.distance = Math.sqrt(leftPeriphery.squareDistance);
     }
 
     const rightPeripheryLocations = visibleLocations.
         filter(data => data.canSee.rightPeriphery).
         sort(compareSquareDistance);
 
-    let rightPeripheryFood = null;
+    let rightPeriphery = null;
     if (rightPeripheryLocations.length !== 0) {
-        rightPeripheryFood = rightPeripheryLocations[0];
-        rightPeripheryFood.distance =
-            Math.sqrt(rightPeripheryFood.squareDistance);
+        rightPeriphery = rightPeripheryLocations[0];
+        rightPeriphery.distance = Math.sqrt(rightPeriphery.squareDistance);
     }
 
     const focusLocations = visibleLocations.
         filter(data => data.canSee.focus).
         sort(compareSquareDistance);
 
-    let focusFood = null;
+    let focus = null;
     if (focusLocations.length !== 0) {
-        focusFood = focusLocations[0];
-        focusFood.distance = Math.sqrt(focusFood.squareDistance);
+        focus = focusLocations[0];
+        focus.distance = Math.sqrt(focus.squareDistance);
     }
 
     return {
-        leftPeripheryFood,
-        rightPeripheryFood,
-        focusFood
+        leftPeriphery,
+        rightPeriphery,
+        focus
     };
+};
+
+const creatureRelationships = creatures => {
+    const relations = new Map();
+    creatures.forEach(creature => {
+        const relationships = new Map();
+        creatures.forEach(other => {
+            if (other !== creature) {
+                const distance = squareDistance(creature, other);
+                relationships.set(other.id, {
+                    squareDistance: distance,
+                    overlapping: distance <= 100,
+                    visible: creature.canSee(other),
+                    audioEffect: creature.hear(other)
+                });
+            }
+        });
+
+        relations.set(creature.id, relationships);
+    });
+
+    return relations;
 };
 
 const nearestVisibleCreatures = relationships => {
@@ -106,6 +126,47 @@ const nearestVisibleCreatures = relationships => {
     };
 };
 
+const nearestVisibleCreaturesInputData = (relationships, creatures) => {
+    const booleans = {};
+    const variables = {};
+
+    const nearestCreatures = nearestVisibleCreatures(relationships, creatures);
+
+    [
+        ['left', 'Left'],
+        ['right', 'Right'],
+        ['focus', 'Focus']
+    ].forEach(data => {
+        const nearest = nearestCreatures[`${data[0]}Creature`];
+        const rootName = `nearest${data[1]}Creature`;
+        const distanceVariable = KnownVariables[`${rootName}Distance`];
+
+        const colors = [
+            [`${rootName}IsRed`, 'isRed'],
+            [`${rootName}IsGreen`, 'isGreen'],
+            [`${rootName}IsBlue`, 'isBlue']
+        ];
+
+        if (nearest) {
+            const nearestCreature = creatures.get(nearest.id);
+            variables[distanceVariable] = nearest.distance;
+            colors.forEach(color => {
+                booleans[KnownVariables[color[0]]] = nearestCreature[color[1]];
+            });
+        } else {
+            variables[distanceVariable] = -1;
+            colors.forEach(color => {
+                booleans[KnownVariables[color[0]]] = false;
+            });
+        }
+    });
+
+    return {
+        booleans,
+        variables
+    };
+};
+
 const totalAudioEffects = (relationships, creatures) =>
     Array.from(relationships.entries()).
         filter(([id]) => !creatures.get(id).isDead()).
@@ -124,14 +185,37 @@ const totalAudioEffects = (relationships, creatures) =>
             right: 0
         });
 
+const audioEffectsInputData = (relationships, creatures) => {
+    const variables = {};
+    const audioEffects = totalAudioEffects(relationships, creatures);
+
+    [
+        ['front', KnownVariables.frontSound],
+        ['left', KnownVariables.leftSound],
+        ['back', KnownVariables.backSound],
+        ['right', KnownVariables.rightSound]
+    ].forEach(([property, variable]) => {
+        variables[variable] = audioEffects[property];
+    });
+
+    return {
+        variables
+    };
+};
+
 export default class Environment {
     constructor(map, creatures, selector = new GenericSelector(), options = {}) {
         this.map = {
-            eggs: map.eggs.map(egg => ({
-                creature: selector.deserializeCreature(egg.creature),
-                elapsedGestationTime: egg.elapsedGestationTime,
-                gestationTime: egg.gestationTime
-            })),
+            eggs: map.eggs.map(egg => {
+                const creature = selector.deserializeCreature(egg.creature);
+                return {
+                    creature,
+                    elapsedGestationTime: egg.elapsedGestationTime,
+                    gestationTime: egg.gestationTime,
+                    x: creature.x,
+                    y: creature.y
+                };
+            }),
             foodLocations: map.foodLocations,
             height: map.height,
             width: map.width
@@ -151,23 +235,7 @@ export default class Environment {
     process(elapsedTime) {
         this.simulationTime += elapsedTime;
 
-        const relations = new Map();
-        this.creatures.forEach(creature => {
-            const relationships = new Map();
-            this.creatures.forEach(other => {
-                if (other !== creature) {
-                    const distance = squareDistance(creature, other);
-                    relationships.set(other.id, {
-                        squareDistance: distance,
-                        overlapping: distance <= 100,
-                        visible: creature.canSee(other),
-                        audioEffect: creature.hear(other)
-                    });
-                }
-            });
-
-            relations.set(creature.id, relationships);
-        });
+        const relations = creatureRelationships(this.creatures);
 
         // Tick down the reproductive cooldowns
         this.reproductionCooldown.forEach((cooldownTime, id, map) => {
@@ -189,7 +257,9 @@ export default class Environment {
                     const otherRelationship = relations.get(otherId).get(id);
 
                     const canSeeOther = dataIsVisible(relation.visible);
-                    const canAttack = canSeeOther && creature.isAggressive;
+                    const canAttack = canSeeOther &&
+                        creature.isAggressive &&
+                        creature.isCarnivore;
 
                     const canOtherSee = dataIsVisible(otherRelationship.visible);
                     const canBeAttacked = canOtherSee &&
@@ -200,7 +270,8 @@ export default class Environment {
                         !canAttack &&
                         !canBeAttacked &&
                         creature.shouldReproduceSexually &&
-                        !cooldownTime;
+                        !cooldownTime &&
+                        (creature.isCarnivore === otherCreature.isCarnivore);
 
                     if (canAttack && !canBeAttacked) {
                         creature.feed(
@@ -219,7 +290,9 @@ export default class Environment {
                             newEggs.push({
                                 creature: reproduced,
                                 elapsedGestationTime: 0,
-                                gestationTime: this.options.eggGestationTime
+                                gestationTime: this.options.eggGestationTime,
+                                x: reproduced.x,
+                                y: reproduced.y
                             });
 
                             if (!this.genealogy.has(creature.id)) {
@@ -261,76 +334,44 @@ export default class Environment {
                 variables: {}
             };
 
+            const locations = creature.isCarnivore ? 'eggs' : 'foodLocations';
+
             const nearestFood =
-                nearestVisibleFood(creature, this.map.foodLocations);
-            if (nearestFood.leftPeripheryFood) {
+                nearestVisibleObject(creature, this.map[locations]);
+            if (nearestFood.leftPeriphery) {
                 input.variables[KnownVariables.nearestLeftPeripheryFoodDistance] =
-                    nearestFood.leftPeripheryFood.distance;
+                    nearestFood.leftPeriphery.distance;
             } else {
                 input.variables[KnownVariables.nearestLeftPeripheryFoodDistance] = -1;
             }
 
-            if (nearestFood.rightPeripheryFood) {
+            if (nearestFood.rightPeriphery) {
                 input.variables[KnownVariables.nearestRightPeripheryFoodDistance] =
-                    nearestFood.rightPeripheryFood.distance;
+                    nearestFood.rightPeriphery.distance;
             } else {
                 input.variables[KnownVariables.nearestRightPeripheryFoodDistance] = -1;
             }
 
-            if (nearestFood.focusFood) {
+            if (nearestFood.focus) {
                 input.variables[KnownVariables.nearestFocusFoodDistance] =
-                    nearestFood.focusFood.distance;
+                    nearestFood.focus.distance;
             } else {
                 input.variables[KnownVariables.nearestFocusFoodDistance] = -1;
             }
 
             const relationships = relations.get(creature.id);
-            const nearestCreatures = nearestVisibleCreatures(
+            const nearestCreaturesInput = nearestVisibleCreaturesInputData(
                 relationships,
                 this.creatures);
 
-            [
-                ['left', 'Left'],
-                ['right', 'Right'],
-                ['focus', 'Focus']
-            ].forEach(data => {
-                const nearest = nearestCreatures[`${data[0]}Creature`];
-                const rootName = `nearest${data[1]}Creature`;
-                const distanceVariable = KnownVariables[`${rootName}Distance`];
+            Object.assign(input.booleans, nearestCreaturesInput.booleans);
+            Object.assign(input.variables, nearestCreaturesInput.variables);
 
-                const colors = [
-                    [`${rootName}IsRed`, 'isRed'],
-                    [`${rootName}IsGreen`, 'isGreen'],
-                    [`${rootName}IsBlue`, 'isBlue']
-                ];
-
-                if (nearest) {
-                    const nearestCreature = this.creatures.get(nearest.id);
-                    input.variables[distanceVariable] = nearest.distance;
-                    colors.forEach(color => {
-                        input.booleans[KnownVariables[color[0]]] =
-                            nearestCreature[color[1]];
-                    });
-                } else {
-                    input.variables[distanceVariable] = -1;
-                    colors.forEach(color => {
-                        input.booleans[KnownVariables[color[0]]] = false;
-                    });
-                }
-            });
-
-            const audioEffects = totalAudioEffects(
+            const audioEffects = audioEffectsInputData(
                 relationships,
                 this.creatures);
 
-            [
-                ['front', KnownVariables.frontSound],
-                ['left', KnownVariables.leftSound],
-                ['back', KnownVariables.backSound],
-                ['right', KnownVariables.rightSound]
-            ].forEach(([property, variable]) => {
-                input.variables[variable] = audioEffects[property];
-            });
+            Object.assign(input.variables, audioEffects.variables);
 
             creature.process(input, elapsedTime);
 
@@ -338,15 +379,15 @@ export default class Environment {
                 deadCreatures.push(id);
             } else {
                 [
-                    nearestFood.leftPeripheryFood,
-                    nearestFood.rightPeripheryFood,
-                    nearestFood.focusFood
+                    nearestFood.leftPeriphery,
+                    nearestFood.rightPeriphery,
+                    nearestFood.focus
                 ].
                 filter(food => food && food.distance < this.options.eatRadius).
                 forEach(food => {
                     creature.feed(this.options.foodHealth);
 
-                    this.map.foodLocations = this.map.foodLocations.filter(
+                    this.map[locations] = this.map[locations].filter(
                         location =>
                             (location.x !== food.point.x) &&
                             (location.y !== food.point.y));
@@ -360,7 +401,9 @@ export default class Environment {
                     newEggs.push({
                         creature: reproduced,
                         elapsedGestationTime: 0,
-                        gestationTime: this.options.eggGestationTime
+                        gestationTime: this.options.eggGestationTime,
+                        x: creature.x,
+                        y: creature.y
                     });
 
                     if (!this.genealogy.has(creature.id)) {

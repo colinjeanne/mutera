@@ -35,27 +35,6 @@ const partialStateDefinition = {
     changeInHealth: {
         dependencies: []
     },
-    isRed: {
-        default: false,
-        dependencies: [],
-        isBoolean: true,
-        transfer: (current, next) => next,
-        variable: KnownVariables.isRed
-    },
-    isGreen: {
-        default: false,
-        dependencies: [],
-        isBoolean: true,
-        transfer: (current, next) => next,
-        variable: KnownVariables.isGreen
-    },
-    isBlue: {
-        default: false,
-        dependencies: [],
-        isBoolean: true,
-        transfer: (current, next) => next,
-        variable: KnownVariables.isBlue
-    },
     health: {
         dependencies: [
             'changeInHealth',

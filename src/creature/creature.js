@@ -70,6 +70,7 @@ export default class Creature {
         this.dna = deserialized.dna;
         this.header = deserialized.header;
         this.id = deserialized.id;
+        this.isCarnivore = deserialized.isCarnivore;
 
         this.radians = Angle.toRadians(
             this.state.variables[KnownVariables.angle]);
@@ -233,6 +234,7 @@ export default class Creature {
             },
             health: this.health,
             id: this.id,
+            isCarnivore: this.isCarnivore,
             velocity: {
                 angle: this.state.variables[KnownVariables.angle],
                 isAggressive: this.isAggressive,

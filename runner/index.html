@@ -56,6 +56,7 @@
                 <div>
                     <dl>
                         <dt>Id:</dt><dd id="creatureId"></dd>
+                        <dt>Carnivore:</dt><dd id="creatureIsCarnivore"></dd>
                         <dt>Age:</dt><dd id="creatureAge"></dd>
                         <dt>Angle:</dt><dd id="creatureAngle"></dd>
                         <dt>Health:</dt><dd id="creatureHealth"></dd>
@@ -134,7 +135,7 @@
             return `rgb(${red}, ${green}, ${blue})`;
         }
 
-        function drawCreature(context, creature) {
+        function drawHerbavoreBody(context, creature) {
             const point = mapToCanvas(creature);
 
             context.beginPath();
@@ -143,6 +144,27 @@
             context.strokeStyle = `black`;
             context.fill();
             context.stroke();
+        }
+
+        function drawCarnivoreBody(context, creature) {
+            const point = mapToCanvas(creature);
+
+            context.beginPath();
+            context.fillStyle = getCreatureColor(creature);
+            context.strokeStyle = `black`;
+            context.fillRect(point.x - 5, point.y - 5, 10, 10);
+            context.strokeRect(point.x - 4.5, point.y - 4.5, 10, 10);
+            context.stroke();
+        }
+
+        function drawCreature(context, creature) {
+            const point = mapToCanvas(creature);
+
+            if (creature.isCarnivore) {
+                drawCarnivoreBody(context, creature);
+            } else {
+                drawHerbavoreBody(context, creature);
+            }
 
             const healthWidth = Math.floor(creature.health * 10 / 4096);
             context.fillStyle = `rgb(0, 255, 0)`;
@@ -340,6 +362,7 @@
         function renderCreatureState(creature) {
             if (creature) {
                 document.getElementById('creatureId').textContent = creature.id;
+                document.getElementById('creatureIsCarnivore').textContent = creature.isCarnivore;
                 document.getElementById('creatureAge').textContent = creature.age;
                 document.getElementById('creatureAngle').textContent = creature.angle;
                 document.getElementById('creatureHealth').textContent = creature.health;
@@ -351,6 +374,7 @@
                     JSON.stringify(creature.state, null, 2);
             } else {
                 document.getElementById('creatureId').textContent = '';
+                document.getElementById('creatureIsCarnivore').textContent = '';
                 document.getElementById('creatureAge').textContent = '';
                 document.getElementById('creatureAngle').textContent = '';
                 document.getElementById('creatureHealth').textContent = '';

@@ -55,13 +55,18 @@ describe('Creature', function() {
             to.throw('Creature missing color');
     });
 
-    it('must have a DNA', function() {
+    it('must have a type', function() {
         expect(() => new Creature('100000000000000000000000')).
+            to.throw('Creature missing isCarnivore');
+    });
+
+    it('must have a DNA', function() {
+        expect(() => new Creature('1000000000000000000000000')).
             to.throw('Creature missing dna');
     });
 
     it('must have a valid DNA', function() {
-        expect(() => new Creature('1000000000000000000000001')).
+        expect(() => new Creature('10000000000000000000000001')).
             to.throw('DNA missing genes');
     });
 
@@ -80,6 +85,7 @@ describe('Creature', function() {
             velocity: 'AB',
             health: '21',
             color: '7',
+            isCarnivore: '1',
             dna: '16Va1TC1'
         });
 
@@ -94,15 +100,16 @@ describe('Creature', function() {
         expect(creature.x).to.equal(270532);
         expect(creature.y).to.equal(1060993);
         expect(creature.health).to.equal(129);
-        expect(creature.isRed).to.equal(true);
-        expect(creature.isGreen).to.equal(true);
-        expect(creature.isBlue).to.equal(true);
+        expect(creature.isRed).to.be.true;
+        expect(creature.isGreen).to.be.true;
+        expect(creature.isBlue).to.be.true;
+        expect(creature.isCarnivore).to.be.true;
         expect(creature.dna.toString()).to.equal('16Va1TC1');
     });
 
     it('can convert to a string', function() {
         const creature = makeCreature({});
-        expect('' + creature).to.equal('10000000000000000000000016Va1TC0');
+        expect('' + creature).to.equal('100000000000000000000000016Va1TC0');
     });
 
     it('converts fields to integers before serialization', function() {
@@ -121,7 +128,7 @@ describe('Creature', function() {
         expect(creature.y).to.equal(640);
 
         expect(creature.toString()).
-            to.equal('1000000000000A100A08000016Vs1TCa');
+            to.equal('1000000000000A100A080000016Vs1TCa');
     });
 
     it('ignores changes made to relevant state variables', function() {
@@ -234,10 +241,10 @@ describe('Creature', function() {
             health: '0A'
         });
 
-        expect(creature.isDead()).to.equal(false);
+        expect(creature.isDead()).to.be.false;
 
         creature.process({}, 1);
-        expect(creature.isDead()).to.equal(true);
+        expect(creature.isDead()).to.be.true;
     });
 
     it('can be harmed', function() {
@@ -411,6 +418,10 @@ describe('Creature', function() {
                 return min;
             },
 
+            chooseIsCarnivore() {
+                return true;
+            },
+
             createRandomDNA() {
                 return new DNA('16V01TV0');
             },
@@ -421,7 +432,7 @@ describe('Creature', function() {
         };
 
         const creature = Creature.createRandom({ selector });
-        expect(creature.toString()).to.equal('100000000000000000000ku016V01TV0');
+        expect(creature.toString()).to.equal('100000000000000000000ku0116V01TV0');
     });
 
     it('cannot see more than pi/4 radians to the left', function() {
@@ -546,7 +557,7 @@ describe('Creature', function() {
             },
             1);
 
-        expect(creature.state.booleans.Z).to.equal(true);
+        expect(creature.state.booleans.Z).to.be.true;
         expect(creature.state.variables.Q).to.equal(1);
     });
 

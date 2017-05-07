@@ -19,6 +19,7 @@ export const createRandom = (stateProcessor, selector) => {
         },
         health: state.health,
         id,
+        isCarnivore: selector.chooseIsCarnivore(),
         velocity: {
             angle: stateProcessor.chooseValueInPropertyRange('angle', selector),
             isAggressive: false,
@@ -54,6 +55,7 @@ export const recombine = (initiator, other, startingHealth, stateProcessor, sele
         },
         health: state.health,
         id,
+        isCarnivore: initiator.isCarnivore,
         velocity: {
             angle,
             isAggressive: false,

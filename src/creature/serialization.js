@@ -49,6 +49,10 @@ const decodeAge = encoded => intFromBase64(encoded);
 
 const encodeAge = age => intToBase64(Math.floor(age), 5);
 
+const decodeType = encoded => !!intFromBase64(encoded);
+
+const encodeType = isCarnivore => isCarnivore ? '1' : '0';
+
 const decodeHeader = encoded => {
     const version = encoded[0];
     if (version !== '1') {
@@ -141,6 +145,12 @@ const makeSlicing = makeDNA => [
         length: 1,
         decoder: decodeColor,
         encoder: encodeColor
+    },
+    {
+        property: 'isCarnivore',
+        length: 1,
+        decoder: decodeType,
+        encoder: encodeType
     },
     {
         property: 'dna',

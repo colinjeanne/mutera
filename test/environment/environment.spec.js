@@ -12,6 +12,7 @@ const defaultCreatureData = {
     health: 100,
     isMoving: false,
     isFast: false,
+    isCarnivore: false,
     shouldReproduceAsexually: false,
     shouldReproduceSexually: false,
     speed: 0,
@@ -93,6 +94,10 @@ class MockCreature {
 
     get isFast() {
         return this.data.isFast;
+    }
+
+    get isCarnivore() {
+        return this.data.isCarnivore;
     }
 
     get shouldReproduceAsexually() {
@@ -381,6 +386,126 @@ describe('Environment', function() {
                 f: 10
             }
         });
+    });
+
+    it('directs carnivores to eggs and herbavores to plants', function() {
+        const options = {
+            foodHealth: 100,
+            minimumCreatures: 1
+        };
+
+        const carnivore = new MockCreature(
+            '00001',
+            {
+                isCarnivore: true,
+                x: 10,
+                y: 10,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: true
+                })
+            });
+
+        const herbavore = new MockCreature(
+            '00002',
+            {
+                x: 50,
+                y: 50,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: true
+                })
+            });
+
+        const creatures = [
+            carnivore,
+            herbavore
+        ];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            deserializeCreature(encodedCreature) {
+                const point = (encodedCreature === '00003') ?
+                    ({
+                        x: 20,
+                        y: 10
+                    }) :
+                    ({
+                        x: 51,
+                        y: 50
+                    });
+
+                return new MockCreature(encodedCreature, point);
+            },
+
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        map.eggs = [
+            {
+                creature: '00003',
+                elapsedGestationTime: 0,
+                gestationTime: 100,
+                x: 20,
+                y: 10
+            },
+            {
+                creature: '00004',
+                elapsedGestationTime: 0,
+                gestationTime: 100,
+                x: 51,
+                y: 50
+            }
+        ];
+
+        map.foodLocations = [
+            {
+                x: 11,
+                y: 10
+            },
+            {
+                x: 60,
+                y: 50
+            }
+        ];
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        environment.process(1);
+
+        expect(carnivore.lastInput.variables.f).to.equal(10);
+        expect(carnivore.lastFoodHealth).to.equal(100);
+        expect(herbavore.lastInput.variables.f).to.equal(10);
+        expect(herbavore.lastFoodHealth).to.equal(100);
+
+        const json = environment.toJSON();
+        expect(json.map.eggs).to.deep.equal(
+            [
+                {
+                    creature: '00004',
+                    elapsedGestationTime: 1,
+                    gestationTime: 100
+                }
+            ]);
+        expect(json.map.foodLocations).to.deep.equal(
+            [
+                {
+                    x: 11,
+                    y: 10
+                }
+            ]);
     });
 
     it('provides the distance and color to the nearest left periphery creature', function() {
@@ -717,7 +842,67 @@ describe('Environment', function() {
         });
     });
 
-    it('aggressive creatures attack creatures they can see', function() {
+    it('aggressive carnivores attack and eat creatures they can see', function() {
+        const options = {
+            minimumCreatures: 1
+        };
+
+        const creature = new MockCreature(
+            '00001',
+            {
+                isAggressive: true,
+                isCarnivore: true,
+                health: 1000,
+                x: 50,
+                y: 50,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: true
+                })
+            });
+
+        const other = new MockCreature(
+            '00002',
+            {
+                health: 1000,
+                x: 55,
+                y: 55,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: false
+                })
+            });
+
+        const creatures = [creature, other];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        environment.process(1);
+
+        expect(creature.lastFoodHealth).to.equal(500);
+        expect(creature.lastHealthLoss).to.equal(0);
+        expect(other.lastFoodHealth).to.equal(0);
+        expect(other.lastHealthLoss).to.equal(500);
+    });
+
+    it('aggressive herbavores harm creatures they can see', function() {
         const options = {
             minimumCreatures: 1
         };
@@ -770,7 +955,7 @@ describe('Environment', function() {
 
         environment.process(1);
 
-        expect(creature.lastFoodHealth).to.equal(500);
+        expect(creature.lastFoodHealth).to.equal(0);
         expect(creature.lastHealthLoss).to.equal(0);
         expect(other.lastFoodHealth).to.equal(0);
         expect(other.lastHealthLoss).to.equal(500);
@@ -836,7 +1021,71 @@ describe('Environment', function() {
         expect(other.lastHealthLoss).to.equal(500);
     });
 
-    it('feeds creatures when they are close enough to food', function() {
+    it('feeds carnivores when they are close enough to eggs', function() {
+        const options = {
+            eatRadius: 50,
+            foodHealth: 10,
+            minimumCreatures: 1
+        };
+
+        const creature = new MockCreature(
+            '00001',
+            {
+                isCarnivore: true,
+                x: 50,
+                y: 50,
+                canSee: () => ({
+                    leftPeriphery: false,
+                    rightPeriphery: false,
+                    focus: true
+                })
+            });
+
+        const creatures = [creature];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            deserializeCreature(encodedCreature) {
+                return new MockCreature(
+                    encodedCreature,
+                    {
+                        x: 60,
+                        y: 50
+                    });
+            },
+
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        map.eggs = [
+            {
+                creature: '00002',
+                elapsedGestationTime: 0,
+                gestationTime: 100,
+                x: 60,
+                y: 50
+            }
+        ];
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        environment.process(3);
+
+        expect(creature.lastFoodHealth).to.equal(10);
+        expect(environment.toJSON().map.eggs).to.be.empty;
+    });
+
+    it('feeds herbavores when they are close enough to food', function() {
         const options = {
             eatRadius: 50,
             foodHealth: 10,
@@ -958,28 +1207,6 @@ describe('Environment', function() {
         expect(environment.toJSON().map.foodLocations).to.have.lengthOf(1);
     });
 
-    it('performs no recombinations when there are no creatures', function() {
-        const options = {
-            minimumCreatures: 0
-        };
-
-        const selector = {
-            shouldSpawnFood() {
-                return false;
-            }
-        };
-
-        const environment = new Environment(
-            map,
-            new Map(),
-            selector,
-            options);
-
-        environment.process(3);
-
-        expect(environment.toJSON().creatures).to.be.empty;
-    });
-
     it('allows asexual reproduction', function() {
         const options = {
             eggGestationTime: 15,
@@ -1036,6 +1263,67 @@ describe('Environment', function() {
         expect(json.reproductionCooldown).to.deep.equal([
             ['00001', 100]
         ]);
+    });
+
+    it('only triggers sexual reproduction between creatures of the same type', function() {
+        const options = {
+            eggGestationTime: 15,
+            minimumCreatures: 1
+        };
+
+        const creatures = [
+            new MockCreature(
+                '00001',
+                {
+                    angle: 0,
+                    isCarnivore: true,
+                    shouldReproduceAsexually: false,
+                    shouldReproduceSexually: true,
+                    x: 100,
+                    y: 100
+                }),
+            new MockCreature(
+                '00002',
+                {
+                    angle: Math.PI,
+                    shouldReproduceAsexually: false,
+                    shouldReproduceSexually: true,
+                    x: 101,
+                    y: 100
+                })
+        ];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            createRandomCreature() {
+                return Creature.createRandom();
+            },
+
+            isMateSuccessful() {
+                return true;
+            },
+
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        expect(environment.toJSON().creatures).to.have.lengthOf(2);
+
+        environment.process(3);
+
+        const expectedEggs = environment.toJSON().map.eggs;
+        expect(expectedEggs).to.be.empty;
     });
 
     it('only triggers sexual reproduction if at least one creature wants it', function() {

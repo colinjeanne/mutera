@@ -8,6 +8,16 @@ const defaultOptions = {
     foodHealth: 500,
     minimumCarnivores: 50,
     minimumHerbivores: 50,
+    onCreatureAttacked: () => {},
+    onCreatureFed: () => {},
+    onCreatureGenerated: () => {},
+    onCreatureKilled: () => {},
+    onEggCreated: () => {},
+    onEggDestroyed: () => {},
+    onEggHatched: () => {},
+    onFoodSpawned: () => {},
+    onMateAttemptRebuffed: () => {},
+    onMateAttemptSucceeded: () => {},
     reproductionCooldownTime: 100
 };
 
@@ -235,8 +245,6 @@ export default class Environment {
             options);
         this.selector = selector;
         this.simulationTime = 0;
-
-        this.genealogy = new Map();
     }
 
     process(elapsedTime) {
@@ -281,43 +289,58 @@ export default class Environment {
                         (creature.isCarnivore === otherCreature.isCarnivore);
 
                     if (canAttack && !canBeAttacked) {
-                        creature.feed(
-                            Math.min(
-                                this.options.foodHealth,
-                                otherCreature.health));
+                        const healthGain = Math.min(
+                            this.options.foodHealth,
+                            otherCreature.health);
+
+                        creature.feed(healthGain);
+                        this.options.onCreatureFed(
+                            creature,
+                            healthGain,
+                            this.simulationTime);
                     } else if (canBeAttacked) {
                         creature.harm(this.options.foodHealth);
+                        this.options.onCreatureAttacked(
+                            creature,
+                            otherCreature,
+                            this.options.foodHealth,
+                            this.simulationTime);
                     } else if (canInitiateReproduction) {
                         const shouldMate = this.selector.isMateSuccessful(
                             creature,
                             otherCreature);
                         if (shouldMate) {
+                            this.options.onMateAttemptSucceeded(
+                                creature,
+                                otherCreature,
+                                this.simulationTime);
+
                             const reproduced =
                                 creature.recombine(otherCreature, 3000);
-                            newEggs.push({
+                            const egg = {
                                 creature: reproduced,
                                 elapsedGestationTime: 0,
                                 gestationTime: this.options.eggGestationTime,
                                 x: reproduced.x,
                                 y: reproduced.y
-                            });
+                            };
 
-                            if (!this.genealogy.has(creature.id)) {
-                                this.genealogy.set(creature.id, []);
-                            }
+                            newEggs.push(egg);
 
-                            this.genealogy.get(creature.id).push(reproduced.id);
-
-                            if (!this.genealogy.has(otherCreature.id)) {
-                                this.genealogy.set(otherCreature.id, []);
-                            }
-
-                            this.genealogy.get(otherCreature.id).
-                                push(reproduced.id);
+                            this.options.onEggCreated(
+                                egg,
+                                creature,
+                                otherCreature,
+                                this.simulationTime);
 
                             this.reproductionCooldown.set(
                                 id,
                                 this.options.reproductionCooldownTime);
+                        } else {
+                            this.options.onMateAttemptRebuffed(
+                                creature,
+                                otherCreature,
+                                this.simulationTime);
                         }
                     }
                 }
@@ -393,6 +416,17 @@ export default class Environment {
                 filter(food => food && food.distance < this.options.eatRadius).
                 forEach(food => {
                     creature.feed(this.options.foodHealth);
+                    this.options.onCreatureFed(
+                        creature,
+                        this.options.foodHealth,
+                        this.simulationTime);
+
+                    if (locations === 'eggs') {
+                        this.options.onEggDestroyed(
+                            creature,
+                            food.point,
+                            this.simulationTime);
+                    }
 
                     this.map[locations] = this.map[locations].filter(
                         location =>
@@ -405,19 +439,21 @@ export default class Environment {
                     const reproduced = creature.recombine(
                         creature,
                         creature.health / 2);
-                    newEggs.push({
+                    const egg = {
                         creature: reproduced,
                         elapsedGestationTime: 0,
                         gestationTime: this.options.eggGestationTime,
                         x: creature.x,
                         y: creature.y
-                    });
+                    };
 
-                    if (!this.genealogy.has(creature.id)) {
-                        this.genealogy.set(creature.id, []);
-                    }
+                    newEggs.push(egg);
 
-                    this.genealogy.get(creature.id).push(reproduced.id);
+                    this.options.onEggCreated(
+                        egg,
+                        creature,
+                        null,
+                        this.simulationTime);
 
                     creature.harm(creature.health / 2);
 
@@ -429,19 +465,24 @@ export default class Environment {
         });
 
         deadCreatures.forEach(id => {
+            const deadCreature = this.creatures.get(id);
+
             this.creatures.delete(id);
             this.reproductionCooldown.delete(id);
+            this.options.onCreatureKilled(deadCreature, this.simulationTime);
         });
 
         if (this.selector.shouldSpawnFood(this.map, elapsedTime)) {
             const location = this.selector.chooseMapLocation(this.map);
             this.map.foodLocations.push(location);
+            this.options.onFoodSpawned(location, this.simulationTime);
         }
 
         this.map.eggs.forEach(egg => {
             egg.elapsedGestationTime += elapsedTime;
             if (egg.elapsedGestationTime >= egg.gestationTime) {
                 this.creatures.set(egg.creature.id, egg.creature);
+                this.options.onEggHatched(egg, this.simulationTime);
             }
         });
 
@@ -457,6 +498,7 @@ export default class Environment {
                 isCarnivore: true
             });
             this.creatures.set(creature.id, creature);
+            this.options.onCreatureGenerated(creature);
         }
 
         const newHerbivores = this.options.minimumHerbivores -
@@ -466,6 +508,7 @@ export default class Environment {
                 isCarnivore: false
             });
             this.creatures.set(creature.id, creature);
+            this.options.onCreatureGenerated(creature);
         }
     }
 

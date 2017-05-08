@@ -1,4 +1,5 @@
 const expect = require('chai').expect;
+const sinon = require('sinon');
 const { Creature } = require('./../../umd/world.js').Creature;
 const { Environment } = require('./../../umd/world.js').Environment;
 
@@ -171,7 +172,8 @@ describe('Environment', function() {
     it('generates more creatures when below the minimum', function() {
         const options = {
             minimumCarnivores: 5,
-            minimumHerbivores: 5
+            minimumHerbivores: 5,
+            onCreatureGenerated: sinon.spy()
         };
 
         const selector = {
@@ -195,6 +197,7 @@ describe('Environment', function() {
         environment.process(1.5);
 
         expect(environment.toJSON().creatures).to.have.lengthOf(10);
+        expect(options.onCreatureGenerated.callCount).to.equal(10);
     });
 
     it('provides the distance to the nearest left periphery food item', function() {
@@ -396,7 +399,8 @@ describe('Environment', function() {
         const options = {
             foodHealth: 100,
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onCreatureFed: sinon.spy()
         };
 
         const carnivore = new MockCreature(
@@ -511,6 +515,9 @@ describe('Environment', function() {
                     y: 10
                 }
             ]);
+        expect(options.onCreatureFed.calledTwice).to.be.true;
+        expect(options.onCreatureFed.calledWith(carnivore, 100, 1)).to.be.true;
+        expect(options.onCreatureFed.calledWith(herbivore, 100, 1)).to.be.true;
     });
 
     it('provides the distance and color to the nearest left periphery creature', function() {
@@ -854,8 +861,11 @@ describe('Environment', function() {
 
     it('aggressive carnivores attack and eat creatures they can see', function() {
         const options = {
+            foodHealth: 100,
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onCreatureAttacked: sinon.spy(),
+            onCreatureFed: sinon.spy()
         };
 
         const creature = new MockCreature(
@@ -907,16 +917,27 @@ describe('Environment', function() {
 
         environment.process(1);
 
-        expect(creature.lastFoodHealth).to.equal(500);
+        expect(creature.lastFoodHealth).to.equal(100);
         expect(creature.lastHealthLoss).to.equal(0);
         expect(other.lastFoodHealth).to.equal(0);
-        expect(other.lastHealthLoss).to.equal(500);
+        expect(other.lastHealthLoss).to.equal(100);
+
+        expect(options.onCreatureAttacked.calledWith(
+            other,
+            creature,
+            100,
+            1
+        )).to.be.true;
+        expect(options.onCreatureFed.calledWith(creature, 100, 1)).to.be.true;
     });
 
     it('aggressive herbivores harm creatures they can see', function() {
         const options = {
+            foodHealth: 100,
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onCreatureAttacked: sinon.spy(),
+            onCreatureFed: sinon.spy()
         };
 
         const creature = new MockCreature(
@@ -970,13 +991,24 @@ describe('Environment', function() {
         expect(creature.lastFoodHealth).to.equal(0);
         expect(creature.lastHealthLoss).to.equal(0);
         expect(other.lastFoodHealth).to.equal(0);
-        expect(other.lastHealthLoss).to.equal(500);
+        expect(other.lastHealthLoss).to.equal(100);
+
+        expect(options.onCreatureAttacked.calledWith(
+            other,
+            creature,
+            100,
+            1
+        )).to.be.true;
+        expect(options.onCreatureFed.notCalled).to.be.true;
     });
 
     it('two aggressive creatures attack each other', function() {
         const options = {
+            foodHealth: 100,
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onCreatureAttacked: sinon.spy(),
+            onCreatureFed: sinon.spy()
         };
 
         const creature = new MockCreature(
@@ -1029,9 +1061,23 @@ describe('Environment', function() {
         environment.process(1);
 
         expect(creature.lastFoodHealth).to.equal(0);
-        expect(creature.lastHealthLoss).to.equal(500);
+        expect(creature.lastHealthLoss).to.equal(100);
         expect(other.lastFoodHealth).to.equal(0);
-        expect(other.lastHealthLoss).to.equal(500);
+        expect(other.lastHealthLoss).to.equal(100);
+
+        expect(options.onCreatureAttacked.calledWith(
+            creature,
+            other,
+            100,
+            1
+        )).to.be.true;
+        expect(options.onCreatureAttacked.calledWith(
+            other,
+            creature,
+            100,
+            1
+        )).to.be.true;
+        expect(options.onCreatureFed.notCalled).to.be.true;
     });
 
     it('feeds carnivores when they are close enough to eggs', function() {
@@ -1039,7 +1085,9 @@ describe('Environment', function() {
             eatRadius: 50,
             foodHealth: 10,
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onCreatureFed: sinon.spy(),
+            onEggDestroyed: sinon.spy()
         };
 
         const creature = new MockCreature(
@@ -1062,14 +1110,16 @@ describe('Environment', function() {
             creature
         ]));
 
+        const mockedCreature = new MockCreature(
+            '00002',
+            {
+                x: 60,
+                y: 50
+            });
+
         const selector = {
-            deserializeCreature(encodedCreature) {
-                return new MockCreature(
-                    encodedCreature,
-                    {
-                        x: 60,
-                        y: 50
-                    });
+            deserializeCreature() {
+                return mockedCreature;
             },
 
             shouldSpawnFood() {
@@ -1097,6 +1147,19 @@ describe('Environment', function() {
 
         expect(creature.lastFoodHealth).to.equal(10);
         expect(environment.toJSON().map.eggs).to.be.empty;
+        expect(options.onCreatureFed.calledWith(creature, 10, 3)).to.be.true;
+
+        expect(options.onEggDestroyed.calledWithMatch(
+            creature,
+            {
+                creature: mockedCreature,
+                elapsedGestationTime: 0,
+                gestationTime: 100,
+                x: 60,
+                y: 50
+            },
+            3
+        )).to.be.true;
     });
 
     it('feeds herbivores when they are close enough to food', function() {
@@ -1104,7 +1167,9 @@ describe('Environment', function() {
             eatRadius: 50,
             foodHealth: 10,
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onCreatureFed: sinon.spy(),
+            onEggDestroyed: sinon.spy()
         };
 
         const creature = new MockCreature(
@@ -1149,12 +1214,15 @@ describe('Environment', function() {
 
         expect(creature.lastFoodHealth).to.equal(10);
         expect(environment.toJSON().map.foodLocations).to.be.empty;
+        expect(options.onCreatureFed.calledWith(creature, 10, 3)).to.be.true;
+        expect(options.onEggDestroyed.notCalled).to.be.true;
     });
 
     it('removes dead creatures', function() {
         const options = {
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onCreatureKilled: sinon.spy()
         };
 
         const creatures = [
@@ -1188,12 +1256,15 @@ describe('Environment', function() {
         expect(environment.toJSON().creatures).to.deep.equal([
             creatures[1].toString()
         ]);
+
+        expect(options.onCreatureKilled.calledWith(creatures[0], 1)).to.be.true;
     });
 
     it('replenishes at least one food item per unit of time', function() {
         const options = {
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onFoodSpawned: sinon.spy()
         };
 
         const selector = {
@@ -1218,6 +1289,13 @@ describe('Environment', function() {
         environment.process(1);
 
         expect(environment.toJSON().map.foodLocations).to.have.lengthOf(1);
+        expect(options.onFoodSpawned.calledWith(
+            {
+                x: 0,
+                y: 0
+            },
+            1
+        )).to.be.true;
     });
 
     it('allows asexual reproduction', function() {
@@ -1225,7 +1303,8 @@ describe('Environment', function() {
             eggGestationTime: 15,
             minimumCarnivores: 0,
             minimumHerbivores: 0,
-            reproductionCooldownTime: 100
+            reproductionCooldownTime: 100,
+            onEggCreated: sinon.spy()
         };
 
         const creatures = [
@@ -1277,13 +1356,28 @@ describe('Environment', function() {
         expect(json.reproductionCooldown).to.deep.equal([
             ['00001', 100]
         ]);
+
+        expect(options.onEggCreated.calledWithMatch(
+            {
+                creature: new MockCreature('0000100001'),
+                elapsedGestationTime: 0,
+                gestationTime: 15,
+                x: 0,
+                y: 0
+            },
+            creatures[0],
+            null,
+            3
+        )).to.be.true;
     });
 
     it('only triggers sexual reproduction between creatures of the same type', function() {
         const options = {
             eggGestationTime: 15,
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onMateAttemptRebuffed: sinon.spy(),
+            onMateAttemptSucceeded: sinon.spy()
         };
 
         const creatures = [
@@ -1335,13 +1429,18 @@ describe('Environment', function() {
 
         const expectedEggs = environment.toJSON().map.eggs;
         expect(expectedEggs).to.be.empty;
+
+        expect(options.onMateAttemptRebuffed.notCalled).to.be.true;
+        expect(options.onMateAttemptSucceeded.notCalled).to.be.true;
     });
 
     it('only triggers sexual reproduction if at least one creature wants it', function() {
         const options = {
             eggGestationTime: 15,
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onMateAttemptRebuffed: sinon.spy(),
+            onMateAttemptSucceeded: sinon.spy()
         };
 
         const creatures = [
@@ -1392,6 +1491,9 @@ describe('Environment', function() {
 
         const expectedEggs = environment.toJSON().map.eggs;
         expect(expectedEggs).to.be.empty;
+
+        expect(options.onMateAttemptRebuffed.notCalled).to.be.true;
+        expect(options.onMateAttemptSucceeded.notCalled).to.be.true;
     });
 
     it('allows sexual reproduction', function() {
@@ -1399,7 +1501,10 @@ describe('Environment', function() {
             eggGestationTime: 15,
             minimumCarnivores: 0,
             minimumHerbivores: 0,
-            reproductionCooldownTime: 100
+            reproductionCooldownTime: 100,
+            onEggCreated: sinon.spy(),
+            onMateAttemptRebuffed: sinon.spy(),
+            onMateAttemptSucceeded: sinon.spy()
         };
 
         const creatures = [
@@ -1470,6 +1575,26 @@ describe('Environment', function() {
         expect(json.reproductionCooldown).to.deep.equal([
             ['00001', 100]
         ]);
+
+        expect(options.onEggCreated.calledWithMatch(
+            {
+                creature: new MockCreature('0000100002'),
+                elapsedGestationTime: 0,
+                gestationTime: 15,
+                x: 0,
+                y: 0
+            },
+            creatures[0],
+            creatures[1],
+            3
+        )).to.be.true;
+
+        expect(options.onMateAttemptRebuffed.notCalled).to.be.true;
+        expect(options.onMateAttemptSucceeded.calledWith(
+            creatures[0],
+            creatures[1],
+            3
+        )).to.be.true;
     });
 
     it('prevents reproduction for a short period of time', function() {
@@ -1537,7 +1662,8 @@ describe('Environment', function() {
     it('gestates eggs when their elapsed time is greater than their gestation time', function() {
         const options = {
             minimumCarnivores: 0,
-            minimumHerbivores: 0
+            minimumHerbivores: 0,
+            onEggHatched: sinon.spy()
         };
 
         map.eggs = [
@@ -1590,5 +1716,16 @@ describe('Environment', function() {
         expect(expectedCreatures).to.include.members([
             '00001'
         ]);
+
+        expect(options.onEggHatched.calledWithMatch(
+            {
+                creature: new MockCreature('00001'),
+                elapsedGestationTime: 15,
+                gestationTime: 15,
+                x: 0,
+                y: 0
+            },
+            1
+        )).to.be.true;
     });
 });

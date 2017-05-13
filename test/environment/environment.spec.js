@@ -463,6 +463,7 @@ describe('Environment', function() {
                 creature: '00003',
                 elapsedGestationTime: 0,
                 gestationTime: 100,
+                initiatorId: '99999',
                 x: 20,
                 y: 10
             },
@@ -470,6 +471,7 @@ describe('Environment', function() {
                 creature: '00004',
                 elapsedGestationTime: 0,
                 gestationTime: 100,
+                initiatorId: '99999',
                 x: 51,
                 y: 50
             }
@@ -505,7 +507,9 @@ describe('Environment', function() {
                 {
                     creature: '00004',
                     elapsedGestationTime: 1,
-                    gestationTime: 100
+                    gestationTime: 100,
+                    initiatorId: '99999',
+                    otherId: undefined
                 }
             ]);
         expect(json.map.foodLocations).to.deep.equal(
@@ -1300,6 +1304,7 @@ describe('Environment', function() {
 
     it('allows asexual reproduction', function() {
         const options = {
+            asexualReproductionCost: 1000,
             eggGestationTime: 15,
             minimumCarnivores: 0,
             minimumHerbivores: 0,
@@ -1348,11 +1353,13 @@ describe('Environment', function() {
             {
                 creature: '0000100001',
                 elapsedGestationTime: 0,
-                gestationTime: 15
+                gestationTime: 15,
+                initiatorId: '00001',
+                otherId: undefined
             }
         ]);
 
-        expect(creatures[0].lastHealthLoss).to.equal(2000);
+        expect(creatures[0].lastHealthLoss).to.equal(1000);
         expect(json.reproductionCooldown).to.deep.equal([
             ['00001', 100]
         ]);
@@ -1568,7 +1575,9 @@ describe('Environment', function() {
             {
                 creature: '0000100002',
                 elapsedGestationTime: 0,
-                gestationTime: 15
+                gestationTime: 15,
+                initiatorId: '00001',
+                otherId: '00002'
             }
         ]);
 
@@ -1659,6 +1668,116 @@ describe('Environment', function() {
         ]);
     });
 
+    it('prevents creatures from eating their own eggs', function() {
+        const options = {
+            eggGestationTime: 15,
+            minimumCarnivores: 0,
+            minimumHerbivores: 0,
+            reproductionCooldownTime: 100,
+            onEggCreated: sinon.spy(),
+            onEggDestroyed: sinon.spy()
+        };
+
+        const creatures = [
+            new MockCreature(
+                '00001',
+                {
+                    health: 4000,
+                    isCarnivore: true,
+                    shouldReproduceAsexually: false,
+                    shouldReproduceSexually: true,
+                    canSee: () => ({
+                        leftPeriphery: false,
+                        rightPeriphery: false,
+                        focus: true
+                    })
+                }),
+            new MockCreature(
+                '00002',
+                {
+                    angle: Math.PI,
+                    isCarnivore: true,
+                    shouldReproduceAsexually: false,
+                    shouldReproduceSexually: false,
+                    canSee: () => ({
+                        leftPeriphery: false,
+                        rightPeriphery: false,
+                        focus: true
+                    })
+                })
+        ];
+
+        const creaturesMap = new Map(creatures.map(creature => [
+            creature.id,
+            creature
+        ]));
+
+        const selector = {
+            createRandomCreature() {
+                return Creature.createRandom();
+            },
+
+            isMateSuccessful() {
+                return true;
+            },
+
+            shouldSpawnFood() {
+                return false;
+            }
+        };
+
+        const environment = new Environment(
+            map,
+            creaturesMap,
+            selector,
+            options);
+
+        environment.process(1);
+
+        let json = environment.toJSON();
+        let expectedEggs = json.map.eggs;
+        expect(expectedEggs).to.have.lengthOf(1);
+        expect(expectedEggs).to.deep.include.members([
+            {
+                creature: '0000100002',
+                elapsedGestationTime: 0,
+                gestationTime: 15,
+                initiatorId: '00001',
+                otherId: '00002'
+            }
+        ]);
+
+        expect(options.onEggCreated.calledWithMatch(
+            {
+                creature: new MockCreature('0000100002'),
+                elapsedGestationTime: 0,
+                gestationTime: 15,
+                x: 0,
+                y: 0
+            },
+            creatures[0],
+            creatures[1],
+            1
+        )).to.be.true;
+
+        environment.process(1);
+
+        json = environment.toJSON();
+        expectedEggs = json.map.eggs;
+        expect(expectedEggs).to.have.lengthOf(1);
+        expect(expectedEggs).to.deep.include.members([
+            {
+                creature: '0000100002',
+                elapsedGestationTime: 1,
+                gestationTime: 15,
+                initiatorId: '00001',
+                otherId: '00002'
+            }
+        ]);
+
+        expect(options.onEggDestroyed.notCalled).to.be.true;
+    });
+
     it('gestates eggs when their elapsed time is greater than their gestation time', function() {
         const options = {
             minimumCarnivores: 0,
@@ -1670,12 +1789,14 @@ describe('Environment', function() {
             {
                 creature: '00001',
                 elapsedGestationTime: 14,
-                gestationTime: 15
+                gestationTime: 15,
+                initiatorId: '99999'
             },
             {
                 creature: '00002',
                 elapsedGestationTime: 10,
-                gestationTime: 15
+                gestationTime: 15,
+                initiatorId: '99999'
             }
         ];
 
@@ -1707,7 +1828,9 @@ describe('Environment', function() {
             {
                 creature: '00002',
                 elapsedGestationTime: 11,
-                gestationTime: 15
+                gestationTime: 15,
+                initiatorId: '99999',
+                otherId: undefined
             }
         ]);
 

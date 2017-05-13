@@ -3,6 +3,7 @@ import { squareDistance } from './../geometry';
 import * as KnownVariables from './../knownVariables';
 
 const defaultOptions = {
+    asexualReproductionCost: 1000,
     eatRadius: 20,
     eggGestationTime: 300,
     foodHealth: 500,
@@ -229,6 +230,8 @@ export default class Environment {
                     creature,
                     elapsedGestationTime: egg.elapsedGestationTime,
                     gestationTime: egg.gestationTime,
+                    initiatorId: egg.initiatorId,
+                    otherId: egg.otherId,
                     x: creature.x,
                     y: creature.y
                 };
@@ -281,31 +284,12 @@ export default class Environment {
                         otherCreature.isAggressive;
 
                     const cooldownTime = this.reproductionCooldown.get(id);
-                    const canInitiateReproduction = canSeeOther &&
-                        !canAttack &&
-                        !canBeAttacked &&
+                    const isReproductionPossible = canSeeOther &&
                         creature.shouldReproduceSexually &&
                         !cooldownTime &&
                         (creature.isCarnivore === otherCreature.isCarnivore);
 
-                    if (canAttack && !canBeAttacked) {
-                        const healthGain = Math.min(
-                            this.options.foodHealth,
-                            otherCreature.health);
-
-                        creature.feed(healthGain);
-                        this.options.onCreatureFed(
-                            creature,
-                            healthGain,
-                            this.simulationTime);
-                    } else if (canBeAttacked) {
-                        creature.harm(this.options.foodHealth);
-                        this.options.onCreatureAttacked(
-                            creature,
-                            otherCreature,
-                            this.options.foodHealth,
-                            this.simulationTime);
-                    } else if (canInitiateReproduction) {
+                    if (isReproductionPossible) {
                         const shouldMate = this.selector.isMateSuccessful(
                             creature,
                             otherCreature);
@@ -321,6 +305,8 @@ export default class Environment {
                                 creature: reproduced,
                                 elapsedGestationTime: 0,
                                 gestationTime: this.options.eggGestationTime,
+                                initiatorId: creature.id,
+                                otherId: otherCreature.id,
                                 x: reproduced.x,
                                 y: reproduced.y
                             };
@@ -342,6 +328,23 @@ export default class Environment {
                                 otherCreature,
                                 this.simulationTime);
                         }
+                    } else if (canAttack && !canBeAttacked) {
+                        const healthGain = Math.min(
+                            this.options.foodHealth,
+                            otherCreature.health);
+
+                        creature.feed(healthGain);
+                        this.options.onCreatureFed(
+                            creature,
+                            healthGain,
+                            this.simulationTime);
+                    } else if (canBeAttacked) {
+                        creature.harm(this.options.foodHealth);
+                        this.options.onCreatureAttacked(
+                            creature,
+                            otherCreature,
+                            this.options.foodHealth,
+                            this.simulationTime);
                     }
                 }
             });
@@ -413,7 +416,19 @@ export default class Environment {
                     nearestFood.rightPeriphery,
                     nearestFood.focus
                 ].
-                filter(food => food && food.distance < this.options.eatRadius).
+                filter(food => {
+                    if (food && (food.distance < this.options.eatRadius)) {
+                        if ((locations === 'eggs') &&
+                            (food.point.initiatorId !== id) &&
+                            (food.point.otherId !== id)) {
+                            return true;
+                        } else if (locations !== 'eggs') {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }).
                 forEach(food => {
                     creature.feed(this.options.foodHealth);
                     this.options.onCreatureFed(
@@ -435,14 +450,19 @@ export default class Environment {
                 });
 
                 const cooldownTime = this.reproductionCooldown.get(id);
-                if (creature.shouldReproduceAsexually && !cooldownTime) {
+                const canReproduceAsexually =
+                    creature.shouldReproduceAsexually &&
+                    !cooldownTime &&
+                    (creature.health > this.options.asexualReproductionCost);
+                if (canReproduceAsexually) {
                     const reproduced = creature.recombine(
                         creature,
-                        creature.health / 2);
+                        3000);
                     const egg = {
                         creature: reproduced,
                         elapsedGestationTime: 0,
                         gestationTime: this.options.eggGestationTime,
+                        initiatorId: creature.id,
                         x: creature.x,
                         y: creature.y
                     };
@@ -455,7 +475,7 @@ export default class Environment {
                         null,
                         this.simulationTime);
 
-                    creature.harm(creature.health / 2);
+                    creature.harm(this.options.asexualReproductionCost);
 
                     this.reproductionCooldown.set(
                         id,
@@ -518,7 +538,9 @@ export default class Environment {
                 eggs: this.map.eggs.map(egg => ({
                     creature: egg.creature.toString(),
                     elapsedGestationTime: Math.floor(egg.elapsedGestationTime),
-                    gestationTime: Math.floor(egg.gestationTime)
+                    gestationTime: Math.floor(egg.gestationTime),
+                    initiatorId: egg.initiatorId,
+                    otherId: egg.otherId
                 })),
                 foodLocations: this.map.foodLocations,
                 height: this.map.height,

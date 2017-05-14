@@ -24,12 +24,12 @@ const parseConstant = encoded => ({
 
 const encodeConstant = value => operators.constant + intToBase64(value);
 
-const parseVariable = encoded => ({
-    operator: operators.variable,
+const parseReal = encoded => ({
+    operator: operators.real,
     data: encoded
 });
 
-const encodeVariable = variable => operators.variable + variable;
+const encodeReal = variable => operators.real + variable;
 
 const isBooleanTree = tree =>
     isBooleanOperator(tree.operator) || isBooleanConnective(tree.operator);
@@ -49,14 +49,14 @@ const parseTree = encoded => {
     let operands = [];
 
     let nextIsBoolean = false;
-    let nextIsVariable = false;
+    let nextIsReal = false;
     let nextIsConstant = false;
     encoded.split('').forEach(c => {
-        if (!nextIsConstant && !nextIsVariable && !nextIsBoolean) {
+        if (!nextIsConstant && !nextIsReal && !nextIsBoolean) {
             if (c === operators.boolean) {
                 nextIsBoolean = true;
-            } else if (c === operators.variable) {
-                nextIsVariable = true;
+            } else if (c === operators.real) {
+                nextIsReal = true;
             } else if (c === operators.constant) {
                 nextIsConstant = true;
             } else if (c === operators.true) {
@@ -112,9 +112,9 @@ const parseTree = encoded => {
         } else if (nextIsConstant) {
             operands.push(parseConstant(c));
             nextIsConstant = false;
-        } else if (nextIsVariable) {
-            operands.push(parseVariable(c));
-            nextIsVariable = false;
+        } else if (nextIsReal) {
+            operands.push(parseReal(c));
+            nextIsReal = false;
         } else {
             throw new Error('Expecting both constant and variable');
         }
@@ -133,8 +133,8 @@ const encodeTree = tree => {
         return encodeBoolean(tree.data);
     } else if (tree.operator === operators.constant) {
         return encodeConstant(tree.data);
-    } else if (tree.operator === operators.variable) {
-        return encodeVariable(tree.data);
+    } else if (tree.operator === operators.real) {
+        return encodeReal(tree.data);
     } else if (tree.operator === operators.true) {
         return 'T';
     }
@@ -187,17 +187,18 @@ const parseOutput = encoded => {
     }
 
     const outputType = encoded[0];
-    if ((outputType !== 'B') && (outputType !== 'V')) {
+    if ((outputType !== operators.boolean) && (outputType !== operators.real)) {
         throw new InvalidDNA('Invalid output type');
     }
 
     return {
-        isBoolean: outputType === 'B',
+        isBoolean: outputType === operators.boolean,
         variable: encoded[1]
     };
 };
 
-const encodeOutput = gene => (gene.isBoolean ? 'B' : 'V') + gene.output;
+const encodeOutput = gene =>
+    (gene.isBoolean ? operators.boolean : operators.real) + gene.output;
 
 const parseCondition = encoded => {
     const tree = parseTree(encoded);

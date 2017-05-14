@@ -10,7 +10,7 @@ const defaultSelector = {
     },
 
     chooseArithmeticOperator() {
-        return DNA.operators.variable;
+        return DNA.operators.real;
     },
 
     chooseBooleanOperator() {
@@ -45,7 +45,7 @@ const defaultSelector = {
         return '0';
     },
 
-    chooseInputVariable() {
+    chooseInputReal() {
         return '0';
     },
 
@@ -61,7 +61,7 @@ const defaultSelector = {
         return '0';
     },
 
-    chooseOutputVariable() {
+    chooseOutputReal() {
         return '0';
     },
 
@@ -128,8 +128,8 @@ exports.default = class MockSelector {
         return this.sequences.chooseInputBoolean();
     }
 
-    chooseInputVariable() {
-        return this.sequences.chooseInputVariable();
+    chooseInputReal() {
+        return this.sequences.chooseInputReal();
     }
 
     chooseLocation() {
@@ -144,8 +144,8 @@ exports.default = class MockSelector {
         return this.sequences.chooseOutputBoolean();
     }
 
-    chooseOutputVariable() {
-        return this.sequences.chooseOutputVariable();
+    chooseOutputReal() {
+        return this.sequences.chooseOutputReal();
     }
 
     chooseSpliceType() {

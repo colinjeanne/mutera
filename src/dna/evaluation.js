@@ -8,8 +8,8 @@ const evaluateTree = (tree, context) => {
     case operators.boolean:
         return context.booleans[tree.data] || false;
 
-    case operators.variable:
-        return context.variables[tree.data] || 0;
+    case operators.real:
+        return context.reals[tree.data] || 0;
 
     case operators.constant:
         return constants[tree.data];
@@ -55,12 +55,12 @@ const evaluateTree = (tree, context) => {
 
 export const evaluateGenes = (genes, input) => {
     const output = {};
-    output.variables = input ? Object.assign({}, input.variables) : {};
+    output.reals = input ? Object.assign({}, input.reals) : {};
     output.booleans = input ? Object.assign({}, input.booleans) : {};
 
     genes.forEach(gene => {
         if (evaluateTree(gene.condition, output)) {
-            const type = gene.isBoolean ? 'booleans': 'variables';
+            const type = gene.isBoolean ? 'booleans': 'reals';
             output[type][gene.output] = evaluateTree(gene.expression, output);
         }
     });

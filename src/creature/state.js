@@ -128,7 +128,7 @@ const knownBooleans = Object.keys(partialStateDefinition).
         partialStateDefinition[property].variable).
     map(property => partialStateDefinition[property].variable);
 
-const knownVariables = Object.keys(partialStateDefinition).
+const knownReals = Object.keys(partialStateDefinition).
     filter(property =>
         !partialStateDefinition[property].isBoolean &&
         partialStateDefinition[property].variable).
@@ -215,7 +215,7 @@ const applyStateChange = (state, current, next, definition, elapsedTime) => {
 };
 
 const typeFromDefinition = definition =>
-    definition.isBoolean ? 'booleans' : 'variables';
+    definition.isBoolean ? 'booleans' : 'reals';
 
 export class StateProcessor {
     constructor(changeInHealthPerTime, mapWidth, mapHeight) {
@@ -271,10 +271,10 @@ export class StateProcessor {
             },
             {});
 
-        const unknownVariables = Object.keys(next.variables).reduce(
+        const unknownReals = Object.keys(next.reals).reduce(
             (aggregate, variable) => {
-                if (knownVariables.indexOf(variable) === -1) {
-                    aggregate[variable] = next.variables[variable];
+                if (knownReals.indexOf(variable) === -1) {
+                    aggregate[variable] = next.reals[variable];
                 }
 
                 return aggregate;
@@ -304,7 +304,7 @@ export class StateProcessor {
             },
             {
                 booleans: unknownBooleans,
-                variables: unknownVariables
+                reals: unknownReals
             });
     }
 }

@@ -5,7 +5,7 @@ export const operators = {
     or: 'O',
     not: 'N',
     true: 'T',
-    variable: 'V',
+    real: 'R',
     constant: 'C',
     boolean: 'B',
     add: 'P',
@@ -23,7 +23,7 @@ export const operatorTypes = {
 
 const operatorsByType = {
     [operatorTypes.arithmetic]: [
-        operators.variable,
+        operators.real,
         operators.constant,
         operators.add,
         operators.subtract,
@@ -63,7 +63,7 @@ const nullaryOperators = [
     operators.boolean,
     operators.constant,
     operators.true,
-    operators.variable
+    operators.real
 ];
 
 const unaryOperators = [

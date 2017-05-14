@@ -12,25 +12,25 @@ describe('Mutation', function() {
     it('can choose zero mutations', function() {
         const selector = new MockSelector();
 
-        const encoded = '16Va1TC0';
+        const encoded = '16Ra1TC0';
         const mutated = mutateDNA(encoded, selector);
         expect(mutated).to.equal(encoded);
     });
 
-    it('can mutate the output variable', function() {
+    it('can mutate the output real', function() {
         const selector = new MockSelector({
             chooseGeneMutationCount() {
                 return 1;
             },
 
-            chooseOutputVariable() {
+            chooseOutputReal() {
                 return 'b';
             }
         });
 
-        const encoded = '16Va1TC0';
+        const encoded = '16Ra1TC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('16Vb1TC0');
+        expect(mutated).to.equal('16Rb1TC0');
     });
 
     it('can mutate the output boolean', function() {
@@ -64,9 +64,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '1AVa5C0C1GC0';
+        const encoded = '1ARa5C0C1GC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('1AVa5C1C0GC0');
+        expect(mutated).to.equal('1ARa5C1C0GC0');
     });
 
     it('can swap nullary boolean for nullary boolean', function() {
@@ -92,9 +92,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TC0';
+        const encoded = '16Ra1TC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('17Va2BaC0');
+        expect(mutated).to.equal('17Ra2BaC0');
     });
 
     it('can swap nullary boolean for unary boolean', function() {
@@ -124,9 +124,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TC0';
+        const encoded = '16Ra1TC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('18Va3BaNC0');
+        expect(mutated).to.equal('18Ra3BaNC0');
     });
 
     it('can swap nullary boolean for binary boolean', function() {
@@ -156,12 +156,12 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TC0';
+        const encoded = '16Ra1TC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('1AVa5BaBaAC0');
+        expect(mutated).to.equal('1ARa5BaBaAC0');
     });
 
-    it('swaps variables for constants', function() {
+    it('swaps reals for constants', function() {
         const selector = new MockSelector({
             chooseAlternateOperator() {
                 return DNA.operators.constant;
@@ -180,15 +180,15 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TVa';
+        const encoded = '16Ra1TRa';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('16Va1TC0');
+        expect(mutated).to.equal('16Ra1TC0');
     });
 
-    it('swaps constants for variables', function() {
+    it('swaps constants for reals', function() {
         const selector = new MockSelector({
             chooseAlternateOperator() {
-                return DNA.operators.variable;
+                return DNA.operators.real;
             },
 
             chooseGeneMutationCount() {
@@ -204,9 +204,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TCa';
+        const encoded = '16Ra1TCa';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('16Va1TV0');
+        expect(mutated).to.equal('16Ra1TR0');
     });
 
     it('can swap unary boolean for nullary boolean', function() {
@@ -228,9 +228,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '17Va2TNC0';
+        const encoded = '17Ra2TNC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('16Va1TC0');
+        expect(mutated).to.equal('16Ra1TC0');
     });
 
     it('swaps arithmetic operators for other arithmetic operators', function() {
@@ -252,9 +252,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '19Va1TC0C1P';
+        const encoded = '19Ra1TC0C1P';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('19Va1TC0C1S');
+        expect(mutated).to.equal('19Ra1TC0C1S');
     });
 
     it('swaps boolean operators for other boolean operators', function() {
@@ -276,9 +276,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '1AVa5C0C1GC0';
+        const encoded = '1ARa5C0C1GC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('1AVa5C0C1LC0');
+        expect(mutated).to.equal('1ARa5C0C1LC0');
     });
 
     it('swaps binary boolean connectives for unary boolean connectives', function() {
@@ -300,9 +300,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '1GVaBC0C1GC0C1LAC0';
+        const encoded = '1GRaBC0C1GC0C1LAC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('1BVa6C0C1GNC0');
+        expect(mutated).to.equal('1BRa6C0C1GNC0');
     });
 
     it('swaps binary boolean connectives for binary boolean connectives', function() {
@@ -324,9 +324,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '1GVaBC0C1GC0C1LAC0';
+        const encoded = '1GRaBC0C1GC0C1LAC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('1GVaBC0C1GC0C1LOC0');
+        expect(mutated).to.equal('1GRaBC0C1GC0C1LOC0');
     });
 
     it('swaps boolean connectives for boolean operators', function() {
@@ -352,9 +352,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '1GVaBC0C1GC0C1LAC0';
+        const encoded = '1GRaBC0C1GC0C1LAC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('1AVa5C0C0GC0');
+        expect(mutated).to.equal('1ARa5C0C0GC0');
     });
 
     it('can duplicate a gene', function() {
@@ -372,15 +372,15 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TC06Va1TC16Va1TC2';
+        const encoded = '16Ra1TC06Ra1TC16Ra1TC2';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('16Va1TC06Va1TC16Va1TC16Va1TC2');
+        expect(mutated).to.equal('16Ra1TC06Ra1TC16Ra1TC16Ra1TC2');
     });
 
     it('can splice in a random gene at the start', function() {
         const selector = new MockSelector({
             chooseAlternateOperator() {
-                return DNA.operators.variable;
+                return DNA.operators.real;
             },
 
             chooseBooleanOperator() {
@@ -391,7 +391,7 @@ describe('Mutation', function() {
                 return 1;
             },
 
-            chooseInputVariable() {
+            chooseInputReal() {
                 return 'a';
             },
 
@@ -399,7 +399,7 @@ describe('Mutation', function() {
                 return 0;
             },
 
-            chooseOutputVariable() {
+            chooseOutputReal() {
                 return 'a';
             },
 
@@ -408,15 +408,15 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TC0';
+        const encoded = '16Ra1TC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('16Va1TVa6Va1TC0');
+        expect(mutated).to.equal('16Ra1TRa6Ra1TC0');
     });
 
     it('can splice in a random gene in the middle', function() {
         const selector = new MockSelector({
             chooseAlternateOperator() {
-                return DNA.operators.variable;
+                return DNA.operators.real;
             },
 
             chooseBooleanOperator() {
@@ -427,7 +427,7 @@ describe('Mutation', function() {
                 return 1;
             },
 
-            chooseInputVariable() {
+            chooseInputReal() {
                 return 'a';
             },
 
@@ -435,7 +435,7 @@ describe('Mutation', function() {
                 return 1;
             },
 
-            chooseOutputVariable() {
+            chooseOutputReal() {
                 return 'a';
             },
 
@@ -444,15 +444,15 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TC06Va1TC1';
+        const encoded = '16Ra1TC06Ra1TC1';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('16Va1TC06Va1TVa6Va1TC1');
+        expect(mutated).to.equal('16Ra1TC06Ra1TRa6Ra1TC1');
     });
 
     it('can splice in a random gene at the end', function() {
         const selector = new MockSelector({
             chooseAlternateOperator() {
-                return DNA.operators.variable;
+                return DNA.operators.real;
             },
 
             chooseBooleanOperator() {
@@ -463,7 +463,7 @@ describe('Mutation', function() {
                 return 1;
             },
 
-            chooseInputVariable() {
+            chooseInputReal() {
                 return 'a';
             },
 
@@ -471,7 +471,7 @@ describe('Mutation', function() {
                 return 1;
             },
 
-            chooseOutputVariable() {
+            chooseOutputReal() {
                 return 'a';
             },
 
@@ -480,9 +480,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TC0';
+        const encoded = '16Ra1TC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('16Va1TC06Va1TVa');
+        expect(mutated).to.equal('16Ra1TC06Ra1TRa');
     });
 
     it('can delete a gene', function() {
@@ -500,9 +500,9 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TC06Va1TC16Va1TC2';
+        const encoded = '16Ra1TC06Ra1TC16Ra1TC2';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('16Va1TC06Va1TC2');
+        expect(mutated).to.equal('16Ra1TC06Ra1TC2');
     });
 
     it('will not delete the only gene', function() {
@@ -520,8 +520,8 @@ describe('Mutation', function() {
             }
         });
 
-        const encoded = '16Va1TC0';
+        const encoded = '16Ra1TC0';
         const mutated = mutateDNA(encoded, selector);
-        expect(mutated).to.equal('16Va1TC0');
+        expect(mutated).to.equal('16Ra1TC0');
     });
 });

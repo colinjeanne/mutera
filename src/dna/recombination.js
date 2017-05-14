@@ -53,7 +53,7 @@ const mutateOutput = (gene, selector) => {
     if (gene.isBoolean) {
         gene.output = selector.chooseOutputBoolean();
     } else {
-        gene.output = selector.chooseOutputVariable();
+        gene.output = selector.chooseOutputReal();
     }
 };
 
@@ -81,8 +81,8 @@ const replaceTree = (tree, selector) => {
         tree.data = selector.chooseInputBoolean();
     } else if (tree.operator === Constants.operators.constant) {
         tree.data = tree.data = selector.chooseConstant();
-    } else if (tree.operator === Constants.operators.variable) {
-        tree.data = selector.chooseInputVariable();
+    } else if (tree.operator === Constants.operators.real) {
+        tree.data = selector.chooseInputReal();
     } else if (tree.operator === Constants.operators.not) {
         tree.lhs = lhs ? lhs : randomBooleanTree(selector, tree.depth + 1);
     } else if (Constants.isBooleanConnective(tree.operator)) {
@@ -127,8 +127,8 @@ const randomArithmeticTree = (selector, depth) => {
 
     if (operator === Constants.operators.constant) {
         tree.data = selector.chooseConstant();
-    } else if (operator === Constants.operators.variable) {
-        tree.data = selector.chooseInputVariable();
+    } else if (operator === Constants.operators.real) {
+        tree.data = selector.chooseInputReal();
     } else {
         tree.lhs = randomArithmeticTree(selector, depth + 1);
         tree.rhs = randomArithmeticTree(selector, depth + 1);
@@ -141,7 +141,7 @@ const randomGene = selector => {
     const isBoolean = selector.chooseGeneIsBoolean();
     const output = isBoolean ?
         selector.chooseOutputBoolean() :
-        selector.chooseOutputVariable();
+        selector.chooseOutputReal();
     const condition = randomBooleanTree(selector, 0);
     const expression = isBoolean ?
         randomBooleanTree(selector, 0) :

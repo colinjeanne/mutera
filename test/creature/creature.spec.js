@@ -86,7 +86,7 @@ describe('Creature', function() {
             health: '21',
             color: '7',
             isCarnivore: '1',
-            dna: '16Va1TC1'
+            dna: '16Ra1TC1'
         });
 
         expect(creature.header).to.deep.equal({ version: '1' });
@@ -104,12 +104,12 @@ describe('Creature', function() {
         expect(creature.isGreen).to.be.true;
         expect(creature.isBlue).to.be.true;
         expect(creature.isCarnivore).to.be.true;
-        expect(creature.dna.toString()).to.equal('16Va1TC1');
+        expect(creature.dna.toString()).to.equal('16Ra1TC1');
     });
 
     it('can convert to a string', function() {
         const creature = makeCreature({});
-        expect('' + creature).to.equal('100000000000000000000000016Va1TC0');
+        expect('' + creature).to.equal('100000000000000000000000016Ra1TC0');
     });
 
     it('converts fields to integers before serialization', function() {
@@ -117,7 +117,7 @@ describe('Creature', function() {
             velocity: '80',
             x: '00A0',
             y: '00A0',
-            dna: '16Vs1TCa'
+            dna: '16Rs1TCa'
         });
 
         expect(creature.isMoving).to.be.true;
@@ -128,18 +128,18 @@ describe('Creature', function() {
         expect(creature.y).to.equal(640);
 
         expect(creature.toString()).
-            to.equal('1000000000000A100A080000016Vs1TCa');
+            to.equal('1000000000000A100A080000016Rs1TCa');
     });
 
     it('ignores changes made to relevant state variables', function() {
         const creature = makeCreature({
             health: '20',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         creature.process(
             {
-                variables: { Q: 0.5 }
+                reals: { Q: 0.5 }
             },
             1);
         expect(creature.angle).to.equal(0);
@@ -151,7 +151,7 @@ describe('Creature', function() {
     it('ignores attempts to set dependent variables directly', function() {
         const creature = makeCreature({
             health: '20',
-            dna: '16Vs1TC_'
+            dna: '16Rs1TC_'
         });
 
         creature.process({}, 1);
@@ -161,7 +161,7 @@ describe('Creature', function() {
     it('ages with each process', function() {
         const creature = makeCreature({
             age: '000A0',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         creature.process({}, 1);
@@ -174,7 +174,7 @@ describe('Creature', function() {
     it('loses health over time', function() {
         const creature = makeCreature({
             health: '40',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         creature.process({}, 1);
@@ -217,7 +217,7 @@ describe('Creature', function() {
     it('caps maximum health', function() {
         const creature = makeCreature({
             health: '_w',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         expect(creature.health).to.equal(4090);
@@ -229,7 +229,7 @@ describe('Creature', function() {
     it('caps minimum health', function() {
         const creature = makeCreature({
             health: '0A',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         creature.process({}, 1);
@@ -250,7 +250,7 @@ describe('Creature', function() {
     it('can be harmed', function() {
         const creature = makeCreature({
             health: '0W',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         expect(creature.health).to.equal(32);
@@ -262,7 +262,7 @@ describe('Creature', function() {
     it('can be fed', function() {
         const creature = makeCreature({
             health: '0A',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         expect(creature.health).to.equal(10);
@@ -276,7 +276,7 @@ describe('Creature', function() {
             velocity: '80',
             x: '00A0',
             y: '00A0',
-            dna: '16Vs1TCe'
+            dna: '16Rs1TCe'
         });
 
         expect(creature.isMoving).be.true;
@@ -297,7 +297,7 @@ describe('Creature', function() {
     it('can rotate', function() {
         const creature = makeCreature({
             velocity: '24',
-            dna: '1CVA1TC_C_MC_M'
+            dna: '1CRA1TC_C_MC_M'
         });
 
         expect(creature.angle).to.closeTo(1.620, 0.001);
@@ -311,7 +311,7 @@ describe('Creature', function() {
             velocity: '00',
             x: '00A0',
             y: '00A0',
-            dna: '1FVA1TC0CWDC0CWDS'
+            dna: '1FRA1TC0CWDC0CWDS'
         });
 
         expect(creature.angle).to.equal(0);
@@ -323,7 +323,7 @@ describe('Creature', function() {
     it('can rotate all the way around clockwise', function() {
         const creature = makeCreature({
             velocity: '04',
-            dna: '1CVA1TC0C0MC0M'
+            dna: '1CRA1TC0C0MC0M'
         });
 
         expect(creature.angle).to.closeTo(0.049, 0.001);
@@ -335,7 +335,7 @@ describe('Creature', function() {
     it('can rotate all the way around counterclockwise', function() {
         const creature = makeCreature({
             velocity: '74',
-            dna: '1CVA1TC_C_MC_M'
+            dna: '1CRA1TC_C_MC_M'
         });
 
         expect(creature.angle).to.closeTo(5.547, 0.001);
@@ -348,7 +348,7 @@ describe('Creature', function() {
         const creature = makeCreature({
             velocity: '80',
             x: '00FY',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         expect(creature.speed).to.equal(0);
@@ -365,7 +365,7 @@ describe('Creature', function() {
         const creature = makeCreature({
             velocity: 'C0',
             x: '0006',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         expect(creature.speed).to.equal(0);
@@ -382,7 +382,7 @@ describe('Creature', function() {
         const creature = makeCreature({
             velocity: 'A0',
             y: '00FY',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         expect(creature.speed).to.equal(0);
@@ -399,7 +399,7 @@ describe('Creature', function() {
         const creature = makeCreature({
             velocity: 'E0',
             y: '0006',
-            dna: '16VQ1TC0'
+            dna: '16RQ1TC0'
         });
 
         expect(creature.speed).to.equal(0);
@@ -419,7 +419,7 @@ describe('Creature', function() {
             },
 
             createRandomDNA() {
-                return new DNA('16V01TV0');
+                return new DNA('16R01TR0');
             },
 
             generateUniqueId() {
@@ -428,7 +428,7 @@ describe('Creature', function() {
         };
 
         const creature = Creature.createRandom({ isCarnivore: true, selector });
-        expect(creature.toString()).to.equal('100000000000000000000ku0116V01TV0');
+        expect(creature.toString()).to.equal('100000000000000000000ku0116R01TR0');
     });
 
     it('cannot see more than pi/4 radians to the left', function() {
@@ -541,7 +541,7 @@ describe('Creature', function() {
 
     it('keeps state variables that are not part of the standard set', function() {
         const creature = makeCreature({
-            dna: '1AVA5VQC0GCm'
+            dna: '1ARA5RQC0GCm'
         });
 
         expect(creature.state.Q).to.be.undefined;
@@ -549,12 +549,12 @@ describe('Creature', function() {
         creature.process(
             {
                 booleans: { Z: true },
-                variables: { Q: 1 }
+                reals: { Q: 1 }
             },
             1);
 
         expect(creature.state.booleans.Z).to.be.true;
-        expect(creature.state.variables.Q).to.equal(1);
+        expect(creature.state.reals.Q).to.equal(1);
     });
 
     it('can choose to reproduce asexually', function() {

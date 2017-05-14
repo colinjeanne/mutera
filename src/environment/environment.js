@@ -140,7 +140,7 @@ const nearestVisibleCreatures = relationships => {
 
 const nearestVisibleCreaturesInputData = (relationships, creatures) => {
     const booleans = {};
-    const variables = {};
+    const reals = {};
 
     const nearestCreatures = nearestVisibleCreatures(relationships, creatures);
 
@@ -161,12 +161,12 @@ const nearestVisibleCreaturesInputData = (relationships, creatures) => {
 
         if (nearest) {
             const nearestCreature = creatures.get(nearest.id);
-            variables[distanceVariable] = nearest.distance;
+            reals[distanceVariable] = nearest.distance;
             colors.forEach(color => {
                 booleans[KnownVariables[color[0]]] = nearestCreature[color[1]];
             });
         } else {
-            variables[distanceVariable] = -1;
+            reals[distanceVariable] = -1;
             colors.forEach(color => {
                 booleans[KnownVariables[color[0]]] = false;
             });
@@ -175,7 +175,7 @@ const nearestVisibleCreaturesInputData = (relationships, creatures) => {
 
     return {
         booleans,
-        variables
+        reals
     };
 };
 
@@ -198,7 +198,7 @@ const totalAudioEffects = (relationships, creatures) =>
         });
 
 const audioEffectsInputData = (relationships, creatures) => {
-    const variables = {};
+    const reals = {};
     const audioEffects = totalAudioEffects(relationships, creatures);
 
     [
@@ -207,11 +207,11 @@ const audioEffectsInputData = (relationships, creatures) => {
         ['back', KnownVariables.backSound],
         ['right', KnownVariables.rightSound]
     ].forEach(([property, variable]) => {
-        variables[variable] = audioEffects[property];
+        reals[variable] = audioEffects[property];
     });
 
     return {
-        variables
+        reals
     };
 };
 
@@ -364,7 +364,7 @@ export default class Environment {
 
             const input = {
                 booleans: {},
-                variables: {}
+                reals: {}
             };
 
             const locations = creature.isCarnivore ? 'eggs' : 'foodLocations';
@@ -372,24 +372,24 @@ export default class Environment {
             const nearestFood =
                 nearestVisibleObject(creature, this.map[locations]);
             if (nearestFood.leftPeriphery) {
-                input.variables[KnownVariables.nearestLeftPeripheryFoodDistance] =
+                input.reals[KnownVariables.nearestLeftPeripheryFoodDistance] =
                     nearestFood.leftPeriphery.distance;
             } else {
-                input.variables[KnownVariables.nearestLeftPeripheryFoodDistance] = -1;
+                input.reals[KnownVariables.nearestLeftPeripheryFoodDistance] = -1;
             }
 
             if (nearestFood.rightPeriphery) {
-                input.variables[KnownVariables.nearestRightPeripheryFoodDistance] =
+                input.reals[KnownVariables.nearestRightPeripheryFoodDistance] =
                     nearestFood.rightPeriphery.distance;
             } else {
-                input.variables[KnownVariables.nearestRightPeripheryFoodDistance] = -1;
+                input.reals[KnownVariables.nearestRightPeripheryFoodDistance] = -1;
             }
 
             if (nearestFood.focus) {
-                input.variables[KnownVariables.nearestFocusFoodDistance] =
+                input.reals[KnownVariables.nearestFocusFoodDistance] =
                     nearestFood.focus.distance;
             } else {
-                input.variables[KnownVariables.nearestFocusFoodDistance] = -1;
+                input.reals[KnownVariables.nearestFocusFoodDistance] = -1;
             }
 
             const relationships = relations.get(creature.id);
@@ -398,13 +398,13 @@ export default class Environment {
                 this.creatures);
 
             Object.assign(input.booleans, nearestCreaturesInput.booleans);
-            Object.assign(input.variables, nearestCreaturesInput.variables);
+            Object.assign(input.reals, nearestCreaturesInput.reals);
 
             const audioEffects = audioEffectsInputData(
                 relationships,
                 this.creatures);
 
-            Object.assign(input.variables, audioEffects.variables);
+            Object.assign(input.reals, audioEffects.reals);
 
             creature.process(input, elapsedTime);
 

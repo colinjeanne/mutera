@@ -257,7 +257,7 @@ describe('Environment', function() {
 
         expect(creature.lastInput).to.contain.all.keys({
             booleans: {},
-            variables: {
+            reals: {
                 l: 10,
                 r: -1,
                 f: -1
@@ -322,7 +322,7 @@ describe('Environment', function() {
 
         expect(creature.lastInput).to.contain.all.keys({
             booleans: {},
-            variables: {
+            reals: {
                 l: -1,
                 r: 10,
                 f: -1
@@ -387,7 +387,7 @@ describe('Environment', function() {
 
         expect(creature.lastInput).to.contain.all.keys({
             booleans: {},
-            variables: {
+            reals: {
                 l: -1,
                 r: -1,
                 f: 10
@@ -496,9 +496,9 @@ describe('Environment', function() {
 
         environment.process(1);
 
-        expect(carnivore.lastInput.variables.f).to.equal(10);
+        expect(carnivore.lastInput.reals.f).to.equal(10);
         expect(carnivore.lastFoodHealth).to.equal(100);
-        expect(herbivore.lastInput.variables.f).to.equal(10);
+        expect(herbivore.lastInput.reals.f).to.equal(10);
         expect(herbivore.lastFoodHealth).to.equal(100);
 
         const json = environment.toJSON();
@@ -588,7 +588,7 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastInput.booleans.I).to.be.true;
-        expect(creature.lastInput.variables.H).to.equal(10);
+        expect(creature.lastInput.reals.H).to.equal(10);
     });
 
     it('provides the distance and color to the nearest right periphery creature', function() {
@@ -655,7 +655,7 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastInput.booleans.M).to.be.true;
-        expect(creature.lastInput.variables.L).to.equal(10);
+        expect(creature.lastInput.reals.L).to.equal(10);
     });
 
     it('provides the distance and color to the nearest focus creature', function() {
@@ -722,7 +722,7 @@ describe('Environment', function() {
         environment.process(3);
 
         expect(creature.lastInput.booleans.Q).to.be.true;
-        expect(creature.lastInput.variables.P).to.equal(10);
+        expect(creature.lastInput.reals.P).to.equal(10);
     });
 
     it('provides no information about food or creatures if none are visible', function() {
@@ -782,7 +782,7 @@ describe('Environment', function() {
 
         expect(creature.lastInput).to.contain.all.keys({
             booleans: {},
-            variables: {
+            reals: {
                 l: -1,
                 r: -1,
                 f: -1,
@@ -854,7 +854,7 @@ describe('Environment', function() {
 
         expect(creature.lastInput).to.contain.all.keys({
             booleans: {},
-            variables: {
+            reals: {
                 W: 1,
                 X: 2,
                 Y: 3,

@@ -22,45 +22,45 @@ describe('Parsing genes', function() {
     });
 
     it('must have a condition', function() {
-        expect(() => new DNA.DNA('12Vd')).to.throw('Invalid length');
+        expect(() => new DNA.DNA('12Rd')).to.throw('Invalid length');
     });
 
     it('must have a valid condition length', function() {
-        expect(() => new DNA.DNA('14Vd2T')).to.throw('Giant condition');
+        expect(() => new DNA.DNA('14Rd2T')).to.throw('Giant condition');
     });
 
     it('must have an expression', function() {
-        expect(() => new DNA.DNA('14Vd1T')).
+        expect(() => new DNA.DNA('14Rd1T')).
             to.throw('Gene missing expression');
     });
 
     it('must have a boolean operator a condition root', function() {
-        expect(() => new DNA.DNA('17Vd2C0C0')).
+        expect(() => new DNA.DNA('17Rd2C0C0')).
             to.throw('Condition must be boolean');
-        expect(() => new DNA.DNA('17Vd2VaC0')).
+        expect(() => new DNA.DNA('17Rd2RaC0')).
             to.throw('Condition must be boolean');
-        expect(() => new DNA.DNA('1AVd5C0C0PC0')).
+        expect(() => new DNA.DNA('1ARd5C0C0PC0')).
             to.throw('Condition must be boolean');
-        expect(() => new DNA.DNA('1AVd5C0C0SC0')).
+        expect(() => new DNA.DNA('1ARd5C0C0SC0')).
             to.throw('Condition must be boolean');
-        expect(() => new DNA.DNA('1AVd5C0C0MC0')).
+        expect(() => new DNA.DNA('1ARd5C0C0MC0')).
             to.throw('Condition must be boolean');
-        expect(() => new DNA.DNA('1AVd5C0C0DC0')).
+        expect(() => new DNA.DNA('1ARd5C0C0DC0')).
             to.throw('Condition must be boolean');
     });
 
     it('must have an arithmetic operator as an expression root for arithmetic genes', function() {
-        expect(() => new DNA.DNA('19Vd1TC0C0G')).
+        expect(() => new DNA.DNA('19Rd1TC0C0G')).
             to.throw('Expression type must match output type');
-        expect(() => new DNA.DNA('19Vd1TC0C0L')).
+        expect(() => new DNA.DNA('19Rd1TC0C0L')).
             to.throw('Expression type must match output type');
-        expect(() => new DNA.DNA('1FVd1TC0C0LC0C0GA')).
+        expect(() => new DNA.DNA('1FRd1TC0C0LC0C0GA')).
             to.throw('Expression type must match output type');
-        expect(() => new DNA.DNA('1FVd1TC0C0LC0C0GO')).
+        expect(() => new DNA.DNA('1FRd1TC0C0LC0C0GO')).
             to.throw('Expression type must match output type');
-        expect(() => new DNA.DNA('1AVd1TC0C0LN')).
+        expect(() => new DNA.DNA('1ARd1TC0C0LN')).
             to.throw('Expression type must match output type');
-        expect(() => new DNA.DNA('15Vd1TT')).
+        expect(() => new DNA.DNA('15Rd1TT')).
             to.throw('Expression type must match output type');
     });
 
@@ -75,13 +75,13 @@ describe('Parsing genes', function() {
             to.throw('Expression type must match output type');
         expect(() => new DNA.DNA('16Bd1TC0')).
             to.throw('Expression type must match output type');
-        expect(() => new DNA.DNA('16Bd1TV0')).
+        expect(() => new DNA.DNA('16Bd1TR0')).
             to.throw('Expression type must match output type');
     });
 
     it('may use extensions', function() {
         const dna = new DNA.DNA(
-            '107Vd01C0C0GNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNC0');
+            '107Rd01C0C0GNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNC0');
 
         const condition = {
             operator: 'N',
@@ -138,11 +138,11 @@ describe('Encoding', function() {
     };
 
     it('encodes constants', function() {
-        validateEncoding('16Va1TC0');
+        validateEncoding('16Ra1TC0');
     });
 
-    it('encodes variables', function() {
-        validateEncoding('16Va1TVa');
+    it('encodes reals', function() {
+        validateEncoding('16Ra1TRa');
     });
 
     it('encodes booleans', function() {
@@ -151,18 +151,18 @@ describe('Encoding', function() {
 
     it('encodes extended lengths', function() {
         validateEncoding(
-            '107Vd01C0C0GNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNC0');
+            '107Rd01C0C0GNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNC0');
     });
 
     it('encodes unary operators', function() {
-        validateEncoding('17Va2TNC0');
+        validateEncoding('17Ra2TNC0');
     });
 
     it('encodes binary operators', function() {
-        validateEncoding('1AVa5VbVcGC0');
+        validateEncoding('1ARa5RbRcGC0');
     });
 
     it('encodes multiple genes', function() {
-        validateEncoding('16Va1TC06Vb1TCY');
+        validateEncoding('16Ra1TC06Rb1TCY');
     });
 });

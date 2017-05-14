@@ -162,7 +162,7 @@ describe('Creature recombination', function() {
             }
 
             recombine() {
-                return new DNA('16V01TC0');
+                return new DNA('16R01TC0');
             }
 
             toString() {
@@ -177,6 +177,6 @@ describe('Creature recombination', function() {
         const second = makeCreature({}, selector, makeDNA);
 
         const child = first.recombine(second, 3000);
-        expect(child.dna.toString()).to.equal('16V01TC0');
+        expect(child.dna.toString()).to.equal('16R01TC0');
     });
 });

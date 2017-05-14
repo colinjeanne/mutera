@@ -22,7 +22,7 @@ const defaultMutationRates = {
     ]),
     geneBooleanRate: 0.5,
     inputBooleans: base64Values,
-    inputVariables: base64Values,
+    inputReals: base64Values,
     maximumGeneCount: 15,
     maximumTreeDepth: 5,
     mutationsPerGene: new Map([
@@ -33,7 +33,7 @@ const defaultMutationRates = {
         [4, 1]
     ]),
     outputBooleans: base64Values,
-    outputVariables: base64Values,
+    outputReals: base64Values,
     primaryParentGeneSelection: 0.5,
     spliceRates: new Map([
         [Constants.spliceType.delete, 0.33],
@@ -62,10 +62,10 @@ export default class GenericSelector {
                 operator => operator !== Constants.operators.boolean);
         }
 
-        if (alternates.includes(Constants.operators.variable) &&
-            (this.mutationRates.inputVariables.length === 0)) {
+        if (alternates.includes(Constants.operators.real) &&
+            (this.mutationRates.inputReals.length === 0)) {
             alternates = alternates.filter(
-                operator => operator !== Constants.operators.variable);
+                operator => operator !== Constants.operators.real);
         }
 
         if (this.shouldTerminate(depth)) {
@@ -82,9 +82,9 @@ export default class GenericSelector {
             Constants.selectOperators(Constants.operatorTypes.arithmetic, 0) :
             Constants.selectOperators(Constants.operatorTypes.arithmetic, 2);
 
-        if (this.mutationRates.inputVariables.length === 0) {
+        if (this.mutationRates.inputReals.length === 0) {
             operators = operators.filter(operator =>
-                operator !== Constants.operators.variable);
+                operator !== Constants.operators.real);
         }
 
         return Random.chooseOne(operators, Math.random);
@@ -145,8 +145,8 @@ export default class GenericSelector {
         return Random.chooseOne(this.mutationRates.inputBooleans, Math.random);
     }
 
-    chooseInputVariable() {
-        return Random.chooseOne(this.mutationRates.inputVariables, Math.random);
+    chooseInputReal() {
+        return Random.chooseOne(this.mutationRates.inputReals, Math.random);
     }
 
     chooseLocation(max) {
@@ -169,10 +169,8 @@ export default class GenericSelector {
         return Random.chooseOne(this.mutationRates.outputBooleans, Math.random);
     }
 
-    chooseOutputVariable() {
-        return Random.chooseOne(
-            this.mutationRates.outputVariables,
-            Math.random);
+    chooseOutputReal() {
+        return Random.chooseOne(this.mutationRates.outputReals, Math.random);
     }
 
     chooseSpliceType(genes) {

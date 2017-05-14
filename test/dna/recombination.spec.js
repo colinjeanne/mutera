@@ -20,9 +20,9 @@ describe('Recombination', function() {
             }
         });
 
-        const encodedPrimary = '16Va1TC06Vb1TC16Vc1TC2';
-        const encodedSecondary = '16Vd1TV06Ve1TV16Vf1TV2';
-        const expected = '16Va1TC06Vb1TC16Vf1TV2';
+        const encodedPrimary = '16Ra1TC06Rb1TC16Rc1TC2';
+        const encodedSecondary = '16Rd1TR06Re1TR16Rf1TR2';
+        const expected = '16Ra1TC06Rb1TC16Rf1TR2';
         validate(encodedPrimary, encodedSecondary, selector, expected);
     });
 
@@ -37,9 +37,9 @@ describe('Recombination', function() {
             }
         });
 
-        const encodedPrimary = '16Va1TC06Vb1TC16Vc1TC2';
-        const encodedSecondary = '16Vd1TV0';
-        const expected = '16Vd1TV06Vb1TC16Vc1TC2';
+        const encodedPrimary = '16Ra1TC06Rb1TC16Rc1TC2';
+        const encodedSecondary = '16Rd1TR0';
+        const expected = '16Rd1TR06Rb1TC16Rc1TC2';
         validate(encodedPrimary, encodedSecondary, selector, expected);
     });
 
@@ -50,18 +50,18 @@ describe('Recombination', function() {
             }
         });
 
-        const encodedPrimary = '16Va1TC0';
-        const encodedSecondary = '16Vd1TV06Ve1TV16Vf1TV2';
-        const expected = '16Va1TC06Ve1TV16Vf1TV2';
+        const encodedPrimary = '16Ra1TC0';
+        const encodedSecondary = '16Rd1TR06Re1TR16Rf1TR2';
+        const expected = '16Ra1TC06Re1TR16Rf1TR2';
         validate(encodedPrimary, encodedSecondary, selector, expected);
     });
 
     it('can ignore excess genes from the primary', function() {
         const selector = new MockSelector();
 
-        const encodedPrimary = '16Va1TC06Vb1TC16Vc1TC2';
-        const encodedSecondary = '16Vd1TV0';
-        const expected = '16Va1TC0';
+        const encodedPrimary = '16Ra1TC06Rb1TC16Rc1TC2';
+        const encodedSecondary = '16Rd1TR0';
+        const expected = '16Ra1TC0';
         validate(encodedPrimary, encodedSecondary, selector, expected);
     });
 
@@ -72,9 +72,9 @@ describe('Recombination', function() {
             }
         });
 
-        const encodedPrimary = '16Va1TC0';
-        const encodedSecondary = '16Vd1TV06Ve1TV16Vf1TV2';
-        const expected = '16Vd1TV0';
+        const encodedPrimary = '16Ra1TC0';
+        const encodedSecondary = '16Rd1TR06Re1TR16Rf1TR2';
+        const expected = '16Rd1TR0';
         validate(encodedPrimary, encodedSecondary, selector, expected);
     });
 });

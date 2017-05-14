@@ -21,40 +21,40 @@ describe('DNA', function() {
     });
 
     it('can process constants', function() {
-        const dna = new DNA.DNA('16Va1TCV');
+        const dna = new DNA.DNA('16Ra1TCV');
         const output = dna.process({});
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: -0.125 }
+            reals: { a: -0.125 }
         });
     });
 
-    it('can process variables', function() {
-        const dna = new DNA.DNA('16Va1TVb');
+    it('can process reals', function() {
+        const dna = new DNA.DNA('16Ra1TRb');
         const output = dna.process({
-            variables: { b: 1 }
+            reals: { b: 1 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: 1, b: 1 }
+            reals: { a: 1, b: 1 }
         });
     });
 
-    it('default variable values to 0', function() {
-        const dna = new DNA.DNA('16Va1TVb');
+    it('default real values to 0', function() {
+        const dna = new DNA.DNA('16Ra1TRb');
         const output = dna.process({});
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: 0 }
+            reals: { a: 0 }
         });
     });
 
-    it('does not return unset variables', function() {
-        const dna = new DNA.DNA('1AVa5C0CzGC0');
+    it('does not return unset reals', function() {
+        const dna = new DNA.DNA('1ARa5C0CzGC0');
         const output = dna.process();
         expect(output).to.deep.equal({
             booleans: {},
-            variables: {}
+            reals: {}
         });
     });
 
@@ -65,7 +65,7 @@ describe('DNA', function() {
         });
         expect(output).to.deep.equal({
             booleans: { a: true, b: true },
-            variables: {}
+            reals: {}
         });
     });
 
@@ -74,7 +74,7 @@ describe('DNA', function() {
         const output = dna.process({});
         expect(output).to.deep.equal({
             booleans: { a: false },
-            variables: {}
+            reals: {}
         });
     });
 
@@ -83,152 +83,152 @@ describe('DNA', function() {
         const output = dna.process();
         expect(output).to.deep.equal({
             booleans: {},
-            variables: {}
+            reals: {}
         });
     });
 
     it('overwrite outputs', function() {
-        const dna = new DNA.DNA('16Va1TC06Va1TCX');
+        const dna = new DNA.DNA('16Ra1TC06Ra1TCX');
         const output = dna.process();
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: 0.125 }
+            reals: { a: 0.125 }
         });
     });
 
     it('return multiple outputs', function() {
-        const dna = new DNA.DNA('16Va1TC06Vb1TCY');
+        const dna = new DNA.DNA('16Ra1TC06Rb1TCY');
         const output = dna.process();
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: -4, b: 0.25 }
+            reals: { a: -4, b: 0.25 }
         });
     });
 
     it('can add', function() {
-        const dna = new DNA.DNA('19Va1TVbVcP');
+        const dna = new DNA.DNA('19Ra1TRbRcP');
         const output = dna.process({
-            variables: { b: 0.125, c: 0.25 }
+            reals: { b: 0.125, c: 0.25 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: 0.375, b: 0.125, c: 0.25 }
+            reals: { a: 0.375, b: 0.125, c: 0.25 }
         });
     });
 
     it('can subtract', function() {
-        const dna = new DNA.DNA('19Va1TVbVcS');
+        const dna = new DNA.DNA('19Ra1TRbRcS');
         const output = dna.process({
-            variables: { b: 0.125, c: 0.25 }
+            reals: { b: 0.125, c: 0.25 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: -0.125, b: 0.125, c: 0.25 }
+            reals: { a: -0.125, b: 0.125, c: 0.25 }
         });
     });
 
     it('can multiply', function() {
-        const dna = new DNA.DNA('19Va1TVbVcM');
+        const dna = new DNA.DNA('19Ra1TRbRcM');
         const output = dna.process({
-            variables: { b: 0.125, c: 0.25 }
+            reals: { b: 0.125, c: 0.25 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: 0.03125, b: 0.125, c: 0.25 }
+            reals: { a: 0.03125, b: 0.125, c: 0.25 }
         });
     });
 
     it('can divide', function() {
-        const dna = new DNA.DNA('19Va1TVbVcD');
+        const dna = new DNA.DNA('19Ra1TRbRcD');
         const output = dna.process({
-            variables: { b: 0.125, c: 0.25 }
+            reals: { b: 0.125, c: 0.25 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: 0.5, b: 0.125, c: 0.25 }
+            reals: { a: 0.5, b: 0.125, c: 0.25 }
         });
     });
 
     it('can measure greater than', function() {
-        const dna = new DNA.DNA('1AVa5VbVcGC0');
+        const dna = new DNA.DNA('1ARa5RbRcGC0');
         const output = dna.process({
-            variables: { b: 0.5, c: 0.25 }
+            reals: { b: 0.5, c: 0.25 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: -4, b: 0.5, c: 0.25 }
+            reals: { a: -4, b: 0.5, c: 0.25 }
         });
     });
 
     it('can measure less than', function() {
-        const dna = new DNA.DNA('1AVa5VbVcLC0');
+        const dna = new DNA.DNA('1ARa5RbRcLC0');
         const output = dna.process({
-            variables: { b: 0.125, c: 0.25 }
+            reals: { b: 0.125, c: 0.25 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: -4, b: 0.125, c: 0.25 }
+            reals: { a: -4, b: 0.125, c: 0.25 }
         });
     });
 
     it('can combine conditions with and', function() {
-        const dna = new DNA.DNA('1GVaBVbVcGVcVbLAC0');
+        const dna = new DNA.DNA('1GRaBRbRcGRcRbLAC0');
         const output = dna.process({
-            variables: { b: 0.5, c: 0.25 }
+            reals: { b: 0.5, c: 0.25 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: -4, b: 0.5, c: 0.25 }
+            reals: { a: -4, b: 0.5, c: 0.25 }
         });
     });
 
     it('can combine conditions with or', function() {
-        let dna = new DNA.DNA('1GVaBVbVcGVcVbGOC0');
+        let dna = new DNA.DNA('1GRaBRbRcGRcRbGOC0');
         let output = dna.process({
-            variables: { b: 0.5, c: 0.25 }
+            reals: { b: 0.5, c: 0.25 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: -4, b: 0.5, c: 0.25 }
+            reals: { a: -4, b: 0.5, c: 0.25 }
         });
 
-        dna = new DNA.DNA('1GVaBVbVcGVcVbGOC0');
+        dna = new DNA.DNA('1GRaBRbRcGRcRbGOC0');
         output = dna.process({
-            variables: { b: 0.25, c: 0.5 }
+            reals: { b: 0.25, c: 0.5 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: -4, b: 0.25, c: 0.5 }
+            reals: { a: -4, b: 0.25, c: 0.5 }
         });
     });
 
     it('can negate conditions with not', function() {
-        const dna = new DNA.DNA('1BVa6VbVcGNC0');
+        const dna = new DNA.DNA('1BRa6RbRcGNC0');
         const output = dna.process({
-            variables: { b: 0.25, c: 0.5 }
+            reals: { b: 0.25, c: 0.5 }
         });
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: -4, b: 0.25, c: 0.5 }
+            reals: { a: -4, b: 0.25, c: 0.5 }
         });
     });
 
     it('can explicitly set conditions to true', function() {
-        const dna = new DNA.DNA('16Va1TC0');
+        const dna = new DNA.DNA('16Ra1TC0');
         const output = dna.process({});
         expect(output).to.deep.equal({
             booleans: {},
-            variables: { a: -4 }
+            reals: { a: -4 }
         });
     });
 
     it('can convert to a string', function() {
-        const dna = new DNA.DNA('16Va1TCV');
-        expect('' + dna).to.equal('16Va1TCV');
+        const dna = new DNA.DNA('16Ra1TCV');
+        expect('' + dna).to.equal('16Ra1TCV');
     });
 
     it('can generate a random DNA', function() {
         const dna = DNA.DNA.createRandom(new MockSelector());
-        expect(dna.toString()).to.equal('16V01TV0');
+        expect(dna.toString()).to.equal('16R01TR0');
     });
 });

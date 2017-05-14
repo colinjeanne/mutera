@@ -16,7 +16,7 @@ const deserializedCreatureToDNAInput = deserialized => ({
         [KnownVariables.isFast]: deserialized.velocity.isFast,
         [KnownVariables.isMoving]: deserialized.velocity.isMoving
     },
-    variables: {
+    reals: {
         [KnownVariables.age]: deserialized.age,
         [KnownVariables.angle]: deserialized.velocity.angle,
         [KnownVariables.health]: deserialized.health,
@@ -73,7 +73,7 @@ export default class Creature {
         this.isCarnivore = deserialized.isCarnivore;
 
         this.radians = Angle.toRadians(
-            this.state.variables[KnownVariables.angle]);
+            this.state.reals[KnownVariables.angle]);
         this.visualField = calculateVisualField(this.angle);
         this.auditoryField = calculateAuditoryField(this.angle);
     }
@@ -83,7 +83,7 @@ export default class Creature {
     }
 
     get age() {
-        return this.state.variables[KnownVariables.age];
+        return this.state.reals[KnownVariables.age];
     }
 
     get angle() {
@@ -107,7 +107,7 @@ export default class Creature {
     }
 
     get health() {
-        return this.state.variables[KnownVariables.health];
+        return this.state.reals[KnownVariables.health];
     }
 
     get isMoving() {
@@ -129,15 +129,15 @@ export default class Creature {
     }
 
     get speed() {
-        return this.state.variables[KnownVariables.speed] || 0;
+        return this.state.reals[KnownVariables.speed] || 0;
     }
 
     get x() {
-        return this.state.variables[KnownVariables.x];
+        return this.state.reals[KnownVariables.x];
     }
 
     get y() {
-        return this.state.variables[KnownVariables.y];
+        return this.state.reals[KnownVariables.y];
     }
 
     feed(amount) {
@@ -236,7 +236,7 @@ export default class Creature {
             id: this.id,
             isCarnivore: this.isCarnivore,
             velocity: {
-                angle: this.state.variables[KnownVariables.angle],
+                angle: this.state.reals[KnownVariables.angle],
                 isAggressive: this.isAggressive,
                 isMoving: this.isMoving,
                 isFast: this.isFast
@@ -254,10 +254,10 @@ export default class Creature {
                 {},
                 this.state.booleans,
                 input ? input.booleans : {}),
-            variables: Object.assign(
+            reals: Object.assign(
                 {},
-                this.state.variables,
-                input ? input.variables : {})
+                this.state.reals,
+                input ? input.reals : {})
         };
 
         const next = this.dna.process(dnaInput);
@@ -266,7 +266,7 @@ export default class Creature {
             next,
             elapsedTime);
         this.radians = Angle.toRadians(
-            this.state.variables[KnownVariables.angle]);
+            this.state.reals[KnownVariables.angle]);
         this.visualField = calculateVisualField(this.angle);
         this.auditoryField = calculateAuditoryField(this.angle);
     }

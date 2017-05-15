@@ -156,7 +156,8 @@ const nearestVisibleCreaturesInputData = (relationships, creatures) => {
         const colors = [
             [`${rootName}IsRed`, 'isRed'],
             [`${rootName}IsGreen`, 'isGreen'],
-            [`${rootName}IsBlue`, 'isBlue']
+            [`${rootName}IsBlue`, 'isBlue'],
+            [`${rootName}IsCarnivore`, 'isCarnivore']
         ];
 
         if (nearest) {

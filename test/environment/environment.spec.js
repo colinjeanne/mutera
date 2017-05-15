@@ -545,6 +545,7 @@ describe('Environment', function() {
         const near = new MockCreature(
             '00002',
             {
+                isCarnivore: true,
                 isRed: true,
                 x: 60,
                 y: 50
@@ -553,6 +554,7 @@ describe('Environment', function() {
         const far = new MockCreature(
             '00003',
             {
+                isCarnivore: false,
                 isGreen: true,
                 x: 70,
                 y: 50
@@ -589,6 +591,7 @@ describe('Environment', function() {
 
         expect(creature.lastInput.booleans.I).to.be.true;
         expect(creature.lastInput.reals.H).to.equal(10);
+        expect(creature.lastInput.booleans.B).to.be.true;
     });
 
     it('provides the distance and color to the nearest right periphery creature', function() {
@@ -612,6 +615,7 @@ describe('Environment', function() {
         const near = new MockCreature(
             '00002',
             {
+                isCarnivore: false,
                 isRed: true,
                 x: 60,
                 y: 50
@@ -620,6 +624,7 @@ describe('Environment', function() {
         const far = new MockCreature(
             '00003',
             {
+                isCarnivore: true,
                 isGreen: true,
                 x: 70,
                 y: 50
@@ -656,6 +661,7 @@ describe('Environment', function() {
 
         expect(creature.lastInput.booleans.M).to.be.true;
         expect(creature.lastInput.reals.L).to.equal(10);
+        expect(creature.lastInput.booleans.C).to.be.false;
     });
 
     it('provides the distance and color to the nearest focus creature', function() {
@@ -679,6 +685,7 @@ describe('Environment', function() {
         const near = new MockCreature(
             '00002',
             {
+                isCarnivore: true,
                 isRed: true,
                 x: 60,
                 y: 50
@@ -687,6 +694,7 @@ describe('Environment', function() {
         const far = new MockCreature(
             '00003',
             {
+                isCarnivore: false,
                 isGreen: true,
                 x: 70,
                 y: 50
@@ -723,6 +731,7 @@ describe('Environment', function() {
 
         expect(creature.lastInput.booleans.Q).to.be.true;
         expect(creature.lastInput.reals.P).to.equal(10);
+        expect(creature.lastInput.booleans.D).to.be.true;
     });
 
     it('provides no information about food or creatures if none are visible', function() {

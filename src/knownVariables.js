@@ -18,14 +18,17 @@ export const nearestLeftCreatureDistance = 'H';
 export const nearestLeftCreatureIsRed = 'I';
 export const nearestLeftCreatureIsGreen = 'J';
 export const nearestLeftCreatureIsBlue = 'K';
+export const nearestLeftCreatureIsCarnivore = 'B';
 export const nearestRightCreatureDistance = 'L';
 export const nearestRightCreatureIsRed = 'M';
 export const nearestRightCreatureIsGreen = 'N';
 export const nearestRightCreatureIsBlue = 'O';
+export const nearestRightCreatureIsCarnivore = 'C';
 export const nearestFocusCreatureDistance = 'P';
 export const nearestFocusCreatureIsRed = 'Q';
 export const nearestFocusCreatureIsGreen = 'R';
 export const nearestFocusCreatureIsBlue = 'S';
+export const nearestFocusCreatureIsCarnivore = 'D';
 
 export const frontSound = 'W';
 export const leftSound = 'X';

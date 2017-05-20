@@ -60,13 +60,18 @@ describe('Creature', function() {
             to.throw('Creature missing isCarnivore');
     });
 
+    it('must have an anatomy', function() {
+        expect(() => new Creature('10000000000000000000000000')).
+            to.throw('Creature missing anatomy');
+    });
+
     it('must have a DNA', function() {
-        expect(() => new Creature('1000000000000000000000000')).
+        expect(() => new Creature('100000000000000000000000000')).
             to.throw('Creature missing dna');
     });
 
     it('must have a valid DNA', function() {
-        expect(() => new Creature('10000000000000000000000001')).
+        expect(() => new Creature('1000000000000000000000000001')).
             to.throw('DNA missing genes');
     });
 
@@ -86,6 +91,7 @@ describe('Creature', function() {
             health: '21',
             color: '7',
             isCarnivore: '1',
+            anatomy: 'AB',
             dna: '16Ra1TC1'
         });
 
@@ -104,12 +110,16 @@ describe('Creature', function() {
         expect(creature.isGreen).to.be.true;
         expect(creature.isBlue).to.be.true;
         expect(creature.isCarnivore).to.be.true;
+        expect(creature.body).to.equal(1);
+        expect(creature.eyes).to.equal(2);
+        expect(creature.legs).to.equal(1);
+        expect(creature.mouth).to.equal(3);
         expect(creature.dna.toString()).to.equal('16Ra1TC1');
     });
 
     it('can convert to a string', function() {
         const creature = makeCreature({});
-        expect('' + creature).to.equal('100000000000000000000000016Ra1TC0');
+        expect('' + creature).to.equal('10000000000000000000000000016Ra1TC0');
     });
 
     it('converts fields to integers before serialization', function() {
@@ -128,7 +138,7 @@ describe('Creature', function() {
         expect(creature.y).to.equal(640);
 
         expect(creature.toString()).
-            to.equal('1000000000000A100A080000016Rs1TCa');
+            to.equal('1000000000000A100A08000000016Rs1TCa');
     });
 
     it('ignores changes made to relevant state variables', function() {
@@ -418,6 +428,10 @@ describe('Creature', function() {
                 return min;
             },
 
+            chooseIntBetween() {
+                return 0;
+            },
+
             createRandomDNA() {
                 return new DNA('16R01TR0');
             },
@@ -428,7 +442,7 @@ describe('Creature', function() {
         };
 
         const creature = Creature.createRandom({ isCarnivore: true, selector });
-        expect(creature.toString()).to.equal('100000000000000000000ku0116R01TR0');
+        expect(creature.toString()).to.equal('100000000000000000000ku010016R01TR0');
     });
 
     it('cannot see more than pi/4 radians to the left', function() {

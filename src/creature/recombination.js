@@ -1,3 +1,12 @@
+import * as Anatomy from './anatomy';
+
+const createRandomAnatomy = selector => ({
+    body: selector.chooseIntBetween(0, Anatomy.bodyCount),
+    eyes: selector.chooseIntBetween(0, Anatomy.eyeCount),
+    legs: selector.chooseIntBetween(0, Anatomy.legCount),
+    mouth: selector.chooseIntBetween(0, Anatomy.mouthCount)
+});
+
 export const createRandom = (isCarnivore, stateProcessor, selector) => {
     const state = stateProcessor.ensureValidProperties({
         age: 0,
@@ -8,6 +17,7 @@ export const createRandom = (isCarnivore, stateProcessor, selector) => {
 
     return {
         age: state.age,
+        anatomy: createRandomAnatomy(selector),
         color: {
             isRed: false,
             isGreen: false,
@@ -44,6 +54,7 @@ export const recombine = (initiator, other, startingHealth, stateProcessor, sele
 
     return {
         age: state.age,
+        anatomy: selector.chooseAnatomy(initiator.anatomy, other.anatomy),
         color: {
             isRed: false,
             isGreen: false,

@@ -1,9 +1,20 @@
 const expect = require('chai').expect;
 const { makeCreature } = require('./../helpers.js');
 
+const defaultAnatomy = {
+    body: 0,
+    eyes: 0,
+    legs: 0,
+    mouth: 0
+};
+
 describe('Creature recombination', function() {
     it('defaults the speed', function() {
         const selector = {
+            chooseAnatomy() {
+                return defaultAnatomy;
+            },
+
             chooseBetween(min) {
                 return min;
             },
@@ -34,6 +45,10 @@ describe('Creature recombination', function() {
 
     it('randomizes the starting angle', function() {
         const selector = {
+            chooseAnatomy() {
+                return defaultAnatomy;
+            },
+
             chooseBetween() {
                 return 256;
             },
@@ -61,6 +76,10 @@ describe('Creature recombination', function() {
 
     it('places the new creature at the parent', function() {
         const selector = {
+            chooseAnatomy() {
+                return defaultAnatomy;
+            },
+
             chooseBetween() {
                 return 0;
             },
@@ -91,6 +110,10 @@ describe('Creature recombination', function() {
 
     it('generates a new ID', function() {
         const selector = {
+            chooseAnatomy() {
+                return defaultAnatomy;
+            },
+
             chooseBetween() {
                 return 0;
             },
@@ -118,6 +141,10 @@ describe('Creature recombination', function() {
 
     it('uses the type of the initiator', function() {
         const selector = {
+            chooseAnatomy() {
+                return defaultAnatomy;
+            },
+
             chooseBetween() {
                 return 0;
             },
@@ -145,8 +172,51 @@ describe('Creature recombination', function() {
         expect(child.isCarnivore).to.be.true;
     });
 
+    it('generates a new anatomy', function() {
+        const selector = {
+            chooseAnatomy() {
+                return {
+                    body: 1,
+                    eyes: 2,
+                    legs: 3,
+                    mouth: 4
+                };
+            },
+
+            chooseBetween() {
+                return 0;
+            },
+
+            generateUniqueId() {
+                return '10000';
+            }
+        };
+
+        const first = makeCreature(
+            {
+                id: '12345'
+            },
+            selector);
+
+        const second = makeCreature(
+            {
+                id: '54321'
+            },
+            selector);
+
+        const child = first.recombine(second, 3000);
+        expect(child.body).to.equal(1);
+        expect(child.eyes).to.equal(2);
+        expect(child.legs).to.equal(3);
+        expect(child.mouth).to.equal(4);
+    });
+
     it('recombines the parent DNA', function() {
         const selector = {
+            chooseAnatomy() {
+                return defaultAnatomy;
+            },
+
             chooseBetween() {
                 return 0;
             },

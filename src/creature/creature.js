@@ -25,9 +25,17 @@ const deserializedCreatureToDNAInput = deserialized => ({
     }
 });
 
-const visualRange = 300;
-const peripheryFieldOfView = Math.PI / 2;
-const focusFieldOfView = peripheryFieldOfView / 3;
+const baseVisualRange = 300;
+const basePeripheryFieldOfView = Math.PI / 2;
+
+const eyeDistanceFactors = [
+    0.51,
+    0.75,
+    1,
+    1.5,
+    2,
+    3
+];
 
 const auditoryRange = 600;
 const volumeAtTen = 25600;
@@ -35,10 +43,17 @@ const volumeAtTen = 25600;
 const calculateSector = (angle, range, arcLength) =>
     new Sector(range, angle - arcLength / 2, angle + arcLength / 2);
 
-const calculateVisualField = angle => ({
-    periphery: calculateSector(angle, visualRange, peripheryFieldOfView),
-    focus: calculateSector(angle, visualRange, focusFieldOfView)
-});
+const calculateVisualField = (angle, eyes) => {
+    const factor = eyeDistanceFactors[eyes];
+    const visualRange = baseVisualRange * factor;
+    const peripheryFieldOfView = basePeripheryFieldOfView / (factor * factor);
+    const focusFieldOfView = peripheryFieldOfView / 3;
+
+    return {
+        periphery: calculateSector(angle, visualRange, peripheryFieldOfView),
+        focus: calculateSector(angle, visualRange, focusFieldOfView)
+    };
+};
 
 const calculateAuditoryField = angle => ({
     front: calculateSector(angle, auditoryRange, Math.PI / 2),
@@ -71,10 +86,11 @@ export default class Creature {
         this.header = deserialized.header;
         this.id = deserialized.id;
         this.isCarnivore = deserialized.isCarnivore;
+        this.anatomy = deserialized.anatomy;
 
         this.radians = Angle.toRadians(
             this.state.reals[KnownVariables.angle]);
-        this.visualField = calculateVisualField(this.angle);
+        this.visualField = calculateVisualField(this.angle, this.eyes);
         this.auditoryField = calculateAuditoryField(this.angle);
     }
 
@@ -88,6 +104,14 @@ export default class Creature {
 
     get angle() {
         return this.radians;
+    }
+
+    get body() {
+        return this.anatomy.body;
+    }
+
+    get eyes() {
+        return this.anatomy.eyes;
     }
 
     get isAggressive() {
@@ -116,6 +140,14 @@ export default class Creature {
 
     get isFast() {
         return this.state.booleans[KnownVariables.isFast];
+    }
+
+    get legs() {
+        return this.anatomy.legs;
+    }
+
+    get mouth() {
+        return this.anatomy.mouth;
     }
 
     get shouldReproduceAsexually() {
@@ -223,6 +255,7 @@ export default class Creature {
     toString() {
         const data = {
             age: this.age,
+            anatomy: this.anatomy,
             color: {
                 isRed: this.isRed,
                 isGreen: this.isGreen,
@@ -267,7 +300,7 @@ export default class Creature {
             elapsedTime);
         this.radians = Angle.toRadians(
             this.state.reals[KnownVariables.angle]);
-        this.visualField = calculateVisualField(this.angle);
+        this.visualField = calculateVisualField(this.angle, this.eyes);
         this.auditoryField = calculateAuditoryField(this.angle);
     }
 

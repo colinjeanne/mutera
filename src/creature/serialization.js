@@ -53,6 +53,23 @@ const decodeType = encoded => !!intFromBase64(encoded);
 
 const encodeType = isCarnivore => isCarnivore ? '1' : '0';
 
+const decodeAnatomy = encoded => {
+    const value = intFromBase64(encoded);
+    return {
+        body: (value >> 9) & 0x7,
+        eyes: (value >> 6) & 0x7,
+        legs: (value >> 3) & 0x7,
+        mouth: value & 0x7
+    };
+};
+
+const encodeAnatomy = ({ body, eyes, legs, mouth }) =>
+    intToBase64(
+        ((body & 0x7) << 9) |
+        ((eyes & 0x7) << 6) |
+        ((legs & 0x7) << 3) |
+        (mouth & 0x7), 2);
+
 const decodeHeader = encoded => {
     const version = encoded[0];
     if (version !== '1') {
@@ -151,6 +168,12 @@ const makeSlicing = makeDNA => [
         length: 1,
         decoder: decodeType,
         encoder: encodeType
+    },
+    {
+        property: 'anatomy',
+        length: 2,
+        decoder: decodeAnatomy,
+        encoder: encodeAnatomy
     },
     {
         property: 'dna',

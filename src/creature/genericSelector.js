@@ -2,25 +2,42 @@ import { intToBase64 } from './../base64';
 import * as Random from './../random';
 import { DNA } from './../dna/index';
 
-// See http://stackoverflow.com/questions/9048095/create-random-number-within-an-annulus
-const minimumRadius = 30;
-const maximumRadius = 50;
-const minimumRadiusSquared = minimumRadius * minimumRadius;
-const normalizer = maximumRadius * maximumRadius - minimumRadiusSquared;
-
 export default class GenericSelector {
+    chooseAnatomy(primaryAnatomy, secondaryAnatomy) {
+        return {
+            body: Random.chooseOne(
+                [
+                    primaryAnatomy.body,
+                    secondaryAnatomy.body
+                ],
+                Math.random),
+            eyes: Random.chooseOne(
+                [
+                    primaryAnatomy.eyes,
+                    secondaryAnatomy.eyes
+                ],
+                Math.random),
+            legs: Random.chooseOne(
+                [
+                    primaryAnatomy.legs,
+                    secondaryAnatomy.legs
+                ],
+                Math.random),
+            mouth: Random.chooseOne(
+                [
+                    primaryAnatomy.mouth,
+                    secondaryAnatomy.mouth
+                ],
+                Math.random)
+        };
+    }
+
     chooseBetween(min, max) {
         return Random.chooseBetween(min, max, Math.random);
     }
 
-    chooseLocation(x, y) {
-        const distance = Math.sqrt(
-            Math.random() * normalizer + minimumRadiusSquared);
-        const angle = Random.chooseBetween(-Math.PI, Math.PI, Math.random);
-        return {
-            x: distance * Math.cos(angle) + x,
-            y: distance * Math.sin(angle) + y
-        };
+    chooseIntBetween(min, max) {
+        return Random.chooseIntBetween(min, max, Math.random);
     }
 
     createRandomDNA() {
@@ -31,5 +48,9 @@ export default class GenericSelector {
         return intToBase64(
             Math.floor(Random.chooseBetween(0, Math.pow(64, 5), Math.random)),
             5);
+    }
+
+    shouldUsePrimaryAnatomy() {
+        return Random.chooseIf(0.5, Math.random);
     }
 }

@@ -18,12 +18,17 @@
             }
 
             #info {
-                border-left: thin solid black;
                 flex-grow: 1;
                 padding-left: 1em;
             }
 
+            #log {
+                white-space: pre;
+            }
+
             #program {
+                max-width: 35em;
+                overflow-x: auto;
                 white-space: pre;
             }
 
@@ -38,19 +43,28 @@
     </head>
     <body>
         <div>
+            <div>
+                X: <span id="xOffset"></span>, Y: <span id="yOffset"></span>,
+                Scale: <span id="scale"></span>,
+                Mouse: (<span id="mouseX"></span>, <span id="mouseY"></span>)
+            </div>
             <canvas id="view" width="1000" height="1000"></canvas>
-            <button id="startButton" type="button">Start</button>
-            <button id="stopButton" type="button">Stop</button>
         </div>
         <div id="info">
             <div>
+                <button id="startButton" type="button">Start</button>
+                <button id="stopButton" type="button">Stop</button>
                 <div id="settings">
-                <dl>
-                    <dt>Simulation Time:</dt><dd id="simulationTime"></dd>
-                    <dt>Speed:</dt><dd><input id="speed" type="number" value="1"></dd>
-                </dl>
+                    <dl>
+                        <dt>Elapsed Seconds</dt><dd id="elapsedSeconds"></dd>
+                        <dt>Update Seconds</dt><dd id="updateSeconds"></dd>
+                        <dt>Simulation Time:</dt><dd id="simulationTime"></dd>
+                        <dt>Speed:</dt><dd><input id="speed" type="number" value="1"></dd>
+                    </dl>
+                </div>
             </div>
             <div>
+                <canvas id="sprite" width="64" height="64"></canvas>
                 <div id="program">
                 </div>
                 <div>
@@ -68,14 +82,46 @@
                 <div id="creatureState">
                 </div>
             </div>
+            <div>
+                <button id="renderGraphviz" type="button">
+                    Render Graphviz
+                </button>
+            </div>
+            <div id="log">
+            </div>
             <div id="graphviz">
             </div>
         </div>
     </body>
     <script>
-        function renderGraphViz(environment, graphviz) {
+        const transform = {
+            scale: 1,
+            xOffset: 0,
+            yOffset: 0
+        };
+
+        const sprites = new Image();
+        sprites.src = 'MuteraMap.png';
+
+        const spriteWidth = 16;
+        const spriteHeight = 16;
+        const colorColumns = {
+            black: 0,
+            white: 1,
+            purple: 2,
+            green: 3,
+            blue: 4,
+            cyan: 5,
+            red: 6,
+            yellow: 7
+        };
+
+        const herbivoreBodyRow = 0;
+        const carnivoreBodyRow = 1;
+
+        function renderGraphViz(genealogy, graphviz) {
             let text = 'strict digraph {\n';
-            environment.genealogy.forEach((parentIds, id) => {
+            genealogy.forEach((parentIds, id) => {
                 text += `\t"${id}" -> {`;
                 parentIds.forEach(id => text += ` "${id}" `);
                 text += '}\n';
@@ -88,38 +134,51 @@
 
         let selectedCreature = null;
 
-        const scaleFactor = 2;
-        function mapToCanvas(point) {
-            return {
-                x: point.x / scaleFactor,
-                y: point.y / scaleFactor
-            };
-        }
+        const mapWidth = 2000;
+        const mapHeight = 2000;
 
         function canvasToMap(point) {
             return {
-                x: point.x * scaleFactor,
-                y: point.y * scaleFactor
+                x: point.x / transform.scale + transform.xOffset,
+                y: point.y / transform.scale + transform.yOffset
             };
         }
 
+        function drawSprite(context, row, column, adjustX = 0, adjustY = 0) {
+            context.drawImage(
+                sprites,
+                column * spriteWidth,
+                row * spriteHeight,
+                spriteWidth,
+                spriteHeight,
+                -spriteWidth / 2 + adjustX,
+                -spriteHeight / 2 + adjustY,
+                spriteWidth,
+                spriteHeight);
+        }
+
         function drawFood(context, point) {
-            context.beginPath();
-            context.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-            context.fillStyle = 'green';
-            context.fill();
+            context.save();
+            context.translate(point.x, point.y);
+
+            const foodRow = 1;
+            const foodColumn = 8;
+            drawSprite(context, foodRow, foodColumn);
+
+            context.restore();
         }
 
         function drawEgg(context, egg) {
-            const point = mapToCanvas(egg.creature);
+            const point = egg.creature;
 
-            context.beginPath();
-            context.moveTo(point.x, point.y - 8);
-            context.lineTo(point.x + 8 * Math.sqrt(3) / 2, point.y + 8 / 2);
-            context.lineTo(point.x - 8 * Math.sqrt(3) / 2, point.y + 8 / 2);
-            context.lineTo(point.x, point.y - 8);
-            context.fillStyle = 'gray';
-            context.fill();
+            context.save();
+            context.translate(point.x, point.y);
+
+            const eggRow = 0;
+            const eggColumn = 9;
+            drawSprite(context, eggRow, eggColumn);
+
+            context.restore();
 
             const gestationWidth = Math.floor(egg.elapsedGestationTime * 10 / egg.gestationTime);
             context.fillStyle = `rgb(0, 255, 0)`;
@@ -129,112 +188,156 @@
         }
 
         function getCreatureColor(creature) {
-            const red = creature.isRed ? 255 : 0;
-            const green = creature.isGreen ? 255 : 0;
-            const blue = creature.isBlue ? 255 : 0
-            return `rgb(${red}, ${green}, ${blue})`;
+            if (creature.isRed && creature.isGreen && creature.isBlue) {
+                return 'white';
+            } else if (creature.isRed && creature.isGreen && !creature.isBlue) {
+                return 'yellow';
+            } else if (creature.isRed && !creature.isGreen && creature.isBlue) {
+                return 'purple';
+            } else if (creature.isRed && !creature.isGreen && !creature.isBlue) {
+                return 'red';
+            } else if (!creature.isRed && creature.isGreen && creature.isBlue) {
+                return 'cyan';
+            } else if (!creature.isRed && creature.isGreen && !creature.isBlue) {
+                return 'green';
+            } else if (!creature.isRed && !creature.isGreen && creature.isBlue) {
+                return 'blue';
+            }
+
+            return 'black';
         }
 
-        function drawHerbavoreBody(context, creature) {
-            const point = mapToCanvas(creature);
+        function drawCreatureSprite(context, creature) {
+            const color = getCreatureColor(creature);
+            const colorColumn = colorColumns[color];
+            const bodyRow = creature.isCarnivore ? carnivoreBodyRow : herbivoreBodyRow;
+
+            drawSprite(context, bodyRow, colorColumn);
+
+            const feetRow = 2 + creature.legs;
+            drawSprite(context, feetRow, colorColumn);
+
+            const eyeRow = 5;
+            const eyeColumn = creature.eyes;
+            drawSprite(context, eyeRow, eyeColumn);
+
+            const mouthRow = 5;
+            const mouthColumn = creature.mouth;
+            drawSprite(context, mouthRow, mouthColumn);
+
+            if (creature.isAggressive) {
+                const aggressiveRow = 4;
+                const aggressiveColumn = 9;
+                drawSprite(context, aggressiveRow, aggressiveColumn, 0, 18);
+            }
+
+            if (creature.shouldReproduceAsexually) {
+                const asexualRow = 3;
+                const asexualColumn = 8;
+                drawSprite(context, asexualRow, asexualColumn, 5, 18);
+            }
+
+            if (creature.shouldReproduceSexually) {
+                const sexualRow = 4;
+                const sexualColumn = 8;
+                drawSprite(context, sexualRow, sexualColumn, 10, 18);
+            }
+        }
+
+        function drawViewSector(context, creature) {
+            const sector = creature.visualField.periphery;
+            const frustrumLength = sector.radius;
+            let frustrumAngle;
+            if (sector.centerAngle < sector.toAngle) {
+                frustrumAngle = (sector.toAngle - sector.centerAngle);
+            } else {
+                frustrumAngle = (sector.centerAngle - sector.fromAngle);
+            }
+
+            const leftEndpoint = {
+                x: frustrumLength * Math.cos(frustrumAngle),
+                y: frustrumLength * Math.sin(frustrumAngle)
+            };
+
+            const focusLeftEndpoint = {
+                x: frustrumLength * Math.cos(frustrumAngle / 3),
+                y: frustrumLength * Math.sin(frustrumAngle / 3)
+            };
+
+            context.setLineDash([4, 4]);
+            context.strokeStyle = 'lightgrey';
 
             context.beginPath();
-            context.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-            context.fillStyle = getCreatureColor(creature);
-            context.strokeStyle = `black`;
-            context.fill();
+            context.moveTo(0, 0);
+            context.lineTo(
+                leftEndpoint.x,
+                leftEndpoint.y);
+            context.arc(
+                0,
+                0,
+                frustrumLength,
+                frustrumAngle,
+                -frustrumAngle,
+                true);
+            context.lineTo(0, 0);
             context.stroke();
-        }
 
-        function drawCarnivoreBody(context, creature) {
-            const point = mapToCanvas(creature);
+            context.setLineDash([]);
+            context.strokeStyle = 'lightgrey';
 
             context.beginPath();
-            context.fillStyle = getCreatureColor(creature);
-            context.strokeStyle = `black`;
-            context.fillRect(point.x - 5, point.y - 5, 10, 10);
-            context.strokeRect(point.x - 4.5, point.y - 4.5, 10, 10);
+            context.moveTo(0, 0);
+            context.lineTo(
+                focusLeftEndpoint.x,
+                focusLeftEndpoint.y);
+            context.arc(
+                0,
+                0,
+                frustrumLength,
+                frustrumAngle / 3,
+                -frustrumAngle / 3,
+                true);
+            context.lineTo(0, 0);
             context.stroke();
         }
 
         function drawCreature(context, creature) {
-            const point = mapToCanvas(creature);
+            const point = creature;
 
-            if (creature.isCarnivore) {
-                drawCarnivoreBody(context, creature);
-            } else {
-                drawHerbavoreBody(context, creature);
-            }
+            context.save();
+            context.translate(point.x, point.y);
+            context.rotate(creature.angle);
 
             const healthWidth = Math.floor(creature.health * 10 / 4096);
-            context.fillStyle = `rgb(0, 255, 0)`;
-            context.fillRect(point.x - 5, point.y - 10, healthWidth, 3);
-            context.fillStyle = `rgb(0, 0, 0)`;
-            context.fillRect(point.x - 5 + healthWidth, point.y - 10, 10 - healthWidth, 3);
+            context.fillStyle = `lime`;
+            context.fillRect(-5, -15, healthWidth, 3);
+            context.fillStyle = `black`;
+            context.fillRect(-5 + healthWidth, -15, 10 - healthWidth, 3);
+
+            drawViewSector(context, creature);
+            drawCreatureSprite(context, creature);
 
             if (selectedCreature === creature) {
-                context.arc(point.x, point.y, 8, 0, 2 * Math.PI);
-                context.strokeStyle = 'rgb(0,0,255)';
+                context.beginPath();
+                context.arc(0, 0, 10, 0, 2 * Math.PI);
+                context.strokeStyle = 'blue';
                 context.stroke();
             }
 
-            const frustrumLength = 300 / scaleFactor;
-            const frustrumAngle = Math.PI / 4;
-
-            const leftEndpoint = {
-                x: frustrumLength * Math.cos(creature.angle + frustrumAngle),
-                y: frustrumLength * Math.sin(creature.angle + frustrumAngle)
-            };
-
-            const focusLeftEndpoint = {
-                x: frustrumLength * Math.cos(creature.angle + frustrumAngle / 3),
-                y: frustrumLength * Math.sin(creature.angle + frustrumAngle / 3)
-            };
-
-            context.strokeStyle = 'blue';
-
-            context.beginPath();
-            context.moveTo(point.x, point.y);
-            context.lineTo(
-                leftEndpoint.x + point.x,
-                leftEndpoint.y + point.y);
-            context.arc(
-                point.x,
-                point.y,
-                frustrumLength,
-                creature.angle + frustrumAngle,
-                creature.angle - frustrumAngle,
-                true);
-            context.lineTo(point.x, point.y);
-            context.stroke();
-
-            context.strokeStyle = 'green';
-
-            context.beginPath();
-            context.moveTo(point.x, point.y);
-            context.lineTo(
-                focusLeftEndpoint.x + point.x,
-                focusLeftEndpoint.y + point.y);
-            context.arc(
-                point.x,
-                point.y,
-                frustrumLength,
-                creature.angle + frustrumAngle / 3,
-                creature.angle - frustrumAngle / 3,
-                true);
-            context.lineTo(point.x, point.y);
-            context.stroke();
+            context.restore();
         }
 
         function render(context, environment) {
+            context.save();
+            context.setTransform(1, 0, 0, 1, 0, 0);
             context.clearRect(
                 0,
                 0,
-                context.canvas.width,
-                context.canvas.height);
+                mapWidth,
+                mapHeight);
+            context.restore();
 
-            environment.map.foodLocations.forEach(
-                point => drawFood(context, mapToCanvas(point)));
+            environment.map.foodLocations.forEach(point => drawFood(context, point));
 
             environment.map.eggs.forEach(
                 egg => drawEgg(context, egg));
@@ -250,8 +353,15 @@
         }
 
         function handleClick(point, environment) {
-            const creature = Array.from(environment.creatures.values()).
-                find(creature => distance(point, creature) < 20);
+            let creature = Array.from(environment.creatures.values()).
+                find(creature => distance(point, creature) < (spriteWidth / transform.scale));
+            if (!creature) {
+                const egg = environment.map.eggs.find(egg =>
+                    distance(point, egg) < (spriteWidth / transform.scale));
+                if (egg) {
+                    creature = egg.creature;
+                }
+            }
             selectCreature(creature);
         }
 
@@ -267,7 +377,7 @@
             [world.DNA.operators.divide]: '/'
         };
 
-        function renderVariable(variable) {
+        function renderReal(real) {
             const known = {
                 g: 'age',
                 a: 'angle',
@@ -286,11 +396,11 @@
                 Z: 'rightSound'
             };
 
-            if (variable in known) {
-                return known[variable];
+            if (real in known) {
+                return known[real];
             }
 
-            return variable;
+            return real;
         }
 
         function renderBoolean(boolean) {
@@ -306,12 +416,15 @@
                 I: 'leftCreatureIsRed',
                 J: 'leftCreatureIsGreen',
                 K: 'leftCreatureIsBlue',
+                B: 'leftCreatureIsCarnivore',
                 M: 'rightCreatureIsRed',
                 N: 'rightCreatureisGreen',
                 O: 'rightCreatureIsBlue',
+                C: 'rightCreatureIsCarnivore',
                 Q: 'focusCreatureIsRed',
                 R: 'focusCreatureIsGreen',
-                S: 'focusCreatureIsBlue'
+                S: 'focusCreatureIsBlue',
+                D: 'focusCreatureIsCarnivore'
             };
 
             if (boolean in known) {
@@ -324,8 +437,8 @@
         function renderTree(tree) {
             if (tree.operator === world.DNA.operators.constant) {
                 return world.DNA.constants[tree.data].toString();
-            } else if (tree.operator === world.DNA.operators.variable) {
-                return renderVariable(tree.data);
+            } else if (tree.operator === world.DNA.operators.real) {
+                return renderReal(tree.data);
             } else if (tree.operator === world.DNA.operators.true) {
                 return 'T';
             } else if (tree.operator === world.DNA.operators.boolean) {
@@ -340,7 +453,7 @@
         function renderGene(gene) {
             const output = gene.isBoolean ?
                 renderBoolean(gene.output) :
-                renderVariable(gene.output);
+                renderReal(gene.output);
             return `if ${renderTree(gene.condition)}:\n\t${output} = ${renderTree(gene.expression)}\n`;
         }
 
@@ -360,7 +473,16 @@
         }
 
         function renderCreatureState(creature) {
+            const spriteCanvas = document.getElementById('sprite');
+            const spriteContext = spriteCanvas.getContext('2d');
+            spriteContext.clearRect(
+                -spriteWidth / 2,
+                -spriteHeight / 2,
+                spriteCanvas.width,
+                spriteCanvas.height);
+
             if (creature) {
+                drawCreatureSprite(spriteContext, creature);
                 document.getElementById('creatureId').textContent = creature.id;
                 document.getElementById('creatureIsCarnivore').textContent = creature.isCarnivore;
                 document.getElementById('creatureAge').textContent = creature.age;
@@ -391,18 +513,10 @@
             renderProgram(creature);
         }
 
-        function process(context, simulationTimeItem, environment, elapsedTimeMs) {
-            environment.process(elapsedTimeMs / 1000);
-            render(context, environment);
-            simulationTimeItem.textContent = environment.simulationTime;
-
-            renderCreatureState(selectedCreature);
-        }
-
         const dnaSelector = new world.DNA.GenericSelector({
-            geneBooleanRate: 7/9,
-            inputBooleans: 'IJKMNOQRS',
-            inputVariables: 'hlrfHLPWXYZ',
+            geneBooleanRate: 5/6, //7/9,
+            inputBooleans: 'BCD', //'BCDIJKMNOQRS',
+            inputReals: 'hlrfHLP', //'hlrfHLPWXYZ',
             maximumTreeDepth: 2,
             mutationsPerGene: new Map([
                 [0, 0.9],
@@ -410,8 +524,8 @@
                 [2, 0.95],
                 [3, 0.99]
             ]),
-            outputBooleans: 'amFcders',
-            outputVariables: 'A',
+            outputBooleans: 'amFrs', //'amFcders',
+            outputReals: 'A',
             spliceRates: new Map([
                 [world.DNA.spliceType.delete, 0.1],
                 [world.DNA.spliceType.duplicate, 0.55],
@@ -447,34 +561,90 @@
             }
         }
 
+        function addChild(genealogy, childId, parentId) {
+            if (!genealogy.has(parentId)) {
+                genealogy.set(parentId, []);
+            }
+
+            genealogy.get(parentId).push(childId);
+        }
+
+        function addLog(logElement, line) {
+            logElement.textContent += `\n${line}`;
+        }
+
+        function logEggCreated(logElement, egg) {
+            addLog(
+                logElement,
+                `Egg Created: Containing ${egg.creature.id} | ${egg.initiatorId}, ${egg.otherId}`);
+        }
+
+        function logEggDestroyed(logElement, creature, egg) {
+            addLog(
+                logElement,
+                `Egg Destroyed: By ${creature.id} | ${egg.initiatorId}, ${egg.otherId}`);
+        }
+
+        function updateTransform(context) {
+            context.setTransform(
+                transform.scale,
+                0,
+                0,
+                transform.scale,
+                -transform.xOffset * transform.scale,
+                -transform.yOffset * transform.scale);
+        }
+
+        function scroll(x, y, context, xOffsetElement, yOffsetElement) {
+            transform.xOffset = x;
+            transform.yOffset = y;
+
+            xOffsetElement.textContent = transform.xOffset;
+            yOffsetElement.textContent = transform.yOffset;
+
+            updateTransform(context);
+        }
+
+        function zoom(factor, center, context, scaleElement) {
+            transform.scale *= factor;
+            scaleElement.textContent = transform.scale;
+
+            scroll(
+                center.x - (center.x - transform.xOffset) / factor,
+                center.y - (center.y - transform.yOffset) / factor,
+                context,
+                document.getElementById('xOffset'),
+                document.getElementById('yOffset'));
+        }
+
         function onLoad() {
             const view = document.getElementById('view');
             const simulationTimeItem = document.getElementById('simulationTime');
             const context = view.getContext('2d');
-            let isRunning = true;
+            context.imageSmoothingEnabled = false;
+
+            const spriteCanvas = document.getElementById('sprite');
+            const spriteContext = spriteCanvas.getContext('2d');
+            spriteContext.imageSmoothingEnabled = false;
+            spriteContext.scale(4, 4);
+            spriteContext.translate(spriteWidth / 2, spriteHeight / 2);
 
             const startButton = document.getElementById('startButton');
             const stopButton = document.getElementById('stopButton');
             startButton.hidden = true;
 
-            startButton.addEventListener('click', () => {
-                isRunning = true;
-                stopButton.hidden = !isRunning;
-                startButton.hidden = isRunning;
-            });
+            const logElement = document.getElementById('log');
+            const elapsedSecondsElement = document.getElementById('elapsedSeconds');
+            const updateSecondsElement = document.getElementById('updateSeconds');
 
-            stopButton.addEventListener('click', () => {
-                isRunning = false;
-                stopButton.hidden = !isRunning;
-                startButton.hidden = isRunning;
-            });
+            const genealogy = new Map();
 
             const environment = new world.Environment.Environment(
                 {
                     eggs: [],
                     foodLocations: [],
-                    width: view.width * scaleFactor,
-                    height: view.height * scaleFactor
+                    width: mapWidth,
+                    height: mapHeight
                 },
                 new Map(),
                 new EnvironmentSelector({
@@ -482,9 +652,22 @@
                     maximumFood: 50
                 }),
                 {
+                    eatRadius: spriteWidth,
                     foodHealth: 750,
                     minimumCarnivores: 25,
-                    minimumHerbavores: 25
+                    minimumHerbivores: 25,
+                    onEggCreated(egg, initiator, other) {
+                        addChild(genealogy, egg.creature.id, initiator.id);
+
+                        if (other) {
+                            addChild(genealogy, egg.creature.id, other.id);
+                        }
+
+                        //logEggCreated(logElement, egg);
+                    },
+                    onEggDestroyed(creature, egg) {
+                        //logEggDestroyed(logElement, creature, egg);
+                    }
                 });
 
             view.addEventListener('click', function(event) {
@@ -496,23 +679,143 @@
             });
 
             const graphviz = document.getElementById('graphviz');
+            const renderGraphvizButton = document.getElementById('renderGraphviz');
+            renderGraphvizButton.addEventListener('click', function(event) {
+                renderGraphViz(genealogy, graphviz);
+            });
 
             const speed = document.getElementById('speed');
-            function run() {
-                if (isRunning) {
-                    try {
-                        process(context, simulationTimeItem, environment, 100);
-                        renderGraphViz(environment, graphviz);
-                    }
-                    catch (e) {
-                        console.log(e);
-                    }
+
+            let rafHandle;
+            let lastTime;
+            const scale = 5000000;
+            function process(currentTime) {
+                const startTime = performance.now();
+
+                rafHandle = requestAnimationFrame(process);
+
+                if (!lastTime) {
+                    lastTime = currentTime;
                 }
 
-                setTimeout(run, 1000 / speed.valueAsNumber);
+                const elapsedSeconds =
+                    ((currentTime - lastTime) * speed.valueAsNumber) / scale;
+                lastTime = currentTime;
+                elapsedSecondsElement.textContent = elapsedSeconds;
+                try {
+                    environment.process(elapsedSeconds);
+                    render(context, environment);
+                    simulationTimeItem.textContent = environment.simulationTime;
+
+                    renderCreatureState(selectedCreature);
+                }
+                catch (e) {
+                    console.log(e);
+                }
+
+                const endTime = performance.now();
+                const updateElapsedSeconds = (endTime - startTime) / scale;
+                updateSecondsElement.textContent = updateElapsedSeconds;
             }
 
-            setTimeout(run, 1000 / speed.valueAsNumber);
+            function run() {
+                rafHandle = requestAnimationFrame(process)
+            }
+
+            function stop() {
+                cancelAnimationFrame(rafHandle);
+                rafHandle = undefined;
+                lastTime = undefined;
+            }
+
+            startButton.addEventListener('click', () => {
+                run();
+                stopButton.hidden = false;
+                startButton.hidden = true;
+            });
+
+            stopButton.addEventListener('click', () => {
+                stop();
+                stopButton.hidden = true;
+                startButton.hidden = false;
+            });
+
+            const xOffsetElement = document.getElementById('xOffset');
+            const yOffsetElement = document.getElementById('yOffset');
+            document.addEventListener('keypress', function(e) {
+                let dx = 0;
+                let dy = 0;
+                switch (e.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                        dy = -5;
+                        e.preventDefault();
+                        break;
+
+                    case 'ArrowLeft':
+                    case 'a':
+                        dx = 5;
+                        e.preventDefault();
+                        break;
+
+                    case 'ArrowDown':
+                    case 's':
+                        dy = 5;
+                        e.preventDefault();
+                        break;
+
+                    case 'ArrowRight':
+                    case 'd':
+                        dx = -5;
+                        e.preventDefault();
+                        break;
+                }
+
+                scroll(
+                    transform.xOffset + dx,
+                    transform.yOffset + dy,
+                    context,
+                    xOffsetElement,
+                    yOffsetElement);
+            });
+
+            const scaleElement = document.getElementById('scale');
+            view.addEventListener('wheel', function(e) {
+                e.preventDefault();
+
+                let factor = 1;
+                if (e.deltaY > 0) {
+                    factor = 1/2;
+                } else if (e.deltaY < 0) {
+                    factor = 2;
+                }
+
+                const point = canvasToMap({
+                    x: e.offsetX,
+                    y: e.offsetY
+                });
+
+                zoom(factor, point, context, scaleElement);
+            });
+
+            view.addEventListener('mousemove', function(e) {
+                const point = canvasToMap({
+                    x: e.offsetX,
+                    y: e.offsetY
+                });
+
+                document.getElementById('mouseX').textContent = point.x;
+                document.getElementById('mouseY').textContent = point.y;
+            });
+
+            const center = {
+                x: mapWidth / 2,
+                y: mapHeight / 2
+            };
+
+            zoom(view.width / mapWidth, center, context, scaleElement);
+            scroll(0, 0, context, xOffsetElement, yOffsetElement);
+            run();
         }
 
         document.addEventListener('DOMContentLoaded', onLoad);

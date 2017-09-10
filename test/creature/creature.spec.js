@@ -447,6 +447,7 @@ describe('Creature', function() {
 
     it('cannot see more than pi/4 radians to the left', function() {
         const creature = makeCreature({
+            anatomy: '20',
             velocity: '70',
             x: '0000',
             y: '0020'
@@ -470,6 +471,7 @@ describe('Creature', function() {
 
     it('cannot see more than pi/4 radians to the right', function() {
         const creature = makeCreature({
+            anatomy: '20',
             velocity: '70',
             x: '0000',
             y: '0020'
@@ -492,7 +494,9 @@ describe('Creature', function() {
     });
 
     it('cannot see more than 300 units away', function() {
-        const creature = makeCreature({});
+        const creature = makeCreature({
+            anatomy: '20'
+        });
 
         expect(creature.canSee({ x: 300, y: 0 })).to.deep.equal(
             {

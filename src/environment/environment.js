@@ -416,8 +416,7 @@ export default class Environment {
                     nearestFood.leftPeriphery,
                     nearestFood.rightPeriphery,
                     nearestFood.focus
-                ].
-                filter(food => {
+                ].filter(food => {
                     if (food && (food.distance < this.options.eatRadius)) {
                         if ((locations === 'eggs') &&
                             (food.point.initiatorId !== id) &&
@@ -429,8 +428,7 @@ export default class Environment {
                     }
 
                     return false;
-                }).
-                forEach(food => {
+                }).forEach(food => {
                     creature.feed(this.options.foodHealth);
                     this.options.onCreatureFed(
                         creature,

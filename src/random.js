@@ -5,7 +5,7 @@ export const chooseIntBetween = (min, max, random) =>
     Math.floor(chooseBetween(min, max, random));
 
 export const choose = (u, v, probabilityOfU, random) =>
-   random() < probabilityOfU ? u : v;
+    random() < probabilityOfU ? u : v;
 
 export const weightedChooseOne = (optionsMap, random) => {
     const choice = random();
